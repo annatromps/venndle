@@ -100,6 +100,7 @@ class PuzzlesController < ApplicationController
 
     render json: {
       correct: correct,
+      official_label: correct_label,
       solved: {
         a: game_session.solved_a?,
         b: game_session.solved_b?,

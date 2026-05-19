@@ -136,8 +136,9 @@
           ["c", "#E8631A", "#FDF0E9", "#F0956A"]
         ].each do |lbl, color, bg, placeholder_color| %>
           <% solved = game_session.send("solved_#{lbl}?") %>
-          <% label_text = solved ? puzzle.send("label_#{lbl}") : nil %>
+          <% label_text = puzzle.send("label_#{lbl}") %>
           <% lbl_attempts = attempts.select { |a| a.label == lbl } %>
+          <% last_correct_attempt = lbl_attempts.select(&:correct?).last %>
 
           <div id="guess-row-<%= lbl %>" class="guess-row"
                data-label="<%= lbl %>" data-solved="<%= solved %>"
@@ -151,7 +152,7 @@
 
               <% if solved %>
                 <span style="flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= label_text %></span>
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2563EB;color:white;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#16a34a;color:white;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>
               <% else %>
                 <input type="text" name="guess"
                        placeholder="Category <%= lbl.upcase %>..."
@@ -175,6 +176,9 @@
                 <% end %>
               <% end %>
             </span>
+            <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
+              <span id="you-said-<%= lbl %>" style="font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;">you said: <%= last_correct_attempt.guess %></span>
+            <% end %>
           </div>
         <% end %>
       </div>
@@ -288,20 +292,27 @@
 
             if (data.solved[label]) {
               row.dataset.solved = 'true';
+              const officialLabel = data.official_label;
               const mainRow = row.querySelector('.guess-row-main');
               const inputEl = mainRow.querySelector('input[name="guess"]');
               if (inputEl) {
                 const labelSpan = document.createElement('span');
                 labelSpan.style.cssText = "flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-                labelSpan.textContent = data['label_' + label];
+                labelSpan.textContent = officialLabel;
                 inputEl.replaceWith(labelSpan);
               }
               btn.remove();
               const check = document.createElement('span');
-              check.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2563EB;color:white;font-size:10px;font-weight:700;flex-shrink:0;';
+              check.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#16a34a;color:white;font-size:10px;font-weight:700;flex-shrink:0;';
               check.textContent = '✓';
               mainRow.appendChild(check);
-              updateSvgPill(label, data['label_' + label], getCircleColor(label));
+              updateSvgPill(label, officialLabel, getCircleColor(label));
+              if (guess.toLowerCase().trim() !== officialLabel.toLowerCase().trim()) {
+                const youSaid = document.createElement('span');
+                youSaid.style.cssText = "font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;";
+                youSaid.textContent = 'you said: ' + guess;
+                row.appendChild(youSaid);
+              }
             } else {
               btn.disabled = false;
               btn.innerHTML = '&#8594;';
