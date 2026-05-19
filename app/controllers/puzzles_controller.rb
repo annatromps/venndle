@@ -35,7 +35,8 @@ class PuzzlesController < ApplicationController
     end
 
     if @puzzle.save
-      redirect_to @puzzle, notice: "Puzzle created!"
+      flash[:just_created] = @puzzle.id
+      redirect_to @puzzle
     else
       render :new, status: :unprocessable_entity
     end

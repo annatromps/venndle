@@ -47,11 +47,7 @@
 
       <div>
         <div id="share-string" style="font-size:12px;color:#666;font-family:monospace;white-space:pre-wrap;line-height:2;margin-bottom:10px;"><%= build_share_string_for(game_session, puzzle) %></div>
-        <div style="display:flex;gap:8px;">
-          <button onclick="copyShare(event)" style="flex:1;background:#1a1a2e;color:white;font-weight:700;font-size:13px;border:none;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Copy</button>
-          <button onclick="shareResult()" style="flex:1;background:transparent;color:#1a1a2e;font-weight:700;font-size:13px;border:1.5px solid rgba(0,0,0,0.2);border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Share</button>
-          <button onclick="copyPuzzleLink(event)" style="flex:1;background:transparent;color:#5B53D6;font-weight:700;font-size:13px;border:1.5px solid #5B53D6;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Puzzle link</button>
-        </div>
+        <button onclick="copyShare(event)" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:13px;border:none;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Copy score</button>
       </div>
 
       <% unless user_signed_in? %>
@@ -63,29 +59,12 @@
     </div>
 
     <script>
-      const _puzzleUrl = '<%= "#{request.base_url}/puzzles/#{puzzle.id}" %>';
-
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
         navigator.clipboard.writeText(text).then(function() {
           const btn = e.target;
           btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
-        });
-      }
-      function shareResult() {
-        const text = document.getElementById('share-string').textContent.trim();
-        if (navigator.share) {
-          navigator.share({ text: text });
-        } else {
-          document.querySelector('[onclick="copyShare(event)"]').click();
-        }
-      }
-      function copyPuzzleLink(e) {
-        navigator.clipboard.writeText(_puzzleUrl).then(function() {
-          const btn = e.target;
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Puzzle link'; }, 2000);
+          setTimeout(function() { btn.textContent = 'Copy score'; }, 2000);
         });
       }
     </script>
