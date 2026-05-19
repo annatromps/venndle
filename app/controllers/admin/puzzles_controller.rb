@@ -21,6 +21,7 @@ class Admin::PuzzlesController < ApplicationController
     @puzzle = Puzzle.new(puzzle_params)
     @puzzle.user = current_user
     if @puzzle.save
+      generate_accepted_answers_for(@puzzle)
       redirect_to admin_puzzles_path, notice: "Puzzle scheduled."
     else
       render :new, status: :unprocessable_entity
@@ -32,6 +33,7 @@ class Admin::PuzzlesController < ApplicationController
 
   def update
     if @puzzle.update(puzzle_params)
+      generate_accepted_answers_for(@puzzle)
       redirect_to admin_puzzle_path(@puzzle), notice: "Puzzle updated."
     else
       render :edit, status: :unprocessable_entity

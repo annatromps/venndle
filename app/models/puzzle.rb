@@ -17,4 +17,14 @@ class Puzzle < ApplicationRecord
   def words_for_region(region)
     send("words_#{region}") || []
   end
+
+  def all_circle_words_for(label)
+    regions = case label.to_s
+    when "a" then %w[words_a words_ab words_ac words_abc]
+    when "b" then %w[words_b words_ab words_bc words_abc]
+    when "c" then %w[words_c words_ac words_bc words_abc]
+    else []
+    end
+    regions.flat_map { |r| send(r) || [] }.reject(&:blank?)
+  end
 end

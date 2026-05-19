@@ -4,6 +4,18 @@ class ApplicationController < ActionController::Base
 
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  private
+
+  def generate_accepted_answers_for(puzzle)
+    return if ENV["ANTHROPIC_API_KEY"].blank? || ENV["ANTHROPIC_API_KEY"] == "your_api_key_here"
+    %w[a b c].each do |lbl|
+      answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
+      puzzle.update_column("accepted_answers_#{lbl}", answers)
+    end
+  rescue => e
+    Rails.logger.error "AcceptedAnswers generation failed for puzzle #{puzzle.id}: #{e.message}"
+  end
+
   protected
 
   def configure_permitted_parameters
