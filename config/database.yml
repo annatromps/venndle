@@ -11,22 +11,6 @@ test:
   <<: *default
   database: venndle_test
 
-# Production uses DATABASE_URL provided by Railway (or any PaaS).
-# All solid_cache / solid_queue / solid_cable adapters share the same
-# database — they create their own tables via their schema files.
 production:
-  primary:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-  cache:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *default
-    url: <%= ENV["DATABASE_URL"] %>
-    migrations_paths: db/cable_migrate
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
