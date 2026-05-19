@@ -1,16 +1,9 @@
 <div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;">
   <div style="max-width:760px;margin:0 auto;padding:20px 20px 40px;">
 
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;">
-      <div>
-        <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Community</p>
-        <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
-      </div>
-      <% if user_signed_in? %>
-        <a href="/puzzles/new" style="display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:13px;padding:10px 18px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">
-          <span style="font-size:1.1em;">+</span> Create puzzle
-        </a>
-      <% end %>
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Community</p>
+      <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
     </div>
 
     <% if @puzzles.any? %>

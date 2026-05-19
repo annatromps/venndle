@@ -54,17 +54,17 @@
           <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
           <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_text %></text>
 
-          <%# B label pill — inside circle B near bottom %>
+          <%# B label pill — straddling bottom of circle B %>
           <% b_text = puzzle.label_b.to_s.upcase %>
           <% b_pw = [b_text.length * 8 + 24, 60].max %>
-          <rect x="<%= 185 - b_pw/2 %>" y="357" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
-          <text x="185" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_text %></text>
+          <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
+          <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_text %></text>
 
-          <%# C label pill — inside circle C near bottom %>
+          <%# C label pill — straddling bottom of circle C %>
           <% c_text = puzzle.label_c.to_s.upcase %>
           <% c_pw = [c_text.length * 8 + 24, 60].max %>
-          <rect x="<%= 375 - c_pw/2 %>" y="357" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
-          <text x="375" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_text %></text>
+          <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
+          <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_text %></text>
 
           <%# Word pills %>
           <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
@@ -143,34 +143,31 @@
           <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
           <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
-          <%# A label pill — shows "?" until solved (g wrapper lets JS update it) %>
+          <%# A label pill — shows "A" in circle colour until solved, then real label %>
           <% a_solved = game_session.solved_a? %>
-          <% a_display = a_solved ? puzzle.label_a.to_s.upcase : "?" %>
-          <% a_fill = a_solved ? "#5B53D6" : "#2d2d2d" %>
-          <% a_pw = a_solved ? [a_display.length * 8 + 24, 60].max : 36 %>
+          <% a_display = a_solved ? puzzle.label_a.to_s.upcase : "A" %>
+          <% a_pw = [a_display.length * 8 + 24, 60].max %>
           <g data-label-pill="a" data-cx="280" data-solved-color="#5B53D6">
-            <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="<%= a_fill %>"/>
+            <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
             <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
           </g>
 
-          <%# B label pill — inside circle B near bottom %>
+          <%# B label pill — shows "B" in circle colour until solved, then real label %>
           <% b_solved = game_session.solved_b? %>
-          <% b_display = b_solved ? puzzle.label_b.to_s.upcase : "?" %>
-          <% b_fill = b_solved ? "#2BAB65" : "#2d2d2d" %>
-          <% b_pw = b_solved ? [b_display.length * 8 + 24, 60].max : 36 %>
+          <% b_display = b_solved ? puzzle.label_b.to_s.upcase : "B" %>
+          <% b_pw = [b_display.length * 8 + 24, 60].max %>
           <g data-label-pill="b" data-cx="185" data-solved-color="#2BAB65">
-            <rect x="<%= 185 - b_pw/2 %>" y="357" width="<%= b_pw %>" height="28" rx="14" fill="<%= b_fill %>"/>
-            <text x="185" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
+            <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
+            <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
           </g>
 
-          <%# C label pill — inside circle C near bottom %>
+          <%# C label pill — shows "C" in circle colour until solved, then real label %>
           <% c_solved = game_session.solved_c? %>
-          <% c_display = c_solved ? puzzle.label_c.to_s.upcase : "?" %>
-          <% c_fill = c_solved ? "#E8631A" : "#2d2d2d" %>
-          <% c_pw = c_solved ? [c_display.length * 8 + 24, 60].max : 36 %>
+          <% c_display = c_solved ? puzzle.label_c.to_s.upcase : "C" %>
+          <% c_pw = [c_display.length * 8 + 24, 60].max %>
           <g data-label-pill="c" data-cx="375" data-solved-color="#E8631A">
-            <rect x="<%= 375 - c_pw/2 %>" y="357" width="<%= c_pw %>" height="28" rx="14" fill="<%= c_fill %>"/>
-            <text x="375" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
+            <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
+            <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
           </g>
 
           <%# Word pills %>
@@ -230,7 +227,7 @@
                 <% if attempt.correct? %>
                   <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:<%= color %>;color:white;font-size:8px;font-weight:700;">✓</span>
                 <% else %>
-                  <span style="font-size:11px;color:#ccc;">✗</span>
+                  <span style="font-size:12px;color:#e53e3e;font-weight:700;">✗</span>
                 <% end %>
               <% end %>
             </span>
@@ -314,9 +311,13 @@
               marksEl.appendChild(m);
             } else {
               const m = document.createElement('span');
-              m.style.cssText = 'font-size:11px;color:#ccc;';
+              m.style.cssText = 'font-size:12px;color:#e53e3e;font-weight:700;';
               m.textContent = '✗';
               marksEl.appendChild(m);
+              // Brief red-border flash on the row to signal incorrect
+              row.style.transition = 'border-color 0.15s';
+              row.style.borderColor = '#e53e3e';
+              setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 500);
             }
 
             input.value = '';
