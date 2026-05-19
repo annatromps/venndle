@@ -23,7 +23,7 @@
         total_wrong += [cnt - (solved ? 1 : 0), 0].max
       end
     %>
-    <div style="height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:20px;box-sizing:border-box;max-width:500px;margin:0 auto;width:100%;">
+    <div style="height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
 
       <div>
         <h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.1;">Nicely done.</h2>
@@ -78,8 +78,8 @@
 
     <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
 
-      <%# SVG diagram — fills remaining space, scales to fit %>
-      <div style="flex:1;min-height:0;overflow:hidden;background:#f8f8fb;border-radius:18px;">
+      <%# SVG diagram — fills remaining space, scales to fit; sits on gradient directly %>
+      <div style="flex:1;min-height:0;overflow:hidden;">
         <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
@@ -158,7 +158,7 @@
                 <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2563EB;color:white;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>
               <% else %>
                 <input type="text" name="guess"
-                       placeholder="<%= lbl.upcase %>..."
+                       placeholder="Category <%= lbl.upcase %>..."
                        autocomplete="off"
                        style="flex:1;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;min-width:0;"
                        data-placeholder-color="<%= placeholder_color %>" />
@@ -170,12 +170,12 @@
             </div>
 
             <%# Attempt marks — second line %>
-            <span id="marks-<%= lbl %>" style="display:flex;align-items:center;gap:2px;padding-left:32px;min-height:13px;">
+            <span id="marks-<%= lbl %>" style="display:flex;align-items:center;gap:3px;padding-left:32px;min-height:20px;">
               <% lbl_attempts.each do |attempt| %>
                 <% if attempt.correct? %>
                   <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:<%= color %>;color:white;font-size:8px;font-weight:700;">✓</span>
                 <% else %>
-                  <span style="font-size:12px;color:#e53e3e;font-weight:700;">✗</span>
+                  <span style="font-size:18px;color:#ef4444;font-weight:900;line-height:1;">✗</span>
                 <% end %>
               <% end %>
             </span>
@@ -259,7 +259,7 @@
               marksEl.appendChild(m);
             } else {
               const m = document.createElement('span');
-              m.style.cssText = 'font-size:12px;color:#e53e3e;font-weight:700;';
+              m.style.cssText = 'font-size:18px;color:#ef4444;font-weight:900;line-height:1;';
               m.textContent = '✗';
               marksEl.appendChild(m);
               // Brief red-border flash on the row to signal incorrect
