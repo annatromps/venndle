@@ -1,13 +1,12 @@
 class PuzzlesController < ApplicationController
-  before_action :authenticate_user!, only: [:new, :create]
+  before_action :require_login_to_create, only: [:new, :create]
 
   def daily
     @puzzle = Puzzle.published.daily.where(scheduled_date: Date.today).first ||
               Puzzle.published.daily.order(scheduled_date: :desc).first
-
-    if @puzzle && user_signed_in?
-      @game_session = GameSession.find_or_create_by(user: current_user, puzzle: @puzzle)
-      @attempts = current_user.attempts.where(puzzle: @puzzle).order(:created_at)
+    if @puzzle
+      @game_session = find_or_build_game_session(@puzzle)
+      @attempts = load_attempts(@puzzle)
     end
   end
 
@@ -17,10 +16,8 @@ class PuzzlesController < ApplicationController
 
   def show
     @puzzle = Puzzle.find(params[:id])
-    if user_signed_in?
-      @game_session = GameSession.find_or_create_by(user: current_user, puzzle: @puzzle)
-      @attempts = current_user.attempts.where(puzzle: @puzzle).order(:created_at)
-    end
+    @game_session = find_or_build_game_session(@puzzle)
+    @attempts = load_attempts(@puzzle)
   end
 
   def new
@@ -45,10 +42,6 @@ class PuzzlesController < ApplicationController
   end
 
   def guess
-    unless user_signed_in?
-      render json: { error: "Login required" }, status: :unauthorized and return
-    end
-
     @puzzle = Puzzle.find(params[:id])
     label = params[:label].to_s.downcase
     guess = params[:guess].to_s.strip
@@ -61,20 +54,18 @@ class PuzzlesController < ApplicationController
       render json: { error: "Guess cannot be blank" }, status: :bad_request and return
     end
 
-    game_session = GameSession.find_or_create_by(user: current_user, puzzle: @puzzle)
+    game_session = find_or_build_game_session(@puzzle)
 
     correct_label = @puzzle.send("label_#{label}")
     circle_words = @puzzle.send("words_#{label}") || []
 
     correct = AnthropicJudgeService.call(guess, correct_label, circle_words)
 
-    Attempt.create!(
-      user: current_user,
-      puzzle: @puzzle,
-      label: label,
-      guess: guess,
-      correct: correct
-    )
+    if user_signed_in?
+      Attempt.create!(user: current_user, puzzle: @puzzle, label: label, guess: guess, correct: correct)
+    else
+      save_guest_attempt(@puzzle, label, guess, correct)
+    end
 
     game_session.increment!("attempts_#{label}")
     game_session.update!("solved_#{label}" => true) if correct
@@ -102,6 +93,38 @@ class PuzzlesController < ApplicationController
   end
 
   private
+
+  def require_login_to_create
+    unless user_signed_in?
+      redirect_to new_user_session_path, alert: "Sign in to create your own Venndle puzzle."
+    end
+  end
+
+  def find_or_build_game_session(puzzle)
+    if user_signed_in?
+      GameSession.find_or_create_by(user: current_user, puzzle: puzzle)
+    else
+      GuestGameSession.find_or_create(session, puzzle.id)
+    end
+  end
+
+  def load_attempts(puzzle)
+    if user_signed_in?
+      current_user.attempts.where(puzzle: puzzle).order(:created_at)
+    else
+      key = "guest_attempts_#{puzzle.id}"
+      (session[key] || []).map do |a|
+        GuestAttempt.new(label: a["label"], guess: a["guess"], correct: a["correct"])
+      end
+    end
+  end
+
+  def save_guest_attempt(puzzle, label, guess, correct)
+    key = "guest_attempts_#{puzzle.id}"
+    attempts = (session[key] || []).dup
+    attempts << { "label" => label, "guess" => guess, "correct" => correct }
+    session[key] = attempts
+  end
 
   def puzzle_params
     permitted = params.require(:puzzle).permit(

@@ -52,6 +52,13 @@
           <button onclick="shareResult()" style="flex:1;background:transparent;color:#1a1a2e;font-weight:700;font-size:13px;border:1.5px solid rgba(0,0,0,0.2);border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Share</button>
         </div>
       </div>
+
+      <% unless user_signed_in? %>
+        <div style="text-align:center;padding-top:4px;">
+          <p style="font-size:12px;color:#aaa;margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;">Want to track your stats and create puzzles?</p>
+          <a href="/users/sign_up" style="font-size:12px;font-weight:700;color:#5B53D6;text-decoration:none;">Create a free account &rarr;</a>
+        </div>
+      <% end %>
     </div>
 
     <script>
@@ -73,7 +80,7 @@
       }
     </script>
 
-  <% elsif user_signed_in? && game_session %>
+  <% elsif game_session %>
     <%# ===== ACTIVE GAME STATE — zero scroll, fits viewport ===== %>
 
     <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
@@ -332,14 +339,6 @@
       })();
     </script>
 
-  <% else %>
-    <%# Not signed in %>
-    <div style="height:100%;display:flex;align-items:center;justify-content:center;">
-      <div style="text-align:center;">
-        <p style="color:#999;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">Sign in to play this puzzle.</p>
-        <a href="/users/sign_in" style="display:inline-block;font-weight:700;font-size:16px;padding:16px 32px;border-radius:14px;background:#1a1a2e;color:white;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign in to play</a>
-      </div>
-    </div>
   <% end %>
 
 </div>
