@@ -1,42 +1,45 @@
-<div class="max-w-sm mx-auto">
-  <h2 class="text-2xl font-bold text-gray-900 mb-6">Sign up</h2>
+<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+  <div style="background:white;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:32px 28px;width:100%;max-width:360px;">
+    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0 0 20px;">Sign up</h2>
 
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-    <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-    <div class="space-y-4">
-      <div>
-        <%= f.label :username, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.text_field :username, autofocus: true, autocomplete: "username",
-              class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" %>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <%= f.label :username, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <%= f.text_field :username, autofocus: true, autocomplete: "username",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <div>
+          <%= f.label :email, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <%= f.email_field :email, autocomplete: "email",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <div>
+          <%= f.label :password, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <% if @minimum_password_length %>
+            <p style="font-size:11px;color:#aaa;margin:0 0 5px;font-family:'Inter',system-ui,sans-serif;"><%= @minimum_password_length %> characters minimum</p>
+          <% end %>
+          <%= f.password_field :password, autocomplete: "new-password",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <div>
+          <%= f.label :password_confirmation, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <%= f.submit "Sign up",
+              style: "width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;padding:12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;margin-top:4px;" %>
       </div>
+    <% end %>
 
-      <div>
-        <%= f.label :email, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.email_field :email, autocomplete: "email",
-              class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" %>
-      </div>
-
-      <div>
-        <%= f.label :password, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <% if @minimum_password_length %>
-          <p class="text-xs text-gray-400 mb-1"><%= @minimum_password_length %> characters minimum</p>
-        <% end %>
-        <%= f.password_field :password, autocomplete: "new-password",
-              class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" %>
-      </div>
-
-      <div>
-        <%= f.label :password_confirmation, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.password_field :password_confirmation, autocomplete: "new-password",
-              class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" %>
-      </div>
-
-      <%= f.submit "Sign up", class: "w-full bg-gray-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-700 cursor-pointer mt-2" %>
+    <div style="margin-top:16px;font-size:13px;color:#888;font-family:'Inter',system-ui,sans-serif;">
+      <%= render "devise/shared/links" %>
     </div>
-  <% end %>
-
-  <div class="mt-4 text-sm text-gray-500">
-    <%= render "devise/shared/links" %>
   </div>
 </div>

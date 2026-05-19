@@ -1,41 +1,50 @@
-<div class="mb-6 flex items-center justify-between">
-  <h1 class="text-2xl font-bold text-gray-900">Admin: Puzzles</h1>
-  <a href="/admin/puzzles/new" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">+ New puzzle</a>
-</div>
+<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 24px 40px;">
+  <div style="max-width:860px;margin:0 auto;">
 
-<div class="overflow-x-auto">
-  <table class="w-full text-sm">
-    <thead>
-      <tr class="border-b border-gray-200 text-left text-gray-500">
-        <th class="pb-3 pr-4 font-medium">Title</th>
-        <th class="pb-3 pr-4 font-medium">Type</th>
-        <th class="pb-3 pr-4 font-medium">Scheduled</th>
-        <th class="pb-3 pr-4 font-medium">Published</th>
-        <th class="pb-3 pr-4 font-medium">Creator</th>
-        <th class="pb-3 font-medium">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @puzzles.each do |puzzle| %>
-        <tr class="border-b border-gray-100 hover:bg-gray-50">
-          <td class="py-3 pr-4 font-medium text-gray-900"><%= puzzle.title %></td>
-          <td class="py-3 pr-4 text-gray-600"><%= puzzle.puzzle_type %></td>
-          <td class="py-3 pr-4 text-gray-600"><%= puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></td>
-          <td class="py-3 pr-4">
-            <span class="px-2 py-1 rounded-full text-xs <%= puzzle.published? ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' %>">
-              <%= puzzle.published? ? "Yes" : "No" %>
-            </span>
-          </td>
-          <td class="py-3 pr-4 text-gray-600"><%= puzzle.user.username %></td>
-          <td class="py-3 flex gap-3">
-            <a href="/admin/puzzles/<%= puzzle.id %>" class="text-blue-600 hover:underline">View</a>
-            <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="text-gray-600 hover:underline">Edit</a>
-            <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
-                  data: { turbo_confirm: "Delete this puzzle?" },
-                  class: "text-red-500 hover:underline bg-transparent border-none cursor-pointer text-sm p-0" %>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">Admin: Puzzles</h1>
+      <a href="/admin/puzzles/new" style="background:#1a1a2e;color:white;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">+ New puzzle</a>
+    </div>
+
+    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <table style="width:100%;font-size:13px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;">
+        <thead>
+          <tr style="border-bottom:1px solid #f0f0f0;">
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">ID</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Title</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Type</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Scheduled</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Published</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Creator</th>
+            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @puzzles.each do |puzzle| %>
+            <tr style="border-bottom:1px solid #f8f8f8;">
+              <td style="padding:12px 16px;color:#888;">#<%= puzzle.id %></td>
+              <td style="padding:12px 16px;font-weight:500;color:#1a1a2e;"><%= puzzle.title.presence || "—" %></td>
+              <td style="padding:12px 16px;color:#666;"><%= puzzle.puzzle_type %></td>
+              <td style="padding:12px 16px;color:#666;"><%= puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></td>
+              <td style="padding:12px 16px;">
+                <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;<%= puzzle.published? ? 'background:#e8f5ec;color:#1a6636;' : 'background:#f4f4f4;color:#888;' %>">
+                  <%= puzzle.published? ? "Yes" : "No" %>
+                </span>
+              </td>
+              <td style="padding:12px 16px;color:#666;"><%= puzzle.user.username %></td>
+              <td style="padding:12px 16px;">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <a href="/admin/puzzles/<%= puzzle.id %>" style="color:#5B53D6;font-weight:600;text-decoration:none;font-size:12px;">View</a>
+                  <a href="/admin/puzzles/<%= puzzle.id %>/edit" style="color:#666;text-decoration:none;font-size:12px;">Edit</a>
+                  <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
+                        data: { turbo_confirm: "Delete this puzzle?" },
+                        style: "color:#e53e3e;background:transparent;border:none;cursor:pointer;font-size:12px;font-family:'Inter',system-ui,sans-serif;padding:0;font-weight:600;" %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

@@ -1,34 +1,35 @@
-<div style="min-height:100dvh;padding:8px 16px 40px;">
-  <div style="max-width:680px;margin:0 auto;">
+<div style="height:100%;display:flex;flex-direction:column;padding:10px 16px 8px;box-sizing:border-box;max-width:680px;margin:0 auto;width:100%;">
 
-    <%# Card header %>
-    <div style="margin-bottom:18px;">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:4px;">
-        <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;flex-shrink:0;"></span>
-        <span style="font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
-          BY <%= @puzzle.user.username.upcase %>
-        </span>
-      </div>
-      <h1 style="font-family:'Playfair Display',serif;font-size:42px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
-        Puzzle &numero;<%= @puzzle.id %>
-      </h1>
-    </div>
-
-    <%= render "venn", puzzle: @puzzle, game_session: @game_session, attempts: (@attempts || []) %>
-
-    <%# Footer %>
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(0,0,0,0.1);text-align:center;">
-      <span style="font-size:12px;color:#888;font-weight:400;">
-        Made with care &middot;
-        <a href="/puzzles" style="color:#888;text-decoration:none;">Puzzles</a>
-        &middot;
-        <% if user_signed_in? %>
-          <%= button_to "Sign out", destroy_user_session_path, method: :delete,
-                style: "font-size:12px;color:#888;background:transparent;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;" %>
-        <% else %>
-          <a href="/users/sign_in" style="color:#888;text-decoration:none;">Sign in</a>
-        <% end %>
+  <%# Header — compact %>
+  <div style="flex-shrink:0;margin-bottom:6px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+      <span style="width:7px;height:7px;border-radius:50%;background:#F59E0B;display:inline-block;flex-shrink:0;"></span>
+      <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
+        BY <%= @puzzle.user.username.upcase %>
       </span>
     </div>
+    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
+      Puzzle &numero;<%= @puzzle.id %>
+    </h1>
+  </div>
+
+  <%# Venn content — fills remaining height %>
+  <div style="flex:1;min-height:0;overflow:hidden;">
+    <%= render "venn", puzzle: @puzzle, game_session: @game_session, attempts: (@attempts || []) %>
+  </div>
+
+  <%# Footer — compact %>
+  <div style="flex-shrink:0;padding-top:7px;border-top:1px solid rgba(0,0,0,0.08);text-align:center;margin-top:7px;">
+    <span style="font-size:11px;color:#aaa;font-weight:400;font-family:'Inter',system-ui,sans-serif;">
+      Made with care &middot;
+      <a href="/puzzles" style="color:#aaa;text-decoration:none;">Puzzles</a>
+      &middot;
+      <% if user_signed_in? %>
+        <%= button_to "Sign out", destroy_user_session_path, method: :delete,
+              style: "font-size:11px;color:#aaa;background:transparent;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;" %>
+      <% else %>
+        <a href="/users/sign_in" style="color:#aaa;text-decoration:none;">Sign in</a>
+      <% end %>
+    </span>
   </div>
 </div>

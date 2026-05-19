@@ -90,9 +90,9 @@ class PuzzlesController < ApplicationController
       },
       completed: game_session.completed?,
       share_string: share_string,
-      label_a: @puzzle.label_a,
-      label_b: @puzzle.label_b,
-      label_c: @puzzle.label_c
+      label_a: game_session.solved_a? ? @puzzle.label_a : nil,
+      label_b: game_session.solved_b? ? @puzzle.label_b : nil,
+      label_c: game_session.solved_c? ? @puzzle.label_c : nil
     }
   end
 

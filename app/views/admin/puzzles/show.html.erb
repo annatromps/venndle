@@ -1,22 +1,30 @@
-<div class="max-w-2xl mx-auto">
-  <div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-bold text-gray-900"><%= @puzzle.title %></h1>
-    <div class="flex gap-3">
-      <a href="/admin/puzzles/<%= @puzzle.id %>/edit" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">Edit</a>
-      <a href="/admin/puzzles" class="text-sm text-gray-500 hover:underline self-center">Back</a>
+<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 24px 40px;">
+  <div style="max-width:680px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">
+        Puzzle #<%= @puzzle.id %><% if @puzzle.title.present? %> — <%= @puzzle.title %><% end %>
+      </h1>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <a href="/admin/puzzles/<%= @puzzle.id %>/edit" style="background:#1a1a2e;color:white;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Edit</a>
+        <a href="/admin/puzzles" style="font-size:13px;color:#888;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Back</a>
+      </div>
+    </div>
+
+    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);font-family:'Inter',system-ui,sans-serif;">
+      <dl style="display:grid;grid-template-columns:140px 1fr;gap:10px 0;font-size:13px;">
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Type</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.puzzle_type %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Scheduled</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Published</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.published? ? "Yes" : "No" %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Creator</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.user.username %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Label A</dt><dd style="color:#5B53D6;font-weight:600;padding:4px 0;"><%= @puzzle.label_a %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Label B</dt><dd style="color:#2BAB65;font-weight:600;padding:4px 0;"><%= @puzzle.label_b %></dd>
+        <dt style="font-weight:600;color:#888;padding:4px 0;">Label C</dt><dd style="color:#E8631A;font-weight:600;padding:4px 0;"><%= @puzzle.label_c %></dd>
+        <% %w[words_a words_b words_c words_ab words_ac words_bc words_abc].each do |field| %>
+          <dt style="font-weight:600;color:#888;padding:4px 0;"><%= field %></dt>
+          <dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.send(field)&.join(", ").presence || "—" %></dd>
+        <% end %>
+      </dl>
     </div>
   </div>
-
-  <dl class="space-y-3 text-sm">
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Type</dt><dd><%= @puzzle.puzzle_type %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Scheduled</dt><dd><%= @puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Published</dt><dd><%= @puzzle.published? ? "Yes" : "No" %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Creator</dt><dd><%= @puzzle.user.username %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label A</dt><dd><%= @puzzle.label_a %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label B</dt><dd><%= @puzzle.label_b %></dd></div>
-    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label C</dt><dd><%= @puzzle.label_c %></dd></div>
-    <% %w[words_a words_b words_c words_ab words_ac words_bc words_abc].each do |field| %>
-      <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32"><%= field %></dt><dd><%= @puzzle.send(field)&.join(", ") %></dd></div>
-    <% end %>
-  </dl>
 </div>

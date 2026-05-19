@@ -1,17 +1,17 @@
-<div style="min-height:100vh;padding:8px 16px 40px;">
+<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:16px 16px 40px;">
   <div style="max-width:420px;margin:0 auto;">
     <%# White card %>
-    <div style="background:white;border-radius:24px;box-shadow:0 4px 32px rgba(0,0,0,0.09);padding:28px 24px 28px;overflow:hidden;">
+    <div style="background:white;border-radius:24px;box-shadow:0 4px 32px rgba(0,0,0,0.09);padding:24px 20px 24px;overflow:hidden;">
 
       <%# Badge %>
-      <div style="margin-bottom:14px;">
+      <div style="margin-bottom:12px;">
         <span style="display:inline-block;background:#1a1a2e;color:white;font-size:12px;font-weight:700;border-radius:999px;padding:4px 14px;letter-spacing:0.05em;font-family:'Inter',system-ui,sans-serif;">
           &#10022; NEW PUZZLE
         </span>
       </div>
 
-      <h1 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#1a1a2e;margin:0 0 8px;line-height:1.15;">Create a Venndle</h1>
-      <p style="font-size:14px;color:#888;margin:0 0 22px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Design your own puzzle. Drop words into each region, then name the secret themes.</p>
+      <h1 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#1a1a2e;margin:0 0 6px;line-height:1.15;">Create a Venndle</h1>
+      <p style="font-size:13px;color:#888;margin:0 0 18px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Drop words into each region, then name the secret themes.</p>
 
       <% if @puzzle.errors.any? %>
         <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
@@ -26,15 +26,15 @@
       <%= form_with model: @puzzle, id: "puzzle-form" do |f| %>
 
         <%# Title input %>
-        <div style="margin-bottom:20px;">
-          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:7px;font-family:'Inter',system-ui,sans-serif;">PUZZLE TITLE (optional)</label>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">PUZZLE TITLE (optional)</label>
           <%= f.text_field :title,
-            style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:12px;padding:10px 14px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:white;",
+            style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:12px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:white;",
             placeholder: "e.g. Animals, Colours & Round Things" %>
         </div>
 
         <%# Venn diagram with foreignObject inputs %>
-        <div style="background:#f8f8fb;border-radius:18px;padding:10px 6px 6px;margin-bottom:20px;overflow:hidden;">
+        <div style="background:#f8f8fb;border-radius:18px;padding:8px 4px 4px;margin-bottom:16px;overflow:hidden;">
           <svg viewBox="0 0 560 460" width="100%" style="max-width:560px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
 
             <%# Circles %>
@@ -46,13 +46,13 @@
             <rect x="242" y="8" width="76" height="28" rx="14" fill="#5B53D6"/>
             <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE A</text>
 
-            <%# Circle B label pill %>
-            <rect x="147" y="428" width="76" height="28" rx="14" fill="#2BAB65"/>
-            <text x="185" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE B</text>
+            <%# Circle B label pill — inside circle B %>
+            <rect x="147" y="357" width="76" height="28" rx="14" fill="#2BAB65"/>
+            <text x="185" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE B</text>
 
-            <%# Circle C label pill %>
-            <rect x="337" y="428" width="76" height="28" rx="14" fill="#E8631A"/>
-            <text x="375" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE C</text>
+            <%# Circle C label pill — inside circle C %>
+            <rect x="337" y="357" width="76" height="28" rx="14" fill="#E8631A"/>
+            <text x="375" y="376" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE C</text>
 
             <%# ── A only input ── %>
             <foreignObject x="200" y="56" width="160" height="28">
@@ -128,34 +128,30 @@
         </div>
 
         <%# Secret labels section %>
-        <div style="margin-bottom:22px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:4px;font-family:'Inter',system-ui,sans-serif;">SECRET LABELS</div>
-          <div style="font-size:13px;color:#aaa;margin-bottom:12px;font-family:'Inter',system-ui,sans-serif;">What connects the words in each circle?</div>
+        <div style="margin-bottom:18px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:3px;font-family:'Inter',system-ui,sans-serif;">SECRET LABELS</div>
+          <div style="font-size:12px;color:#aaa;margin-bottom:10px;font-family:'Inter',system-ui,sans-serif;">What connects the words in each circle?</div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
             <div>
               <%= f.text_field :label_a,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:12px;padding:9px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;",
-                placeholder: "Circle A answer..." %>
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;",
+                placeholder: "A answer..." %>
             </div>
             <div>
               <%= f.text_field :label_b,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #2BAB65;border-radius:12px;padding:9px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#E5F5EC;",
-                placeholder: "Circle B answer..." %>
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #2BAB65;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#E5F5EC;",
+                placeholder: "B answer..." %>
             </div>
             <div>
               <%= f.text_field :label_c,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #E8631A;border-radius:12px;padding:9px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#FDF0E9;",
-                placeholder: "Circle C answer..." %>
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #E8631A;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#FDF0E9;",
+                placeholder: "C answer..." %>
             </div>
           </div>
         </div>
 
-        <%# Bottom: Create button + Preview link %>
-        <div style="display:flex;align-items:center;gap:16px;">
-          <%= f.submit "Create puzzle",
-            style: "flex:1;background:#1a1a2e;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:52px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
-          <a href="#" onclick="return false;" style="font-size:14px;font-weight:600;color:#888;text-decoration:none;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">Preview</a>
-        </div>
+        <%= f.submit "Create puzzle",
+          style: "width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:48px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
 
       <% end %>
     </div>
