@@ -1,50 +1,110 @@
-<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 24px 40px;">
-  <div style="max-width:860px;margin:0 auto;">
+<%
+  th = "padding:10px 14px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;"
+  td = "padding:10px 14px;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;vertical-align:middle;"
+  tdr = "padding:10px 14px;font-size:13px;font-family:'Inter',system-ui,sans-serif;vertical-align:middle;"
+  card = "background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);margin-bottom:32px;"
+  table_style = "width:100%;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;"
+%>
 
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-      <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">Admin: Puzzles</h1>
-      <a href="/admin/puzzles/new" style="background:#1a1a2e;color:white;padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">+ New puzzle</a>
+<div style="overflow-y:auto;height:100%;box-sizing:border-box;padding:24px 24px 48px;">
+  <div style="max-width:900px;margin:0 auto;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+      <div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Admin</p>
+        <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">Puzzle Scheduler</h1>
+      </div>
+      <a href="/admin/puzzles/new" style="background:#5B53D6;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;text-decoration:none;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">+ Schedule new daily puzzle</a>
     </div>
 
-    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
-      <table style="width:100%;font-size:13px;border-collapse:collapse;font-family:'Inter',system-ui,sans-serif;">
-        <thead>
-          <tr style="border-bottom:1px solid #f0f0f0;">
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">ID</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Title</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Type</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Scheduled</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Published</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Creator</th>
-            <th style="padding:12px 16px;text-align:left;font-weight:600;color:#888;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @puzzles.each do |puzzle| %>
-            <tr style="border-bottom:1px solid #f8f8f8;">
-              <td style="padding:12px 16px;color:#888;">#<%= puzzle.id %></td>
-              <td style="padding:12px 16px;font-weight:500;color:#1a1a2e;"><%= puzzle.title.presence || "—" %></td>
-              <td style="padding:12px 16px;color:#666;"><%= puzzle.puzzle_type %></td>
-              <td style="padding:12px 16px;color:#666;"><%= puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></td>
-              <td style="padding:12px 16px;">
-                <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;<%= puzzle.published? ? 'background:#e8f5ec;color:#1a6636;' : 'background:#f4f4f4;color:#888;' %>">
-                  <%= puzzle.published? ? "Yes" : "No" %>
-                </span>
-              </td>
-              <td style="padding:12px 16px;color:#666;"><%= puzzle.user.username %></td>
-              <td style="padding:12px 16px;">
-                <div style="display:flex;gap:12px;align-items:center;">
-                  <a href="/admin/puzzles/<%= puzzle.id %>" style="color:#5B53D6;font-weight:600;text-decoration:none;font-size:12px;">View</a>
-                  <a href="/admin/puzzles/<%= puzzle.id %>/edit" style="color:#666;text-decoration:none;font-size:12px;">Edit</a>
-                  <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
-                        data: { turbo_confirm: "Delete this puzzle?" },
-                        style: "color:#e53e3e;background:transparent;border:none;cursor:pointer;font-size:12px;font-family:'Inter',system-ui,sans-serif;padding:0;font-weight:600;" %>
-                </div>
-              </td>
+    <%# ── SCHEDULED ─────────────────────────────────────────── %>
+    <h2 style="font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;margin:0 0 12px;font-family:'Inter',system-ui,sans-serif;">Scheduled</h2>
+
+    <div style="<%= card %>">
+      <% if @scheduled.any? %>
+        <table style="<%= table_style %>">
+          <thead>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <th style="<%= th %>">Date</th>
+              <th style="<%= th %>">Title</th>
+              <th style="<%= th %>">Status</th>
+              <th style="<%= th %>">Actions</th>
             </tr>
-          <% end %>
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            <% today = Date.today %>
+            <% @scheduled.each do |puzzle| %>
+              <%
+                is_today   = puzzle.scheduled_date == today
+                is_past    = puzzle.scheduled_date < today
+                date_color = is_today ? "#2BAB65" : (is_past ? "#aaa" : "#1a1a2e")
+                row_bg     = is_today ? "background:#f0fdf4;" : ""
+              %>
+              <tr style="border-bottom:1px solid #f8f8f8;<%= row_bg %>">
+                <td style="<%= td %>color:<%= date_color %>;font-weight:<%= is_today ? '700' : '500' %>;">
+                  <%= puzzle.scheduled_date.strftime("%a %-d %b %Y") %>
+                  <% if is_today %><span style="margin-left:6px;font-size:10px;font-weight:700;background:#2BAB65;color:white;padding:2px 7px;border-radius:999px;">TODAY</span><% end %>
+                </td>
+                <td style="<%= td %>font-weight:500;"><%= puzzle.title.presence || "—" %></td>
+                <td style="<%= td %>">
+                  <span style="padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;<%= puzzle.published? ? 'background:#e8f5ec;color:#1a6636;' : 'background:#f4f4f4;color:#888;' %>">
+                    <%= puzzle.published? ? "Published" : "Draft" %>
+                  </span>
+                </td>
+                <td style="<%= tdr %>">
+                  <div style="display:flex;gap:12px;align-items:center;">
+                    <a href="/admin/puzzles/<%= puzzle.id %>/edit" style="color:#5B53D6;font-weight:600;text-decoration:none;">Edit</a>
+                    <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
+                          data: { turbo_confirm: "Delete Puzzle ##{puzzle.id}?" },
+                          style: "color:#e53e3e;background:transparent;border:none;cursor:pointer;font-size:13px;font-family:'Inter',system-ui,sans-serif;padding:0;font-weight:600;" %>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div style="padding:32px;text-align:center;color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;">
+          No scheduled puzzles yet. <a href="/admin/puzzles/new" style="color:#5B53D6;font-weight:600;text-decoration:none;">Schedule one now.</a>
+        </div>
+      <% end %>
     </div>
+
+    <%# ── UNSCHEDULED (community puzzles) ────────────────────── %>
+    <h2 style="font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:#666;margin:0 0 12px;font-family:'Inter',system-ui,sans-serif;">Unscheduled community puzzles</h2>
+
+    <div style="<%= card %>">
+      <% if @unscheduled.any? %>
+        <table style="<%= table_style %>">
+          <thead>
+            <tr style="border-bottom:1px solid #f0f0f0;">
+              <th style="<%= th %>">#</th>
+              <th style="<%= th %>">Title</th>
+              <th style="<%= th %>">Creator</th>
+              <th style="<%= th %>">Created</th>
+              <th style="<%= th %>">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @unscheduled.each do |puzzle| %>
+              <tr style="border-bottom:1px solid #f8f8f8;">
+                <td style="<%= td %>color:#aaa;">#<%= puzzle.id %></td>
+                <td style="<%= td %>font-weight:500;"><%= puzzle.title.presence || "—" %></td>
+                <td style="<%= td %>color:#666;"><%= puzzle.user.username %></td>
+                <td style="<%= td %>color:#aaa;"><%= puzzle.created_at.strftime("%-d %b %Y") %></td>
+                <td style="<%= tdr %>">
+                  <a href="/admin/puzzles/<%= puzzle.id %>/edit" style="color:#5B53D6;font-weight:600;text-decoration:none;font-size:13px;">Edit</a>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <div style="padding:32px;text-align:center;color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;">
+          No unscheduled community puzzles.
+        </div>
+      <% end %>
+    </div>
+
   </div>
 </div>

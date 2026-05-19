@@ -4,21 +4,24 @@ class Admin::PuzzlesController < ApplicationController
   before_action :set_puzzle, only: [:show, :edit, :update, :destroy]
 
   def index
-    @puzzles = Puzzle.includes(:user).order(created_at: :desc)
+    @scheduled   = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
+                         .order(scheduled_date: :asc)
+    @unscheduled = Puzzle.where(puzzle_type: "user").where(scheduled_date: nil)
+                         .includes(:user).order(created_at: :desc)
   end
 
   def show
   end
 
   def new
-    @puzzle = Puzzle.new
+    @puzzle = Puzzle.new(puzzle_type: "daily", published: true)
   end
 
   def create
     @puzzle = Puzzle.new(puzzle_params)
     @puzzle.user = current_user
     if @puzzle.save
-      redirect_to admin_puzzle_path(@puzzle), notice: "Puzzle created."
+      redirect_to admin_puzzles_path, notice: "Puzzle scheduled."
     else
       render :new, status: :unprocessable_entity
     end

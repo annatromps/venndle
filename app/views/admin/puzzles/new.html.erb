@@ -1,6 +1,10 @@
-<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 24px 40px;">
+<div style="overflow-y:auto;height:100%;box-sizing:border-box;padding:24px 24px 48px;">
   <div style="max-width:680px;margin:0 auto;">
-    <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0 0 20px;">New puzzle</h1>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px;">
+      <a href="/admin/puzzles" style="font-size:13px;font-weight:600;color:#888;text-decoration:none;">← Back</a>
+      <span style="color:#ddd;">|</span>
+      <h1 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#1a1a2e;margin:0;">Schedule a daily puzzle</h1>
+    </div>
     <%= render "form", puzzle: @puzzle %>
   </div>
 </div>

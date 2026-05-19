@@ -1,7 +1,11 @@
-<%= form_with model: [:admin, puzzle], class: "space-y-5" do |f| %>
+<%= form_with model: [:admin, puzzle], id: "admin-puzzle-form",
+      style: "display:flex;flex-direction:column;gap:16px;font-family:'Inter',system-ui,sans-serif;" do |f| %>
+
+  <%= f.hidden_field :puzzle_type, value: puzzle.puzzle_type.presence || "daily" %>
+
   <% if puzzle.errors.any? %>
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-      <ul class="text-sm text-red-700 list-disc list-inside">
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;">
+      <ul style="margin:0;padding:0 0 0 16px;font-size:13px;color:#991b1b;">
         <% puzzle.errors.full_messages.each do |msg| %>
           <li><%= msg %></li>
         <% end %>
@@ -9,48 +13,123 @@
     </div>
   <% end %>
 
+  <%# Title %>
   <div>
-    <%= f.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
-    <%= f.text_field :title, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:6px;">Title <span style="font-weight:400;text-transform:none;">(optional)</span></label>
+    <%= f.text_field :title, placeholder: "Leave blank to auto-generate",
+          style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:8px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
   </div>
 
-  <div class="grid grid-cols-2 gap-4">
+  <%# Scheduled date + published %>
+  <div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;">
     <div>
-      <%= f.label :puzzle_type, class: "block text-sm font-medium text-gray-700 mb-1" %>
-      <%= f.select :puzzle_type, [["Daily", "daily"], ["User", "user"]], {}, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:6px;">Scheduled date</label>
+      <%= f.date_field :scheduled_date,
+            style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:8px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
     </div>
-    <div>
-      <%= f.label :scheduled_date, class: "block text-sm font-medium text-gray-700 mb-1" %>
-      <%= f.date_field :scheduled_date, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+    <div style="padding-bottom:2px;">
+      <%= f.label :published, style: "display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a2e;" do %>
+        <%= f.check_box :published, style: "width:16px;height:16px;cursor:pointer;" %>
+        Published
+      <% end %>
     </div>
   </div>
 
+  <%# SVG Venn editor %>
   <div>
-    <%= f.label :published, class: "flex items-center gap-2 cursor-pointer" do %>
-      <%= f.check_box :published, class: "rounded" %>
-      <span class="text-sm font-medium text-gray-700">Published</span>
-    <% end %>
+    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:8px;">Word regions</label>
+    <div style="border:1.5px solid rgba(0,0,0,0.08);border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);padding:4px;">
+      <svg viewBox="0 0 560 460" style="width:100%;height:auto;display:block;max-height:480px;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+
+        <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
+        <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="2"/>
+        <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.45" stroke="#E8631A" stroke-width="2"/>
+
+        <rect x="242" y="8" width="76" height="28" rx="14" fill="#5B53D6"/>
+        <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE A</text>
+
+        <rect x="147" y="399" width="76" height="28" rx="14" fill="#2BAB65"/>
+        <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE B</text>
+
+        <rect x="337" y="399" width="76" height="28" rx="14" fill="#E8631A"/>
+        <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE C</text>
+
+        <foreignObject x="200" y="56" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_a][]"
+            value="<%= puzzle.words_a&.join(', ') %>" placeholder="only in A..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #5B53D6;border-radius:999px;padding:0 10px;text-align:center;background:#EDEAFC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="28" y="308" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_b][]"
+            value="<%= puzzle.words_b&.join(', ') %>" placeholder="only in B..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #2BAB65;border-radius:999px;padding:0 10px;text-align:center;background:#E5F5EC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="372" y="308" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_c][]"
+            value="<%= puzzle.words_c&.join(', ') %>" placeholder="only in C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #E8631A;border-radius:999px;padding:0 10px;text-align:center;background:#FDF0E9;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="118" y="200" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_ab][]"
+            value="<%= puzzle.words_ab&.join(', ') %>" placeholder="in A &amp; B..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="282" y="200" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_ac][]"
+            value="<%= puzzle.words_ac&.join(', ') %>" placeholder="in A &amp; C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="200" y="322" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_bc][]"
+            value="<%= puzzle.words_bc&.join(', ') %>" placeholder="in B &amp; C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="200" y="234" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_abc][]"
+            value="<%= puzzle.words_abc&.join(', ') %>" placeholder="all three..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #888;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.95);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#111;font-weight:600;"/>
+        </foreignObject>
+
+      </svg>
+    </div>
   </div>
 
-  <div class="grid grid-cols-3 gap-4">
-    <% [[:label_a, "#f0f7ff"], [:label_b, "#f4fced"], [:label_c, "#fffbeb"]].each do |field, bg| %>
+  <%# Secret labels %>
+  <div>
+    <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:8px;">Secret labels — the answers</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
       <div>
-        <%= f.label field, class: "block text-sm font-medium text-gray-700 mb-1" %>
-        <%= f.text_field field, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm", style: "background:#{bg}" %>
+        <%= f.text_field :label_a, placeholder: "A answer…",
+              style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:10px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;" %>
       </div>
-    <% end %>
+      <div>
+        <%= f.text_field :label_b, placeholder: "B answer…",
+              style: "width:100%;box-sizing:border-box;border:1.5px solid #2BAB65;border-radius:10px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#E5F5EC;" %>
+      </div>
+      <div>
+        <%= f.text_field :label_c, placeholder: "C answer…",
+              style: "width:100%;box-sizing:border-box;border:1.5px solid #E8631A;border-radius:10px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#FDF0E9;" %>
+      </div>
+    </div>
   </div>
 
-  <% [[:words_a, "#f0f7ff", "A only"], [:words_b, "#f4fced", "B only"], [:words_c, "#fffbeb", "C only"],
-      [:words_ab, "#fff", "A ∩ B"], [:words_ac, "#fff", "A ∩ C"], [:words_bc, "#fff", "B ∩ C"], [:words_abc, "#fff", "A ∩ B ∩ C"]].each do |field, bg, label| %>
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1"><%= label %> words</label>
-      <%= text_field_tag "puzzle[#{field}][]", puzzle.send(field)&.join(", "),
-            class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm",
-            style: "background:#{bg}",
-            placeholder: "Comma-separated" %>
-    </div>
-  <% end %>
+  <%= f.submit puzzle.persisted? ? "Save changes" : "Schedule puzzle",
+        style: "background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;width:100%;" %>
 
-  <%= f.submit class: "bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 cursor-pointer" %>
 <% end %>
+
+<script>
+  document.getElementById('admin-puzzle-form').addEventListener('submit', function() {
+    ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
+     'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'].forEach(function(name) {
+      var el = document.querySelector('[name="' + name + '"]');
+      if (el) el.value = el.value.split(',').map(function(s){ return s.trim(); }).filter(Boolean).join(',');
+    });
+  });
+</script>

@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   resources :puzzles, only: [:index, :show, :new, :create]
   post "/puzzles/:id/guess", to: "puzzles#guess", as: :puzzle_guess
 
+  get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
     resources :puzzles
   end

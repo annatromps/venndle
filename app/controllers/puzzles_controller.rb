@@ -2,8 +2,7 @@ class PuzzlesController < ApplicationController
   before_action :require_login_to_create, only: [:new, :create]
 
   def daily
-    @puzzle = Puzzle.published.daily.where(scheduled_date: Date.today).first ||
-              Puzzle.published.daily.order(scheduled_date: :desc).first
+    @puzzle = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).first
     if @puzzle
       @game_session = find_or_build_game_session(@puzzle)
       @attempts = load_attempts(@puzzle)
