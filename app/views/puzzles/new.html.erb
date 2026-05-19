@@ -1,173 +1,111 @@
-<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:16px 16px 40px;">
-  <div style="max-width:420px;margin:0 auto;">
-    <div style="margin-bottom:10px;">
-      <a href="/puzzles" style="font-size:12px;font-weight:600;color:#888;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">← Community puzzles</a>
-    </div>
-    <%# White card %>
-    <div style="background:white;border-radius:24px;box-shadow:0 4px 32px rgba(0,0,0,0.09);padding:24px 20px 24px;overflow:hidden;">
+<div style="height:100%;display:flex;flex-direction:column;padding:10px 16px 12px;box-sizing:border-box;max-width:500px;margin:0 auto;width:100%;">
 
-      <%# Badge %>
-      <div style="margin-bottom:12px;">
-        <span style="display:inline-block;background:#1a1a2e;color:white;font-size:12px;font-weight:700;border-radius:999px;padding:4px 14px;letter-spacing:0.05em;font-family:'Inter',system-ui,sans-serif;">
-          &#10022; NEW PUZZLE
-        </span>
-      </div>
-
-      <h1 style="font-family:'Playfair Display',serif;font-size:30px;font-weight:700;color:#1a1a2e;margin:0 0 6px;line-height:1.15;">Create a Venndle</h1>
-      <p style="font-size:13px;color:#888;margin:0 0 18px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Drop words into each region, then name the secret themes.</p>
-
-      <% if @puzzle.errors.any? %>
-        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
-          <ul style="margin:0;padding:0 0 0 16px;font-size:13px;color:#991b1b;font-family:'Inter',system-ui,sans-serif;">
-            <% @puzzle.errors.full_messages.each do |msg| %>
-              <li><%= msg %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
-
-      <%= form_with model: @puzzle, id: "puzzle-form" do |f| %>
-
-        <%# Title input %>
-        <div style="margin-bottom:16px;">
-          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">PUZZLE TITLE</label>
-          <%= f.text_field :title,
-            style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:12px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:white;",
-            placeholder: "Leave blank for auto title" %>
-        </div>
-
-        <%# Venn diagram with foreignObject inputs %>
-        <div style="background:#f8f8fb;border-radius:18px;padding:8px 4px 4px;margin-bottom:16px;overflow:hidden;">
-          <svg viewBox="0 0 560 460" width="100%" style="max-width:560px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
-
-            <%# Circles %>
-            <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
-            <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="2"/>
-            <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.45" stroke="#E8631A" stroke-width="2"/>
-
-            <%# Circle A label pill %>
-            <rect x="242" y="8" width="76" height="28" rx="14" fill="#5B53D6"/>
-            <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE A</text>
-
-            <%# Circle B label pill — straddling bottom of circle B %>
-            <rect x="147" y="399" width="76" height="28" rx="14" fill="#2BAB65"/>
-            <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE B</text>
-
-            <%# Circle C label pill — straddling bottom of circle C %>
-            <rect x="337" y="399" width="76" height="28" rx="14" fill="#E8631A"/>
-            <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE C</text>
-
-            <%# ── A only input ── %>
-            <foreignObject x="200" y="56" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_a][]"
-                value="<%= @puzzle.words_a&.join(', ') %>"
-                placeholder="only in A..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #5B53D6;border-radius:999px;padding:0 10px;text-align:center;background:#EDEAFC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"
-              />
-            </foreignObject>
-
-            <%# ── B only input ── %>
-            <foreignObject x="28" y="308" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_b][]"
-                value="<%= @puzzle.words_b&.join(', ') %>"
-                placeholder="only in B..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #2BAB65;border-radius:999px;padding:0 10px;text-align:center;background:#E5F5EC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"
-              />
-            </foreignObject>
-
-            <%# ── C only input ── %>
-            <foreignObject x="372" y="308" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_c][]"
-                value="<%= @puzzle.words_c&.join(', ') %>"
-                placeholder="only in C..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #E8631A;border-radius:999px;padding:0 10px;text-align:center;background:#FDF0E9;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"
-              />
-            </foreignObject>
-
-            <%# ── AB overlap input ── %>
-            <foreignObject x="118" y="200" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_ab][]"
-                value="<%= @puzzle.words_ab&.join(', ') %>"
-                placeholder="in A &amp; B..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"
-              />
-            </foreignObject>
-
-            <%# ── AC overlap input ── %>
-            <foreignObject x="282" y="200" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_ac][]"
-                value="<%= @puzzle.words_ac&.join(', ') %>"
-                placeholder="in A &amp; C..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"
-              />
-            </foreignObject>
-
-            <%# ── BC overlap input ── %>
-            <foreignObject x="200" y="322" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_bc][]"
-                value="<%= @puzzle.words_bc&.join(', ') %>"
-                placeholder="in B &amp; C..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"
-              />
-            </foreignObject>
-
-            <%# ── ABC centre input ── %>
-            <foreignObject x="200" y="234" width="160" height="28">
-              <input xmlns="http://www.w3.org/1999/xhtml"
-                type="text" name="puzzle[words_abc][]"
-                value="<%= @puzzle.words_abc&.join(', ') %>"
-                placeholder="all three..."
-                style="width:100%;height:26px;font-size:11px;border:1.5px solid #888;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.95);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#111;font-weight:600;"
-              />
-            </foreignObject>
-
-          </svg>
-        </div>
-
-        <%# Secret labels section %>
-        <div style="margin-bottom:18px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:3px;font-family:'Inter',system-ui,sans-serif;">SECRET LABELS</div>
-          <div style="font-size:12px;color:#aaa;margin-bottom:10px;font-family:'Inter',system-ui,sans-serif;">What connects the words in each circle?</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-            <div>
-              <%= f.text_field :label_a,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;",
-                placeholder: "A answer..." %>
-            </div>
-            <div>
-              <%= f.text_field :label_b,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #2BAB65;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#E5F5EC;",
-                placeholder: "B answer..." %>
-            </div>
-            <div>
-              <%= f.text_field :label_c,
-                style: "width:100%;box-sizing:border-box;border:1.5px solid #E8631A;border-radius:12px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#FDF0E9;",
-                placeholder: "C answer..." %>
-            </div>
-          </div>
-        </div>
-
-        <%= f.submit "Create puzzle",
-          style: "width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:48px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
-
-      <% end %>
-    </div>
+  <div style="flex-shrink:0;margin-bottom:8px;">
+    <a href="/puzzles" style="font-size:12px;font-weight:600;color:#888;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">← Community puzzles</a>
   </div>
+
+  <%= form_with model: @puzzle, id: "puzzle-form", style: "flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;" do |f| %>
+
+    <div style="flex-shrink:0;">
+      <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 8px;line-height:1.1;">Create a Venndle</h1>
+      <%= f.text_field :title,
+        style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:rgba(255,255,255,0.6);",
+        placeholder: "Title — leave blank for auto" %>
+    </div>
+
+    <% if @puzzle.errors.any? %>
+      <div style="flex-shrink:0;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;">
+        <ul style="margin:0;padding:0 0 0 14px;font-size:12px;color:#991b1b;font-family:'Inter',system-ui,sans-serif;">
+          <% @puzzle.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <%# Venn diagram — scales to fill remaining space %>
+    <div style="flex:1;min-height:0;background:#f8f8fb;border-radius:16px;overflow:hidden;">
+      <svg viewBox="0 0 560 460" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+
+        <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
+        <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="2"/>
+        <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.45" stroke="#E8631A" stroke-width="2"/>
+
+        <rect x="242" y="8" width="76" height="28" rx="14" fill="#5B53D6"/>
+        <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE A</text>
+
+        <rect x="147" y="399" width="76" height="28" rx="14" fill="#2BAB65"/>
+        <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE B</text>
+
+        <rect x="337" y="399" width="76" height="28" rx="14" fill="#E8631A"/>
+        <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em">CIRCLE C</text>
+
+        <foreignObject x="200" y="56" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_a][]"
+            value="<%= @puzzle.words_a&.join(', ') %>" placeholder="only in A..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #5B53D6;border-radius:999px;padding:0 10px;text-align:center;background:#EDEAFC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="28" y="308" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_b][]"
+            value="<%= @puzzle.words_b&.join(', ') %>" placeholder="only in B..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #2BAB65;border-radius:999px;padding:0 10px;text-align:center;background:#E5F5EC;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="372" y="308" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_c][]"
+            value="<%= @puzzle.words_c&.join(', ') %>" placeholder="only in C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #E8631A;border-radius:999px;padding:0 10px;text-align:center;background:#FDF0E9;outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#1a1a2e;"/>
+        </foreignObject>
+
+        <foreignObject x="118" y="200" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_ab][]"
+            value="<%= @puzzle.words_ab&.join(', ') %>" placeholder="in A &amp; B..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="282" y="200" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_ac][]"
+            value="<%= @puzzle.words_ac&.join(', ') %>" placeholder="in A &amp; C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="200" y="322" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_bc][]"
+            value="<%= @puzzle.words_bc&.join(', ') %>" placeholder="in B &amp; C..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #bbb;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.9);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#333;"/>
+        </foreignObject>
+
+        <foreignObject x="200" y="234" width="160" height="28">
+          <input xmlns="http://www.w3.org/1999/xhtml" type="text" name="puzzle[words_abc][]"
+            value="<%= @puzzle.words_abc&.join(', ') %>" placeholder="all three..."
+            style="width:100%;height:26px;font-size:11px;border:1.5px solid #888;border-radius:999px;padding:0 10px;text-align:center;background:rgba(255,255,255,0.95);outline:none;box-sizing:border-box;font-family:system-ui,sans-serif;color:#111;font-weight:600;"/>
+        </foreignObject>
+
+      </svg>
+    </div>
+
+    <div style="flex-shrink:0;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Secret labels — what connects the words in each circle?</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div><%= f.text_field :label_a, style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:10px;padding:7px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;", placeholder: "A answer..." %></div>
+        <div><%= f.text_field :label_b, style: "width:100%;box-sizing:border-box;border:1.5px solid #2BAB65;border-radius:10px;padding:7px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#E5F5EC;", placeholder: "B answer..." %></div>
+        <div><%= f.text_field :label_c, style: "width:100%;box-sizing:border-box;border:1.5px solid #E8631A;border-radius:10px;padding:7px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#FDF0E9;", placeholder: "C answer..." %></div>
+      </div>
+    </div>
+
+    <%= f.submit "Create puzzle",
+      style: "flex-shrink:0;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
+
+  <% end %>
 </div>
 
 <script>
   document.getElementById('puzzle-form').addEventListener('submit', function() {
-    const fields = ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
-                    'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'];
-    fields.forEach(function(name) {
+    ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
+     'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'].forEach(function(name) {
       const el = document.querySelector('[name="' + name + '"]');
-      if (el) el.value = el.value.split(',').map(function(s) { return s.trim(); }).filter(Boolean).join(',');
+      if (el) el.value = el.value.split(',').map(function(s){ return s.trim(); }).filter(Boolean).join(',');
     });
   });
 </script>
