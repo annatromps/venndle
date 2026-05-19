@@ -33,6 +33,10 @@ class PuzzlesController < ApplicationController
     @puzzle.puzzle_type = "user"
     @puzzle.published = true
 
+    if @puzzle.title.blank?
+      @puzzle.title = "#{Date.today.strftime("%-d %b")} · ##{(Puzzle.count + 1).to_s.rjust(3, "0")}"
+    end
+
     if @puzzle.save
       redirect_to @puzzle, notice: "Puzzle created!"
     else
