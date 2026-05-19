@@ -57,7 +57,7 @@ class PuzzlesController < ApplicationController
     game_session = find_or_build_game_session(@puzzle)
 
     correct_label = @puzzle.send("label_#{label}")
-    circle_words = @puzzle.send("words_#{label}") || []
+    circle_words = all_circle_words(@puzzle, label)
 
     correct = AnthropicJudgeService.call(guess, correct_label, circle_words)
 
@@ -124,6 +124,15 @@ class PuzzlesController < ApplicationController
     attempts = (session[key] || []).dup
     attempts << { "label" => label, "guess" => guess, "correct" => correct }
     session[key] = attempts
+  end
+
+  def all_circle_words(puzzle, label)
+    regions = case label
+    when "a" then %w[words_a words_ab words_ac words_abc]
+    when "b" then %w[words_b words_ab words_bc words_abc]
+    when "c" then %w[words_c words_ac words_bc words_abc]
+    end
+    regions.flat_map { |r| puzzle.send(r) || [] }.reject(&:blank?)
   end
 
   def puzzle_params

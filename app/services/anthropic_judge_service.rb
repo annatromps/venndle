@@ -3,7 +3,7 @@ class AnthropicJudgeService
     raise ArgumentError, "ANTHROPIC_API_KEY not configured" if ENV["ANTHROPIC_API_KEY"].blank? || ENV["ANTHROPIC_API_KEY"] == "your_api_key_here"
 
     client = Anthropic::Client.new(access_token: ENV["ANTHROPIC_API_KEY"])
-    prompt = "The correct category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". Words in this circle include: #{circle_words.join(", ")}. Is the guess correct or close enough? Accept synonyms, paraphrases, and reasonable variations. Respond with only YES or NO."
+    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}. A correct guess must satisfy TWO conditions: (1) it is a synonym, paraphrase, or reasonable variation of the correct label, AND (2) the guessed word or phrase genuinely applies to ALL the words in the circle. Respond YES only if both conditions are met. Respond NO if the guess is a synonym of the label but doesn't actually describe all the words, or if it describes the words but isn't close enough to the label. Respond with only YES or NO."
     response = client.messages(
       parameters: {
         model: "claude-sonnet-4-20250514",
