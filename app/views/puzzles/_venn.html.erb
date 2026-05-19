@@ -211,6 +211,18 @@
           setTimeout(function() { if (errEl.parentNode) errEl.textContent = ''; }, 4000);
         }
 
+        function showRowDuplicate(row, msg) {
+          let el = row.querySelector('.guess-duplicate');
+          if (!el) {
+            el = document.createElement('span');
+            el.className = 'guess-duplicate';
+            el.style.cssText = 'font-size:11px;color:#888;padding-left:32px;display:block;font-style:italic;';
+            row.appendChild(el);
+          }
+          el.textContent = msg;
+          setTimeout(function() { if (el.parentNode) el.textContent = ''; }, 3000);
+        }
+
         async function submitGuess(label, btn) {
           const row = document.getElementById('guess-row-' + label);
           const input = row.querySelector('input[name="guess"]');
@@ -243,6 +255,14 @@
               showRowError(row, data.error || 'Something went wrong');
               btn.disabled = false;
               btn.innerHTML = '&#8594;';
+              return;
+            }
+
+            if (data.duplicate) {
+              showRowDuplicate(row, 'You already tried that');
+              btn.disabled = false;
+              btn.innerHTML = '&#8594;';
+              input.value = '';
               return;
             }
 

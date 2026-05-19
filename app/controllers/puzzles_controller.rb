@@ -56,9 +56,13 @@ class PuzzlesController < ApplicationController
     end
 
     game_session = find_or_build_game_session(@puzzle)
+    normalized_guess = guess.downcase
+
+    if duplicate_guess?(label, normalized_guess)
+      render json: { duplicate: true } and return
+    end
 
     correct_label = @puzzle.send("label_#{label}")
-    normalized_guess = guess.downcase
     accepted = @puzzle.send("accepted_answers_#{label}") || []
 
     if accepted.include?(normalized_guess)
@@ -126,6 +130,17 @@ class PuzzlesController < ApplicationController
       (session[key] || []).map do |a|
         GuestAttempt.new(label: a["label"], guess: a["guess"], correct: a["correct"])
       end
+    end
+  end
+
+  def duplicate_guess?(label, normalized_guess)
+    if user_signed_in?
+      current_user.attempts
+        .where(puzzle: @puzzle, label: label)
+        .any? { |a| a.guess.to_s.downcase.strip == normalized_guess }
+    else
+      key = "guest_attempts_#{@puzzle.id}"
+      (session[key] || []).any? { |a| a["label"] == label && a["guess"].to_s.downcase.strip == normalized_guess }
     end
   end
 
