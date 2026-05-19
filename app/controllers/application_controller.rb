@@ -11,6 +11,7 @@ class ApplicationController < ActionController::Base
     %w[a b c].each do |lbl|
       answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
       puzzle.update_column("accepted_answers_#{lbl}", answers)
+      Rails.logger.info "Puzzle ##{puzzle.id} [#{lbl}=#{puzzle.send("label_#{lbl}")}]: stored #{answers.count} accepted answers"
     end
   rescue => e
     Rails.logger.error "AcceptedAnswers generation failed for puzzle #{puzzle.id}: #{e.message}"
