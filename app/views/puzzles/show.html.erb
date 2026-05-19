@@ -1,0 +1,5 @@
+<div class="mb-6 text-center">
+  <h1 class="text-3xl font-bold text-gray-900 mb-1"><%= @puzzle.title %></h1>
+  <p class="text-sm text-gray-400">by <%= @puzzle.user.username %></p>
+</div>
+<%= render "venn", puzzle: @puzzle, game_session: @game_session, attempts: @attempts %>

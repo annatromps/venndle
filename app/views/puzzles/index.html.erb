@@ -1,0 +1,32 @@
+<div class="mb-8 flex items-center justify-between">
+  <h1 class="text-3xl font-bold text-gray-900">Community Puzzles</h1>
+  <% if user_signed_in? %>
+    <a href="/puzzles/new" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">+ Create puzzle</a>
+  <% end %>
+</div>
+
+<% if @puzzles.any? %>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <% @puzzles.each do |puzzle| %>
+      <div class="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 transition-colors">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1"><%= puzzle.title %></h2>
+        <p class="text-sm text-gray-500 mb-4">by <%= puzzle.user.username %></p>
+        <div class="flex items-center justify-between">
+          <div class="flex gap-2">
+            <span class="text-xs px-2 py-1 rounded-full" style="background:#B5D4F4; color:#1e3a5f"><%= puzzle.label_a %></span>
+            <span class="text-xs px-2 py-1 rounded-full" style="background:#C0DD97; color:#2d5a0f"><%= puzzle.label_b %></span>
+            <span class="text-xs px-2 py-1 rounded-full" style="background:#FAC775; color:#78350f"><%= puzzle.label_c %></span>
+          </div>
+          <a href="/puzzles/<%= puzzle.id %>" class="text-sm font-medium text-gray-900 hover:underline">Play &rarr;</a>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="text-center py-20">
+    <p class="text-gray-400 mb-4">No puzzles yet.</p>
+    <% if user_signed_in? %>
+      <a href="/puzzles/new" class="bg-gray-900 text-white px-6 py-3 rounded-lg hover:bg-gray-700">Create the first puzzle</a>
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,56 @@
+<%= form_with model: [:admin, puzzle], class: "space-y-5" do |f| %>
+  <% if puzzle.errors.any? %>
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+      <ul class="text-sm text-red-700 list-disc list-inside">
+        <% puzzle.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+    <%= f.text_field :title, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :puzzle_type, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.select :puzzle_type, [["Daily", "daily"], ["User", "user"]], {}, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+    </div>
+    <div>
+      <%= f.label :scheduled_date, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.date_field :scheduled_date, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" %>
+    </div>
+  </div>
+
+  <div>
+    <%= f.label :published, class: "flex items-center gap-2 cursor-pointer" do %>
+      <%= f.check_box :published, class: "rounded" %>
+      <span class="text-sm font-medium text-gray-700">Published</span>
+    <% end %>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4">
+    <% [[:label_a, "#f0f7ff"], [:label_b, "#f4fced"], [:label_c, "#fffbeb"]].each do |field, bg| %>
+      <div>
+        <%= f.label field, class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.text_field field, class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm", style: "background:#{bg}" %>
+      </div>
+    <% end %>
+  </div>
+
+  <% [[:words_a, "#f0f7ff", "A only"], [:words_b, "#f4fced", "B only"], [:words_c, "#fffbeb", "C only"],
+      [:words_ab, "#fff", "A ∩ B"], [:words_ac, "#fff", "A ∩ C"], [:words_bc, "#fff", "B ∩ C"], [:words_abc, "#fff", "A ∩ B ∩ C"]].each do |field, bg, label| %>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1"><%= label %> words</label>
+      <%= text_field_tag "puzzle[#{field}][]", puzzle.send(field)&.join(", "),
+            class: "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm",
+            style: "background:#{bg}",
+            placeholder: "Comma-separated" %>
+    </div>
+  <% end %>
+
+  <%= f.submit class: "bg-gray-900 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 cursor-pointer" %>
+<% end %>

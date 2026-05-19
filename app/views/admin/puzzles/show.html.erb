@@ -1,0 +1,22 @@
+<div class="max-w-2xl mx-auto">
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900"><%= @puzzle.title %></h1>
+    <div class="flex gap-3">
+      <a href="/admin/puzzles/<%= @puzzle.id %>/edit" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">Edit</a>
+      <a href="/admin/puzzles" class="text-sm text-gray-500 hover:underline self-center">Back</a>
+    </div>
+  </div>
+
+  <dl class="space-y-3 text-sm">
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Type</dt><dd><%= @puzzle.puzzle_type %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Scheduled</dt><dd><%= @puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Published</dt><dd><%= @puzzle.published? ? "Yes" : "No" %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Creator</dt><dd><%= @puzzle.user.username %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label A</dt><dd><%= @puzzle.label_a %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label B</dt><dd><%= @puzzle.label_b %></dd></div>
+    <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32">Label C</dt><dd><%= @puzzle.label_c %></dd></div>
+    <% %w[words_a words_b words_c words_ab words_ac words_bc words_abc].each do |field| %>
+      <div class="flex gap-4"><dt class="font-medium text-gray-500 w-32"><%= field %></dt><dd><%= @puzzle.send(field)&.join(", ") %></dd></div>
+    <% end %>
+  </dl>
+</div>

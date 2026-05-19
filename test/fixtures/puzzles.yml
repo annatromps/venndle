@@ -1,0 +1,21 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  title: MyString
+  puzzle_type: MyString
+  scheduled_date: 2026-05-19
+  user: one
+  label_a: MyString
+  label_b: MyString
+  label_c: MyString
+  published: false
+
+two:
+  title: MyString
+  puzzle_type: MyString
+  scheduled_date: 2026-05-19
+  user: two
+  label_a: MyString
+  label_b: MyString
+  label_c: MyString
+  published: false

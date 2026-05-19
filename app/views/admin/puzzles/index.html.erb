@@ -1,0 +1,41 @@
+<div class="mb-6 flex items-center justify-between">
+  <h1 class="text-2xl font-bold text-gray-900">Admin: Puzzles</h1>
+  <a href="/admin/puzzles/new" class="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-700">+ New puzzle</a>
+</div>
+
+<div class="overflow-x-auto">
+  <table class="w-full text-sm">
+    <thead>
+      <tr class="border-b border-gray-200 text-left text-gray-500">
+        <th class="pb-3 pr-4 font-medium">Title</th>
+        <th class="pb-3 pr-4 font-medium">Type</th>
+        <th class="pb-3 pr-4 font-medium">Scheduled</th>
+        <th class="pb-3 pr-4 font-medium">Published</th>
+        <th class="pb-3 pr-4 font-medium">Creator</th>
+        <th class="pb-3 font-medium">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @puzzles.each do |puzzle| %>
+        <tr class="border-b border-gray-100 hover:bg-gray-50">
+          <td class="py-3 pr-4 font-medium text-gray-900"><%= puzzle.title %></td>
+          <td class="py-3 pr-4 text-gray-600"><%= puzzle.puzzle_type %></td>
+          <td class="py-3 pr-4 text-gray-600"><%= puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></td>
+          <td class="py-3 pr-4">
+            <span class="px-2 py-1 rounded-full text-xs <%= puzzle.published? ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' %>">
+              <%= puzzle.published? ? "Yes" : "No" %>
+            </span>
+          </td>
+          <td class="py-3 pr-4 text-gray-600"><%= puzzle.user.username %></td>
+          <td class="py-3 flex gap-3">
+            <a href="/admin/puzzles/<%= puzzle.id %>" class="text-blue-600 hover:underline">View</a>
+            <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="text-gray-600 hover:underline">Edit</a>
+            <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
+                  data: { turbo_confirm: "Delete this puzzle?" },
+                  class: "text-red-500 hover:underline bg-transparent border-none cursor-pointer text-sm p-0" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
