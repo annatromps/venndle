@@ -1,138 +1,341 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
+<% completed_view ||= false %>
 
 <div id="venn-puzzle" data-puzzle-id="<%= puzzle.id %>">
 
-  <%# SVG Venn Diagram %>
-  <div class="flex justify-center mb-8">
-    <svg viewBox="0 0 560 340" width="560" height="340" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <%# Clip paths for each exclusive region %>
-        <clipPath id="clip-a">
-          <circle cx="280" cy="105" r="115"/>
-        </clipPath>
-        <clipPath id="clip-b">
-          <circle cx="185" cy="248" r="115"/>
-        </clipPath>
-        <clipPath id="clip-c">
-          <circle cx="375" cy="248" r="115"/>
-        </clipPath>
-      </defs>
+  <% if game_session&.completed? %>
+    <%# ===== SOLVED / COMPLETED STATE ===== %>
 
-      <%# Circle A - top centre - blue %>
-      <circle cx="280" cy="105" r="115" fill="#B5D4F4" fill-opacity="0.55" stroke="#7fb3e8" stroke-width="1.5"/>
-      <%# Circle B - bottom left - green %>
-      <circle cx="185" cy="248" r="115" fill="#C0DD97" fill-opacity="0.55" stroke="#8bc34a" stroke-width="1.5"/>
-      <%# Circle C - bottom right - amber %>
-      <circle cx="375" cy="248" r="115" fill="#FAC775" fill-opacity="0.55" stroke="#f59e0b" stroke-width="1.5"/>
-
-      <%# Region labels (circle letters, outside) %>
-      <text x="280" y="22" text-anchor="middle" font-size="13" font-weight="600" fill="#4a90d9" font-family="sans-serif">A</text>
-      <text x="88" y="310" text-anchor="middle" font-size="13" font-weight="600" fill="#6aaa1f" font-family="sans-serif">B</text>
-      <text x="472" y="310" text-anchor="middle" font-size="13" font-weight="600" fill="#d97706" font-family="sans-serif">C</text>
-
-      <%# Words in each region as pills %>
-      <%# Region A only (top, not overlapping B or C) %>
-      <% (puzzle.words_a || []).each_with_index do |word, i| %>
-        <% x = 280; y = 58 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.75"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#1e3a5f"><%= word %></text>
-      <% end %>
-
-      <%# Region B only (bottom-left, not overlapping A or C) %>
-      <% (puzzle.words_b || []).each_with_index do |word, i| %>
-        <% x = 135; y = 278 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.75"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#2d5a0f"><%= word %></text>
-      <% end %>
-
-      <%# Region C only (bottom-right, not overlapping A or B) %>
-      <% (puzzle.words_c || []).each_with_index do |word, i| %>
-        <% x = 425; y = 278 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.75"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#78350f"><%= word %></text>
-      <% end %>
-
-      <%# AB overlap %>
-      <% (puzzle.words_ab || []).each_with_index do |word, i| %>
-        <% x = 218; y = 185 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.8"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#333"><%= word %></text>
-      <% end %>
-
-      <%# AC overlap %>
-      <% (puzzle.words_ac || []).each_with_index do |word, i| %>
-        <% x = 342; y = 185 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.8"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#333"><%= word %></text>
-      <% end %>
-
-      <%# BC overlap %>
-      <% (puzzle.words_bc || []).each_with_index do |word, i| %>
-        <% x = 280; y = 268 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.8"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-family="sans-serif" fill="#333"><%= word %></text>
-      <% end %>
-
-      <%# ABC centre %>
-      <% (puzzle.words_abc || []).each_with_index do |word, i| %>
-        <% x = 280; y = 220 + i * 18 %>
-        <rect x="<%= x - word.length * 3.5 - 4 %>" y="<%= y - 10 %>" width="<%= word.length * 7 + 8 %>" height="16" rx="8" fill="white" fill-opacity="0.9"/>
-        <text x="<%= x %>" y="<%= y + 2 %>" text-anchor="middle" font-size="10" font-weight="600" font-family="sans-serif" fill="#333"><%= word %></text>
-      <% end %>
-    </svg>
-  </div>
-
-  <% if user_signed_in? && game_session %>
-    <%# Guess cards %>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-      <% [["a", "#B5D4F4", "#1e3a5f"], ["b", "#C0DD97", "#2d5a0f"], ["c", "#FAC775", "#78350f"]].each do |label, bg, text_color| %>
-        <% solved = game_session.send("solved_#{label}?") %>
-        <% label_text = puzzle.send("label_#{label}") %>
-        <% label_attempts = attempts.select { |a| a.label == label } %>
-        <div id="card-<%= label %>" class="rounded-xl p-4 border-2 transition-all <%= solved ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-white' %>">
-          <div class="flex items-center gap-2 mb-3">
-            <span class="w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center" style="background:<%= bg %>; color:<%= text_color %>"><%= label.upcase %></span>
-            <% if solved %>
-              <span class="text-sm font-semibold text-green-700"><%= label_text %> ✅</span>
-            <% else %>
-              <span class="text-sm font-medium text-gray-500">Circle <%= label.upcase %></span>
-            <% end %>
-          </div>
-
-          <%# Attempt history %>
-          <div class="flex flex-wrap gap-1 mb-3 min-h-6" id="attempts-<%= label %>">
-            <% label_attempts.each do |attempt| %>
-              <span class="text-lg"><%= attempt.correct? ? "✅" : "❌" %></span>
-            <% end %>
-          </div>
-
-          <% unless solved %>
-            <form class="guess-form flex gap-2" data-label="<%= label %>">
-              <input
-                type="text"
-                name="guess"
-                placeholder="What connects them?"
-                class="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-                autocomplete="off"
-              />
-              <button type="submit" class="text-sm bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                Guess
-              </button>
-            </form>
-          <% end %>
-        </div>
-      <% end %>
+    <%# Solved badge %>
+    <div style="text-align:center;margin-bottom:14px;">
+      <span style="display:inline-block;background:#1a1a2e;color:white;font-size:12px;font-weight:700;border-radius:999px;padding:4px 14px;letter-spacing:0.05em;">
+        🎉 SOLVED
+      </span>
     </div>
 
-    <%# Share section %>
-    <div id="share-section" class="<%= game_session.completed? ? '' : 'hidden' %> bg-gray-50 rounded-xl p-6 text-center border border-gray-200">
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">Puzzle complete!</h3>
-      <p id="share-string" class="font-mono text-sm text-gray-700 mb-4 whitespace-pre-wrap"><%= game_session.completed? ? build_share_string_for(game_session, puzzle) : "" %></p>
-      <button onclick="copyShare()" class="bg-gray-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-gray-700 transition-colors">
-        Copy score
+    <h2 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0 0 6px;text-align:center;">Nicely done.</h2>
+
+    <%# Subtitle — count wrong attempts %>
+    <% total_wrong = 0
+       %w[a b c].each do |lbl|
+         cnt = game_session.send("attempts_#{lbl}")
+         solved = game_session.send("solved_#{lbl}?")
+         total_wrong += [cnt - (solved ? 1 : 0), 0].max
+       end
+    %>
+    <p style="text-align:center;color:#999;font-size:14px;margin:0 0 20px;">You cracked Puzzle #<%= puzzle.id %> with <%= total_wrong %> <%= total_wrong == 1 ? 'miss' : 'misses' %>.</p>
+
+    <%# Mini Venn diagram — all labels revealed %>
+    <div style="background:#f8f8fb;border-radius:18px;padding:12px 8px 8px;margin-bottom:20px;position:relative;">
+      <svg viewBox="0 0 560 460" width="100%" style="max-width:560px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="pill-shadow-s" x="-20%" y="-40%" width="140%" height="180%">
+            <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
+          </filter>
+        </defs>
+
+        <%# Circles %>
+        <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
+        <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
+        <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
+
+        <%# A label pill — always shown with label revealed %>
+        <% a_text = puzzle.label_a.to_s.upcase %>
+        <% a_pw = [a_text.length * 8 + 24, 60].max %>
+        <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
+        <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_text %></text>
+
+        <%# B label pill — revealed %>
+        <% b_text = puzzle.label_b.to_s.upcase %>
+        <% b_pw = [b_text.length * 8 + 24, 60].max %>
+        <rect x="<%= 185 - b_pw/2 %>" y="428" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
+        <text x="185" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_text %></text>
+
+        <%# C label pill — revealed %>
+        <% c_text = puzzle.label_c.to_s.upcase %>
+        <% c_pw = [c_text.length * 8 + 24, 60].max %>
+        <rect x="<%= 375 - c_pw/2 %>" y="428" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
+        <text x="375" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_text %></text>
+
+        <%# Word pills — A only %>
+        <% word = puzzle.words_a&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="59" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="280" y="76" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — B only %>
+        <% word = puzzle.words_b&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 112 - pw/2 %>" y="310" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="112" y="327" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — C only %>
+        <% word = puzzle.words_c&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 448 - pw/2 %>" y="310" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="448" y="327" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — AB %>
+        <% word = puzzle.words_ab&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 208 - pw/2 %>" y="202" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="208" y="219" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — AC %>
+        <% word = puzzle.words_ac&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 352 - pw/2 %>" y="202" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="352" y="219" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — BC %>
+        <% word = puzzle.words_bc&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="323" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="280" y="340" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — ABC %>
+        <% word = puzzle.words_abc&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="235" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-s)"/>
+          <text x="280" y="252" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+      </svg>
+    </div>
+
+    <%# Read-only answer rows %>
+    <% [
+      ["a", "#5B53D6", "#EDEAFC", "#9B94E8"],
+      ["b", "#2BAB65", "#E5F5EC", "#72C894"],
+      ["c", "#E8631A", "#FDF0E9", "#F0956A"]
+    ].each do |lbl, color, bg, placeholder_color| %>
+      <% label_text = puzzle.send("label_#{lbl}") %>
+      <% lbl_attempts = attempts.select { |a| a.label == lbl } %>
+      <% cnt = game_session.send("attempts_#{lbl}") %>
+      <% solved = game_session.send("solved_#{lbl}?") %>
+      <% wrong = [cnt - (solved ? 1 : 0), 0].max %>
+
+      <div style="border:1.5px solid <%= color %>;border-radius:14px;padding:12px 14px;background:<%= bg %>;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+        <%# Badge %>
+        <span style="width:28px;height:28px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">
+          <%= lbl.upcase %>
+        </span>
+        <%# Label text %>
+        <span style="flex:1;font-weight:600;font-size:14px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;"><%= label_text %></span>
+        <%# Attempt marks %>
+        <span style="font-size:13px;letter-spacing:2px;">
+          <%= "✗" * wrong %><% if solved %><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:<%= color %>;color:white;font-size:11px;font-weight:700;margin-left:2px;">✓</span><% end %>
+        </span>
+      </div>
+    <% end %>
+
+    <%# Share card %>
+    <% total_wrong_final = 0
+       %w[a b c].each do |lbl|
+         cnt2 = game_session.send("attempts_#{lbl}")
+         solved2 = game_session.send("solved_#{lbl}?")
+         total_wrong_final += [cnt2 - (solved2 ? 1 : 0), 0].max
+       end
+    %>
+    <div style="background:white;border:1.5px solid #f0f0f0;border-radius:18px;padding:20px;margin-top:16px;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:4px;">Venndle #<%= puzzle.id %></div>
+      <div style="font-size:13px;color:#888;margin-bottom:14px;">Solved with <%= total_wrong_final %> <%= total_wrong_final == 1 ? 'miss' : 'misses' %> &mdash; share with friends</div>
+      <div id="share-string" style="font-size:13px;color:#555;margin-bottom:16px;font-family:monospace;white-space:pre-wrap;line-height:1.8;">
+        <%= build_share_string_for(game_session, puzzle) %>
+      </div>
+      <button onclick="copyShare()" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+        Copy
       </button>
+    </div>
+
+    <script>
+      function copyShare() {
+        const text = document.getElementById('share-string').textContent.trim();
+        navigator.clipboard.writeText(text).then(function() {
+          const btn = event.target;
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+        });
+      }
+    </script>
+
+  <% elsif user_signed_in? && game_session %>
+    <%# ===== ACTIVE GAME STATE ===== %>
+
+    <%# Venn diagram box %>
+    <div style="background:#f8f8fb;border-radius:18px;padding:12px 8px 8px;margin-bottom:20px;position:relative;">
+      <svg viewBox="0 0 560 460" width="100%" style="max-width:560px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
+            <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
+          </filter>
+        </defs>
+
+        <%# Circles %>
+        <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
+        <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
+        <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
+
+        <%# A label pill — always visible, shows label if known %>
+        <% a_display = puzzle.label_a.present? ? puzzle.label_a.upcase : "CIRCLE A" %>
+        <% a_pw = [a_display.length * 8 + 24, 60].max %>
+        <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
+        <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
+
+        <%# B label pill %>
+        <% b_solved = game_session.solved_b? %>
+        <% b_display = b_solved ? puzzle.label_b.to_s.upcase : "?" %>
+        <% b_color = b_solved ? "#2BAB65" : "#2d2d2d" %>
+        <% b_pw = b_solved ? [b_display.length * 8 + 24, 60].max : 36 %>
+        <rect x="<%= 185 - b_pw/2 %>" y="428" width="<%= b_pw %>" height="28" rx="14" fill="<%= b_color %>"/>
+        <text x="185" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
+
+        <%# C label pill %>
+        <% c_solved = game_session.solved_c? %>
+        <% c_display = c_solved ? puzzle.label_c.to_s.upcase : "?" %>
+        <% c_color = c_solved ? "#E8631A" : "#2d2d2d" %>
+        <% c_pw = c_solved ? [c_display.length * 8 + 24, 60].max : 36 %>
+        <rect x="<%= 375 - c_pw/2 %>" y="428" width="<%= c_pw %>" height="28" rx="14" fill="<%= c_color %>"/>
+        <text x="375" y="447" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
+
+        <%# Word pills — A only %>
+        <% word = puzzle.words_a&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="59" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="280" y="76" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — B only %>
+        <% word = puzzle.words_b&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 112 - pw/2 %>" y="310" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="112" y="327" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — C only %>
+        <% word = puzzle.words_c&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 448 - pw/2 %>" y="310" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="448" y="327" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — AB %>
+        <% word = puzzle.words_ab&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 208 - pw/2 %>" y="202" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="208" y="219" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — AC %>
+        <% word = puzzle.words_ac&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 352 - pw/2 %>" y="202" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="352" y="219" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — BC %>
+        <% word = puzzle.words_bc&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="323" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="280" y="340" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+
+        <%# Word pills — ABC %>
+        <% word = puzzle.words_abc&.first %>
+        <% if word %>
+          <% pw = [word.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - pw/2 %>" y="235" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+          <text x="280" y="252" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+        <% end %>
+      </svg>
+    </div>
+
+    <%# Guess rows %>
+    <% [
+      ["a", "#5B53D6", "#EDEAFC", "#9B94E8"],
+      ["b", "#2BAB65", "#E5F5EC", "#72C894"],
+      ["c", "#E8631A", "#FDF0E9", "#F0956A"]
+    ].each do |lbl, color, bg, placeholder_color| %>
+      <% solved = game_session.send("solved_#{lbl}?") %>
+      <% label_text = puzzle.send("label_#{lbl}") %>
+      <% lbl_attempts = attempts.select { |a| a.label == lbl } %>
+      <% wrong_count = lbl_attempts.count { |a| !a.correct? } %>
+
+      <div id="guess-row-<%= lbl %>"
+           class="guess-row"
+           data-label="<%= lbl %>"
+           data-solved="<%= solved %>"
+           style="border:1.5px solid <%= color %>;border-radius:14px;padding:12px 14px;background:<%= bg %>;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
+
+        <%# Letter badge %>
+        <span style="width:28px;height:28px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">
+          <%= lbl.upcase %>
+        </span>
+
+        <% if solved %>
+          <%# Solved: show label text %>
+          <span style="flex:1;font-weight:600;font-size:14px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;"><%= label_text %></span>
+        <% else %>
+          <%# Unsolved: input %>
+          <input type="text"
+                 name="guess"
+                 placeholder="Guess circle <%= lbl.upcase %>..."
+                 autocomplete="off"
+                 style="flex:1;border:none;background:transparent;font-size:14px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;min-width:0;::placeholder{color:<%= placeholder_color %>};"
+                 data-placeholder-color="<%= placeholder_color %>"
+          />
+        <% end %>
+
+        <%# Attempt marks %>
+        <span id="marks-<%= lbl %>" style="display:flex;align-items:center;gap:3px;flex-shrink:0;">
+          <% lbl_attempts.each do |attempt| %>
+            <% if attempt.correct? %>
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:<%= color %>;color:white;font-size:11px;font-weight:700;">✓</span>
+            <% else %>
+              <span style="font-size:13px;color:#999;">✗</span>
+            <% end %>
+          <% end %>
+        </span>
+
+        <% if solved %>
+          <%# Blue checkmark badge for solved %>
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2563EB;color:white;font-size:12px;font-weight:700;flex-shrink:0;">✓</span>
+        <% end %>
+      </div>
+    <% end %>
+
+    <%# Submit button %>
+    <button id="submit-btn" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:16px;border:none;border-radius:14px;height:52px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;margin-bottom:14px;">
+      Submit guess
+    </button>
+
+    <%# Attempt counter %>
+    <% total_attempts = (game_session.attempts_a || 0) + (game_session.attempts_b || 0) + (game_session.attempts_c || 0) %>
+    <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:4px;">
+      <% 9.times do |i| %>
+        <span style="width:8px;height:8px;border-radius:50%;background:<%= i < total_attempts ? '#1a1a2e' : '#ddd' %>;display:inline-block;"></span>
+      <% end %>
+      <span style="font-size:12px;color:#999;margin-left:4px;font-family:'Inter',system-ui,sans-serif;">Attempt <%= total_attempts %> of 9</span>
     </div>
 
     <script>
@@ -140,69 +343,124 @@
         const puzzleId = "<%= puzzle.id %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-        document.querySelectorAll('.guess-form').forEach(function(form) {
-          form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const label = form.dataset.label;
-            const guess = form.querySelector('input[name="guess"]').value.trim();
-            if (!guess) return;
+        // Set placeholder colors via JS since CSS ::placeholder can't be inlined
+        document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
+          const color = input.dataset.placeholderColor;
+          if (color) {
+            const style = document.createElement('style');
+            style.textContent = '#guess-row-' + input.closest('.guess-row').dataset.label + ' input::placeholder { color: ' + color + '; opacity: 1; }';
+            document.head.appendChild(style);
+          }
+        });
 
-            fetch('/puzzles/' + puzzleId + '/guess', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrfToken
-              },
-              body: JSON.stringify({ label: label, guess: guess })
-            })
-            .then(r => r.json())
-            .then(function(data) {
-              const attemptsEl = document.getElementById('attempts-' + label);
-              const emoji = document.createElement('span');
-              emoji.className = 'text-lg';
-              emoji.textContent = data.correct ? '✅' : '❌';
-              attemptsEl.appendChild(emoji);
+        document.getElementById('submit-btn').addEventListener('click', async function() {
+          const rows = document.querySelectorAll('.guess-row:not([data-solved="true"])');
+          const filled = [];
+          rows.forEach(function(row) {
+            const input = row.querySelector('input[name="guess"]');
+            if (input && input.value.trim()) {
+              filled.push({ label: row.dataset.label, guess: input.value.trim(), input: input, row: row });
+            }
+          });
+          if (!filled.length) return;
 
-              form.querySelector('input').value = '';
+          const btn = document.getElementById('submit-btn');
+          btn.disabled = true;
+          btn.textContent = 'Checking...';
 
-              if (data.solved[label]) {
-                const card = document.getElementById('card-' + label);
-                card.classList.remove('border-gray-200', 'bg-white');
-                card.classList.add('border-green-400', 'bg-green-50');
-                const headerDiv = card.querySelector('.flex.items-center');
-                const labelSpan = headerDiv.querySelector('span:last-child');
-                labelSpan.textContent = data['label_' + label] + ' ✅';
-                labelSpan.className = 'text-sm font-semibold text-green-700';
-                form.remove();
+          for (const item of filled) {
+            try {
+              const response = await fetch('/puzzles/' + puzzleId + '/guess', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify({ label: item.label, guess: item.guess })
+              });
+              const data = await response.json();
+
+              // Add attempt mark
+              const marksEl = document.getElementById('marks-' + item.label);
+              if (data.correct) {
+                const mark = document.createElement('span');
+                mark.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:' + getCircleColor(item.label) + ';color:white;font-size:11px;font-weight:700;';
+                mark.textContent = '✓';
+                marksEl.appendChild(mark);
+              } else {
+                const mark = document.createElement('span');
+                mark.style.cssText = 'font-size:13px;color:#999;';
+                mark.textContent = '✗';
+                marksEl.appendChild(mark);
               }
+
+              item.input.value = '';
+
+              // If solved, update the row
+              if (data.solved[item.label]) {
+                const row = item.row;
+                row.dataset.solved = 'true';
+                // Replace input with label text
+                const inputEl = row.querySelector('input[name="guess"]');
+                if (inputEl) {
+                  const labelSpan = document.createElement('span');
+                  labelSpan.style.cssText = 'flex:1;font-weight:600;font-size:14px;color:#1a1a2e;font-family:\'Inter\',system-ui,sans-serif;';
+                  labelSpan.textContent = data['label_' + item.label];
+                  inputEl.replaceWith(labelSpan);
+                }
+                // Add blue checkmark
+                const checkBadge = document.createElement('span');
+                checkBadge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#2563EB;color:white;font-size:12px;font-weight:700;flex-shrink:0;';
+                checkBadge.textContent = '✓';
+                row.appendChild(checkBadge);
+              }
+
+              // Update attempt counter
+              updateAttemptCounter();
 
               if (data.completed) {
-                const shareSection = document.getElementById('share-section');
-                shareSection.classList.remove('hidden');
-                document.getElementById('share-string').textContent = data.share_string;
+                // Reload page to show completed state server-side
+                window.location.reload();
+                return;
               }
-            })
-            .catch(function(err) {
+            } catch(err) {
               console.error('Guess failed:', err);
-            });
-          });
-        });
-      })();
+            }
+          }
 
-      function copyShare() {
-        const text = document.getElementById('share-string').textContent;
-        navigator.clipboard.writeText(text).then(function() {
-          const btn = event.target;
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Copy score'; }, 2000);
+          btn.disabled = false;
+          btn.textContent = 'Submit guess';
         });
-      }
+
+        function getCircleColor(label) {
+          const colors = { a: '#5B53D6', b: '#2BAB65', c: '#E8631A' };
+          return colors[label] || '#1a1a2e';
+        }
+
+        function updateAttemptCounter() {
+          // We can't easily track this client-side without server state,
+          // so just increment the dots count from current visible marks
+          let total = 0;
+          ['a','b','c'].forEach(function(lbl) {
+            const marks = document.getElementById('marks-' + lbl);
+            if (marks) total += marks.children.length;
+          });
+          const dots = document.querySelectorAll('#attempt-dots span');
+          dots.forEach(function(dot, i) {
+            dot.style.background = i < total ? '#1a1a2e' : '#ddd';
+          });
+          const counter = document.getElementById('attempt-count-text');
+          if (counter) counter.textContent = 'Attempt ' + total + ' of 9';
+        }
+      })();
     </script>
 
   <% else %>
-    <div class="text-center py-8">
-      <p class="text-gray-500 mb-4">Sign in to play this puzzle.</p>
-      <a href="/users/sign_in" class="bg-gray-900 text-white px-6 py-2 rounded-lg text-sm hover:bg-gray-700">Sign in</a>
+    <%# Not signed in %>
+    <div style="text-align:center;padding:48px 0;">
+      <p style="color:#999;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">Sign in to play this puzzle.</p>
+      <a href="/users/sign_in" style="display:inline-block;font-weight:700;font-size:16px;padding:16px 32px;border-radius:14px;background:#1a1a2e;color:white;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign in to play</a>
     </div>
   <% end %>
+
 </div>
