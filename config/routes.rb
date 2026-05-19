@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "puzzles#daily"
   get "/daily", to: "puzzles#daily"
+  get "/archive", to: "puzzles#archive", as: :archive
 
   resources :puzzles, only: [:index, :show, :new, :create]
   post "/puzzles/:id/guess", to: "puzzles#guess", as: :puzzle_guess

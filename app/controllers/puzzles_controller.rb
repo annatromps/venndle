@@ -13,6 +13,16 @@ class PuzzlesController < ApplicationController
     @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
   end
 
+  def archive
+    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc)
+    played_ids = if user_signed_in?
+      current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
+    else
+      (session["guest_game_sessions"] || {}).keys.map(&:to_i)
+    end
+    @played_ids = played_ids.to_set
+  end
+
   def show
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)

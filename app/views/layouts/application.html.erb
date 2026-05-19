@@ -35,27 +35,32 @@
   <%# CORE CONSTRAINT: zero scroll on all pages — do not add content that breaks viewport height %>
   <body style="height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);font-family:'Inter',system-ui,sans-serif;margin:0;padding:0;">
 
-    <%# Precompute nav active states and styles %>
+    <%# Precompute nav active states %>
     <%
       _daily_active     = request.path == "/" || request.path == "/daily"
+      _archive_active   = request.path == "/archive"
       _community_active = request.path.start_with?("/puzzles") && !request.path.start_with?("/puzzles/new")
-      _create_active    = request.path == "/puzzles/new"
-      _link_base        = "font-size:14px;text-decoration:none;padding-bottom:3px;border-bottom:2px solid;"
-      _daily_style      = _link_base + "font-weight:#{_daily_active ? '700' : '500'};color:#{_daily_active ? '#1a1a2e' : '#555'};border-bottom-color:#{_daily_active ? '#1a1a2e' : 'transparent'};"
-      _community_style  = _link_base + "font-weight:#{_community_active ? '700' : '500'};color:#{_community_active ? '#1a1a2e' : '#555'};border-bottom-color:#{_community_active ? '#1a1a2e' : 'transparent'};"
-      _create_style     = _link_base + "font-weight:#{_create_active ? '700' : '500'};color:#{_create_active ? '#1a1a2e' : '#555'};border-bottom-color:#{_create_active ? '#1a1a2e' : 'transparent'};"
-      _ml_base          = "display:block;padding:14px 24px;font-size:15px;text-decoration:none;border-left:3px solid;"
-      _ml_daily_style   = _ml_base + "font-weight:#{_daily_active ? '700' : '500'};color:#{_daily_active ? '#1a1a2e' : '#444'};border-left-color:#{_daily_active ? '#1a1a2e' : 'transparent'};"
-      _ml_community_style = _ml_base + "font-weight:#{_community_active ? '700' : '500'};color:#{_community_active ? '#1a1a2e' : '#444'};border-left-color:#{_community_active ? '#1a1a2e' : 'transparent'};"
-      _ml_create_style  = _ml_base + "font-weight:#{_create_active ? '700' : '500'};color:#{_create_active ? '#1a1a2e' : '#444'};border-left-color:#{_create_active ? '#1a1a2e' : 'transparent'};"
+
+      _nav_link_style = ->(active) {
+        "font-size:14px;text-decoration:none;padding-bottom:3px;border-bottom:2px solid;" \
+        "font-weight:#{active ? '700' : '500'};color:#{active ? '#1a1a2e' : '#555'};" \
+        "border-bottom-color:#{active ? '#1a1a2e' : 'transparent'};"
+      }
+      _ml_link_style = ->(active) {
+        "display:block;padding:14px 24px;font-size:15px;text-decoration:none;border-left:3px solid;" \
+        "font-weight:#{active ? '700' : '500'};color:#{active ? '#1a1a2e' : '#444'};" \
+        "border-left-color:#{active ? '#1a1a2e' : 'transparent'};"
+      }
     %>
 
     <%# Navbar — fixed 60px height, white background %>
     <nav style="height:60px;flex-shrink:0;background:white;padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
-      <%# Mobile row — logo + hamburger, hidden on desktop via CSS %>
-      <div class="nav-mobile" style="display:none;width:100%;align-items:center;justify-content:space-between;">
-        <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap;">
+      <%# ── Mobile row — logo + create button + hamburger ── %>
+      <div class="nav-mobile" style="display:none;width:100%;align-items:center;justify-content:space-between;gap:10px;">
+
+        <%# Logo %>
+        <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0;">
           <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="2.5"/>
             <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.85" stroke="#2BAB65" stroke-width="2.5"/>
@@ -63,14 +68,22 @@
           </svg>
           <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em;line-height:1;">Venndle</span>
         </a>
-        <button id="hamburger-btn" onclick="toggleMobileMenu(event)"
-          style="background:none;border:none;cursor:pointer;padding:6px;font-size:22px;color:#1a1a2e;line-height:1;display:flex;align-items:center;justify-content:center;">
-          ☰
-        </button>
+
+        <%# Right side: create button + hamburger %>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <a href="/puzzles/new"
+             style="background:#E8631A;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:5px 11px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
+            + Create
+          </a>
+          <button id="hamburger-btn" onclick="toggleMobileMenu(event)"
+            style="background:none;border:none;cursor:pointer;padding:6px;font-size:22px;color:#1a1a2e;line-height:1;display:flex;align-items:center;justify-content:center;">
+            ☰
+          </button>
+        </div>
       </div>
 
-      <%# Desktop grid — hidden on mobile via CSS %>
-      <div class="nav-desktop" style="width:100%;max-width:700px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
+      <%# ── Desktop layout — logo left, nav centre, actions right ── %>
+      <div class="nav-desktop" style="width:100%;max-width:820px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;">
 
         <%# Left: logo %>
         <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap;">
@@ -84,13 +97,18 @@
 
         <%# Centre: primary nav links %>
         <div style="display:flex;align-items:center;gap:36px;white-space:nowrap;">
-          <a href="/" style="<%= _daily_style %>">Daily</a>
-          <a href="/puzzles" style="<%= _community_style %>">Community</a>
-          <a href="/puzzles/new" style="<%= _create_style %>">+ Create</a>
+          <a href="/"        style="<%= _nav_link_style.(_daily_active) %>">Today</a>
+          <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Archive</a>
+          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community</a>
         </div>
 
-        <%# Right: avatar dropdown or auth links %>
+        <%# Right: create button + avatar/auth %>
         <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;white-space:nowrap;">
+          <a href="/puzzles/new"
+             style="background:#E8631A;color:white;font-size:13px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
+            + Create
+          </a>
+
           <% if user_signed_in? %>
             <%
               _avatar_colors = %w[#5B53D6 #2BAB65 #E8631A #3B82F6 #EC4899 #8B5CF6]
@@ -125,19 +143,25 @@
       </div>
     </nav>
 
-    <%# Mobile dropdown — position:fixed so it escapes nav height, hidden by CSS on desktop %>
+    <%# Mobile dropdown menu %>
     <div id="mobile-menu" style="display:none;position:fixed;top:60px;left:0;right:0;background:white;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:400;">
-      <a href="/" style="<%= _ml_daily_style %>">Daily</a>
-      <a href="/puzzles" style="<%= _ml_community_style %>">Community</a>
-      <a href="/puzzles/new" style="<%= _ml_create_style %>">+ Create</a>
+      <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
+      <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
+      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community Created</a>
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
+
       <% if user_signed_in? %>
-        <div style="padding:10px 24px 4px;font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></div>
-        <%= button_to "Sign out", destroy_user_session_path, method: :delete,
-              style: "display:block;width:100%;text-align:left;padding:12px 24px;font-size:15px;font-weight:500;color:#e53e3e;background:transparent;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;box-sizing:border-box;" %>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 24px;">
+          <span style="font-size:14px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></span>
+          <%= button_to "Sign out", destroy_user_session_path, method: :delete,
+                style: "background:transparent;border:none;font-size:14px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
+        </div>
       <% else %>
-        <a href="/users/sign_in" style="display:block;padding:14px 24px;font-size:15px;font-weight:500;color:#444;text-decoration:none;">Sign in</a>
-        <a href="/users/sign_up" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#1a1a2e;text-decoration:none;">Sign up</a>
+        <div style="display:flex;align-items:center;padding:14px 24px;gap:0;">
+          <a href="/users/sign_in" style="font-size:15px;font-weight:500;color:#444;text-decoration:none;">Sign in</a>
+          <span style="color:#ccc;margin:0 12px;font-size:15px;">|</span>
+          <a href="/users/sign_up" style="font-size:15px;font-weight:700;color:#1a1a2e;text-decoration:none;">Sign up</a>
+        </div>
       <% end %>
     </div>
 
