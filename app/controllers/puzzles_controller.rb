@@ -53,6 +53,10 @@ class PuzzlesController < ApplicationController
       render json: { error: "Invalid label" }, status: :bad_request and return
     end
 
+    if guess.blank?
+      render json: { error: "Guess cannot be blank" }, status: :bad_request and return
+    end
+
     game_session = GameSession.find_or_create_by(user: current_user, puzzle: @puzzle)
 
     correct_label = @puzzle.send("label_#{label}")
@@ -60,7 +64,7 @@ class PuzzlesController < ApplicationController
 
     correct = AnthropicJudgeService.call(guess, correct_label, circle_words)
 
-    attempt = Attempt.create!(
+    Attempt.create!(
       user: current_user,
       puzzle: @puzzle,
       label: label,
@@ -69,15 +73,9 @@ class PuzzlesController < ApplicationController
     )
 
     game_session.increment!("attempts_#{label}")
-
-    if correct
-      game_session.update!("solved_#{label}" => true)
-    end
-
+    game_session.update!("solved_#{label}" => true) if correct
     game_session.reload
-    if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
-      game_session.update!(completed: true)
-    end
+    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
     share_string = build_share_string(game_session, @puzzle)
 
@@ -94,6 +92,9 @@ class PuzzlesController < ApplicationController
       label_b: game_session.solved_b? ? @puzzle.label_b : nil,
       label_c: game_session.solved_c? ? @puzzle.label_c : nil
     }
+  rescue => e
+    Rails.logger.error "Guess action error: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
+    render json: { error: "Something went wrong: #{e.message}" }, status: :internal_server_error
   end
 
   private

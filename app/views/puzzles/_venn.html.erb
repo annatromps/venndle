@@ -258,6 +258,18 @@
           return { a: '#5B53D6', b: '#2BAB65', c: '#E8631A' }[label] || '#1a1a2e';
         }
 
+        function showRowError(row, msg) {
+          let errEl = row.querySelector('.guess-error');
+          if (!errEl) {
+            errEl = document.createElement('span');
+            errEl.className = 'guess-error';
+            errEl.style.cssText = 'font-size:11px;color:#e53e3e;padding-left:32px;display:block;';
+            row.appendChild(errEl);
+          }
+          errEl.textContent = msg;
+          setTimeout(function() { if (errEl.parentNode) errEl.textContent = ''; }, 4000);
+        }
+
         async function submitGuess(label, btn) {
           const row = document.getElementById('guess-row-' + label);
           const input = row.querySelector('input[name="guess"]');
@@ -273,7 +285,25 @@
               headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
               body: JSON.stringify({ label: label, guess: guess })
             });
-            const data = await resp.json();
+
+            let data;
+            try {
+              data = await resp.json();
+            } catch(parseErr) {
+              console.error('Server returned non-JSON (status ' + resp.status + ')');
+              showRowError(row, 'Server error — check that ANTHROPIC_API_KEY is set');
+              btn.disabled = false;
+              btn.innerHTML = '&#8594;';
+              return;
+            }
+
+            if (!resp.ok || data.error) {
+              console.error('Guess error:', data.error || resp.status);
+              showRowError(row, data.error || 'Something went wrong');
+              btn.disabled = false;
+              btn.innerHTML = '&#8594;';
+              return;
+            }
 
             // Append attempt mark
             const marksEl = document.getElementById('marks-' + label);
@@ -306,8 +336,6 @@
               check.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#2563EB;color:white;font-size:10px;font-weight:700;flex-shrink:0;';
               check.textContent = '✓';
               mainRow.appendChild(check);
-
-              // Update the SVG label pill from "?" to the real label
               updateSvgPill(label, data['label_' + label], getCircleColor(label));
             } else {
               btn.disabled = false;
@@ -316,7 +344,8 @@
 
             if (data.completed) window.location.reload();
           } catch(err) {
-            console.error('Guess failed:', err);
+            console.error('Guess fetch failed:', err);
+            showRowError(row, 'Network error — please try again');
             btn.disabled = false;
             btn.innerHTML = '&#8594;';
           }
