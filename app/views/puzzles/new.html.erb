@@ -1,8 +1,4 @@
-<div style="height:100%;display:flex;flex-direction:column;padding:10px 16px 12px;box-sizing:border-box;max-width:500px;margin:0 auto;width:100%;">
-
-  <div style="flex-shrink:0;margin-bottom:8px;">
-    <a href="/puzzles" style="font-size:12px;font-weight:600;color:#888;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">← Community puzzles</a>
-  </div>
+<div style="height:100%;display:flex;flex-direction:column;padding:10px 16px 12px;box-sizing:border-box;max-width:600px;margin:0 auto;width:100%;">
 
   <%= form_with model: @puzzle, id: "puzzle-form", style: "flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;" do |f| %>
 
@@ -23,8 +19,8 @@
       </div>
     <% end %>
 
-    <%# Venn diagram — scales to fill remaining space %>
-    <div style="flex:1;min-height:0;background:#f8f8fb;border-radius:16px;overflow:hidden;">
+    <%# Venn diagram — scales to fill remaining space, no card box %>
+    <div style="flex:1;min-height:0;overflow:hidden;">
       <svg viewBox="0 0 560 460" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
 
         <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
