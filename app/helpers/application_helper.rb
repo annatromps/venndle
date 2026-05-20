@@ -7,7 +7,9 @@ module ApplicationHelper
       emojis = ("❌" * wrong) + (solved ? "✅" : "")
       "#{label.upcase} #{emojis}"
     end
-    url = "#{request.base_url}/puzzles/#{puzzle.id}"
-    "Venndle ##{puzzle.id}\n#{lines.join("\n")}\n#{url}"
+    base = request.base_url.sub("://", ":​//")
+    url = "#{base}/puzzles/#{puzzle.id}"
+    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
+    "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end
