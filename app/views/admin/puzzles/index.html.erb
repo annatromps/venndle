@@ -97,15 +97,15 @@
                 <td style="<%= td %>color:#666;"><%= puzzle.user.username %></td>
                 <td style="<%= td %>color:#aaa;"><%= puzzle.created_at.strftime("%-d %b %Y") %></td>
                 <td style="<%= tdr %>">
-                  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                  <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
                     <a href="/admin/puzzles/<%= puzzle.id %>/edit" style="color:#5B53D6;font-weight:600;text-decoration:none;font-size:13px;">Edit</a>
-                    <%= form_with url: admin_puzzle_path(puzzle), method: :patch, style: "display:flex;align-items:center;gap:6px;" do |f| %>
+                    <%= form_with url: admin_puzzle_path(puzzle), method: :patch, style: "display:flex;align-items:center;gap:6px;flex-wrap:wrap;" do |f| %>
                       <%= hidden_field_tag "puzzle[puzzle_type]", "daily" %>
                       <%= date_field_tag "puzzle[scheduled_date]", nil,
                             required: true,
-                            style: "border:1.5px solid rgba(0,0,0,0.12);border-radius:8px;padding:4px 8px;font-size:12px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+                            style: "border:1.5px solid #2BAB65;border-radius:8px;padding:5px 8px;font-size:12px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:white;" %>
                       <%= f.submit "Schedule as daily",
-                            style: "background:#2BAB65;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;font-family:'Inter',system-ui,sans-serif;cursor:pointer;white-space:nowrap;" %>
+                            style: "background:#2BAB65;color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;font-family:'Inter',system-ui,sans-serif;cursor:pointer;white-space:nowrap;" %>
                     <% end %>
                   </div>
                 </td>
