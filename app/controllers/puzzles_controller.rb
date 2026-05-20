@@ -73,7 +73,14 @@ class PuzzlesController < ApplicationController
     end
 
     correct_label = @puzzle.send("label_#{label}")
-    accepted = @puzzle.send("accepted_answers_#{label}") || []
+    raw_accepted = @puzzle.send("accepted_answers_#{label}") || []
+    accepted = raw_accepted.map { |a| a.to_s.downcase.strip }
+
+    Rails.logger.info "=== GUESS DEBUG ==="
+    Rails.logger.info "Guess: #{normalized_guess}"
+    Rails.logger.info "Label #{label}: #{correct_label}"
+    Rails.logger.info "Accepted answers (#{accepted.size}): #{accepted.first(6).inspect}"
+    Rails.logger.info "Match result: #{accepted.include?(normalized_guess)}"
 
     if accepted.include?(normalized_guess)
       correct = true
