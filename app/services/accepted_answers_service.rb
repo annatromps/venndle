@@ -3,7 +3,7 @@ require "uri"
 require "json"
 
 class AcceptedAnswersService
-  MODEL = "gemini-flash-latest"
+  MODEL = "gemini-flash-lite-latest"
 
   def self.call(label, words)
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
