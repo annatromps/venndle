@@ -1,9 +1,20 @@
 <div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;">
   <div style="max-width:760px;margin:0 auto;padding:20px 20px 40px;">
 
-    <div style="margin-bottom:24px;">
+    <div style="margin-bottom:20px;">
       <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Community</p>
-      <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-bottom:4px;">
+          <% [["newest","Newest"],["oldest","Oldest"],["top_rated","★ Top rated"],["lowest_rated","★ Lowest"]].each do |val, label| %>
+            <% active = @sort == val %>
+            <a href="?sort=<%= val %>"
+               style="font-size:12px;font-weight:600;font-family:'Inter',system-ui,sans-serif;text-decoration:none;padding:5px 12px;border-radius:999px;white-space:nowrap;<%= active ? 'background:#1a1a2e;color:white;' : 'background:white;color:#555;border:1.5px solid rgba(0,0,0,0.12);' %>">
+              <%= label %>
+            </a>
+          <% end %>
+        </div>
+      </div>
     </div>
 
     <% if @puzzles.any? %>

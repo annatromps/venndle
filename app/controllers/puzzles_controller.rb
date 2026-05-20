@@ -10,7 +10,14 @@ class PuzzlesController < ApplicationController
   end
 
   def index
-    @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+    @sort = params[:sort].presence_in(%w[newest oldest top_rated lowest_rated]) || "newest"
+
+    base = Puzzle.published.includes(:user)
+    @puzzles = case @sort
+               when "oldest" then base.order(created_at: :asc)
+               else               base.order(created_at: :desc)
+               end
+
     ids = @puzzles.map(&:id)
     if ids.any?
       @rating_averages = Rating.where(puzzle_id: ids).group(:puzzle_id).average(:score).transform_values { |v| v.to_f.round(1) }
@@ -19,6 +26,9 @@ class PuzzlesController < ApplicationController
       @rating_averages = {}
       @rating_counts   = {}
     end
+
+    @puzzles = @puzzles.sort_by { |p| [-(@rating_averages[p.id] || 0), -p.id] } if @sort == "top_rated"
+    @puzzles = @puzzles.sort_by { |p| [(@rating_averages[p.id] ? @rating_averages[p.id] : Float::INFINITY), -p.id] } if @sort == "lowest_rated"
   end
 
   def archive
