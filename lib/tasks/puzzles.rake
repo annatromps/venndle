@@ -17,6 +17,7 @@ namespace :puzzles do
         answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
         puzzle.update_column("accepted_answers_#{lbl}", answers)
         puts "    Circle #{lbl.upcase} (#{puzzle.send("label_#{lbl}")}): #{answers.count} answers — #{answers.first(5).join(', ')}..."
+        sleep 2
       end
     rescue => e
       puts "    ERROR: #{e.message}"
