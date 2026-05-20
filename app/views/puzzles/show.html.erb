@@ -1,4 +1,9 @@
-<% content_for :og_title, "#{@puzzle.title.present? ? @puzzle.title : "Venndle \##{@puzzle.id}"} — can you solve it?" %>
+<%
+  _share_title = "#{@puzzle.title.present? ? @puzzle.title : "Puzzle \##{@puzzle.id}"} — can you solve it?"
+%>
+<% content_for :title, _share_title %>
+<% content_for :og_title, _share_title %>
+<% content_for :no_og_image, "1" %>
 
 <% if flash[:just_created].to_i == @puzzle.id %>
   <%# ===== PUZZLE CREATED SCREEN ===== %>
@@ -17,7 +22,7 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button id="created-share-btn"
                 onclick="copyCreatedUrl(this)"
-                data-url="<%= "#{request.base_url}/puzzles/#{@puzzle.id}" %>"
+                data-url="https://venndle.app/<%= @puzzle.id %>"
                 style="width:100%;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:50px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
           Share puzzle
         </button>
@@ -60,7 +65,7 @@
         </h1>
         <button id="show-share-btn"
                 onclick="copyShowPuzzleUrl(this)"
-                data-url="<%= "#{request.base_url}/puzzles/#{@puzzle.id}" %>"
+                data-url="https://venndle.app/<%= @puzzle.id %>"
                 style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:transparent;border:1.5px solid #5B53D6;border-radius:10px;padding:6px 12px;color:#5B53D6;font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>

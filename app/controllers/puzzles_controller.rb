@@ -26,17 +26,23 @@ class PuzzlesController < ApplicationController
       (session["guest_favourites"] || []).to_set
     end
 
-    @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
     case @filter
-    when "played"
-      @puzzles = @puzzles.where(id: @played_ids.to_a)
     when "my"
-      @puzzles = user_signed_in? ? @puzzles.where(user: current_user) : Puzzle.none
+      @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
+    when "played"
+      @puzzles = Puzzle.published.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
     when "favourites"
-      @puzzles = @puzzles.where(id: @favourite_ids.to_a)
+      @puzzles = Puzzle.published.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+    else
+      @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
     end
 
     @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+
+    puzzle_ids = @puzzles.map(&:id)
+    @avg_ratings   = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
+                           .transform_values { |v| v.to_f.round(1) }
+    @rating_counts = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
   end
 
   def archive
@@ -149,6 +155,42 @@ class PuzzlesController < ApplicationController
     render json: { error: "Something went wrong: #{e.message}" }, status: :internal_server_error
   end
 
+  def hint
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+    revealed_count = params[:revealed_count].to_i
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    official_label = @puzzle.send("label_#{label}").to_s
+    return render json: { done: true } if revealed_count >= official_label.length
+
+    render json: {
+      letter: official_label[revealed_count],
+      total_length: official_label.length,
+      position: revealed_count
+    }
+  end
+
+  def give_up
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    game_session = find_or_build_game_session(@puzzle)
+    return render json: { already_solved: true } if game_session.send("solved_#{label}?")
+
+    game_session.update!("solved_#{label}" => true)
+    game_session.reload
+    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+
+    render json: {
+      official_label: @puzzle.send("label_#{label}"),
+      completed: game_session.completed?
+    }
+  end
+
   private
 
   def require_login_to_create
@@ -216,7 +258,7 @@ class PuzzlesController < ApplicationController
       emojis = ("❌" * wrong) + (solved ? "✅" : "")
       "#{label.upcase} #{emojis}"
     end
-    url = "#{request.base_url}/puzzles/#{puzzle.id}"
+    url = "https://venndle.app/#{puzzle.id}"
     title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end

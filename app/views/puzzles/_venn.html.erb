@@ -50,6 +50,39 @@
         <button onclick="copyShare(event)" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:13px;border:none;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Copy score</button>
       </div>
 
+      <%# Star rating %>
+      <%
+        _user_rating = user_signed_in? ? current_user.ratings.find_by(puzzle: puzzle) : nil
+        _avg = puzzle.ratings.average(:score)&.to_f&.round(1)
+        _count = puzzle.ratings.count
+      %>
+      <div id="star-rating-section" style="border-top:1px solid #f0f0f0;padding-top:14px;">
+        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;">
+          Rate this puzzle
+          <% if _count > 0 %>
+            <span id="avg-display" style="text-transform:none;letter-spacing:0;font-weight:400;color:#888;"> · <span style="color:#F59E0B;">★</span> <span id="avg-value"><%= _avg %></span> (<span id="avg-count"><%= _count %></span>)</span>
+          <% else %>
+            <span id="avg-display" style="display:none;text-transform:none;letter-spacing:0;font-weight:400;color:#888;"> · <span style="color:#F59E0B;">★</span> <span id="avg-value"></span> (<span id="avg-count"></span>)</span>
+          <% end %>
+        </p>
+        <% if user_signed_in? %>
+          <div id="stars" style="display:flex;gap:4px;margin-bottom:4px;" data-puzzle-id="<%= puzzle.id %>" data-selected="<%= _user_rating&.score.to_i %>">
+            <% 5.times do |i| %>
+              <button class="star-btn" data-score="<%= i + 1 %>"
+                      style="background:none;border:none;cursor:pointer;font-size:28px;padding:0;line-height:1;color:<%= _user_rating&.score.to_i > i ? '#F59E0B' : '#ddd' %>;">★</button>
+            <% end %>
+          </div>
+          <p id="rating-feedback" style="font-size:11px;color:#aaa;font-family:'Inter',system-ui,sans-serif;margin:0;min-height:16px;">
+            <%= _user_rating ? "You rated this #{_user_rating.score}/5" : "Tap a star to rate" %>
+          </p>
+        <% else %>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:22px;color:#ddd;letter-spacing:2px;">★★★★★</span>
+            <a href="/users/sign_in" style="font-size:12px;color:#5B53D6;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign in to rate</a>
+          </div>
+        <% end %>
+      </div>
+
       <% unless user_signed_in? %>
         <div style="text-align:center;padding-top:4px;">
           <p style="font-size:12px;color:#aaa;margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;">Want to track your stats and create puzzles?</p>
@@ -67,6 +100,58 @@
           setTimeout(function() { btn.textContent = 'Copy score'; }, 2000);
         });
       }
+
+      (function() {
+        const starsEl = document.getElementById('stars');
+        if (!starsEl) return;
+        const puzzleId = starsEl.dataset.puzzleId;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const btns = starsEl.querySelectorAll('.star-btn');
+        const feedback = document.getElementById('rating-feedback');
+        const avgDisplay = document.getElementById('avg-display');
+        const avgValue = document.getElementById('avg-value');
+        const avgCount = document.getElementById('avg-count');
+
+        function paintStars(score) {
+          btns.forEach(function(b) {
+            b.style.color = parseInt(b.dataset.score) <= score ? '#F59E0B' : '#ddd';
+          });
+        }
+
+        btns.forEach(function(btn) {
+          btn.addEventListener('mouseenter', function() { paintStars(parseInt(btn.dataset.score)); });
+          btn.addEventListener('mouseleave', function() {
+            const current = parseInt(starsEl.dataset.selected || 0);
+            paintStars(current);
+          });
+          btn.addEventListener('click', async function() {
+            const score = parseInt(btn.dataset.score);
+            starsEl.dataset.selected = score;
+            paintStars(score);
+            if (feedback) feedback.textContent = 'Saving…';
+            try {
+              const resp = await fetch('/puzzles/' + puzzleId + '/rating', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+                body: JSON.stringify({ score: score })
+              });
+              const data = await resp.json();
+              if (resp.ok) {
+                if (feedback) feedback.textContent = 'You rated this ' + data.score + '/5';
+                if (avgValue) avgValue.textContent = data.average;
+                if (avgCount) avgCount.textContent = data.count;
+                if (avgDisplay) avgDisplay.style.display = 'inline';
+              }
+            } catch(err) {
+              if (feedback) feedback.textContent = 'Could not save — try again';
+            }
+          });
+        });
+
+        // Paint initial state
+        const initial = parseInt(starsEl.dataset.selected || 0);
+        if (initial) paintStars(initial);
+      })();
     </script>
 
   <% elsif game_session %>
@@ -178,6 +263,24 @@
             </span>
             <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
               <span id="you-said-<%= lbl %>" style="font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;">you said: <%= last_correct_attempt.guess %></span>
+            <% end %>
+
+            <%# Hint controls — only for unsolved rows %>
+            <% unless solved %>
+              <div class="hint-ctrl" data-label="<%= lbl %>" style="padding-left:32px;display:flex;flex-direction:column;gap:2px;">
+                <span id="hint-display-<%= lbl %>" style="display:none;font-size:11px;font-family:monospace;letter-spacing:3px;color:#666;"></span>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="hint-btn" data-label="<%= lbl %>"
+                          style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
+                    Reveal letter
+                  </button>
+                  <span style="color:#ddd;font-size:10px;">|</span>
+                  <button class="give-up-btn" data-label="<%= lbl %>"
+                          style="font-size:11px;color:#e53e3e;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
+                    Give up
+                  </button>
+                </div>
+              </div>
             <% end %>
           </div>
         <% end %>
@@ -355,6 +458,103 @@
               if (btn) submitGuess(btn.dataset.label, btn);
             }
           });
+        });
+
+        // ── Hint state (tracks revealed letters per label, client-side only) ──
+        const hintState = { a: { revealed: [], totalLength: null }, b: { revealed: [], totalLength: null }, c: { revealed: [], totalLength: null } };
+
+        async function fetchHint(label) {
+          const row = document.getElementById('guess-row-' + label);
+          if (row.dataset.solved === 'true') return;
+          const state = hintState[label];
+          const btn = row.querySelector('.hint-btn');
+
+          try {
+            const resp = await fetch('/puzzles/' + puzzleId + '/hint', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+              body: JSON.stringify({ label: label, revealed_count: state.revealed.length })
+            });
+            const data = await resp.json();
+
+            if (data.done) {
+              if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
+              return;
+            }
+
+            state.revealed.push(data.letter.toUpperCase());
+            state.totalLength = data.total_length;
+
+            const displayEl = document.getElementById('hint-display-' + label);
+            const chars = Array.from({ length: data.total_length }, function(_, i) {
+              return i < state.revealed.length ? state.revealed[i] : '_';
+            });
+            displayEl.textContent = chars.join(' ');
+            displayEl.style.display = 'inline';
+
+            if (state.revealed.length >= data.total_length) {
+              if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
+            }
+          } catch(err) {
+            console.error('Hint fetch failed:', err);
+          }
+        }
+
+        async function giveUp(label) {
+          if (!confirm('Give up on circle ' + label.toUpperCase() + '? This will reveal the answer.')) return;
+
+          const row = document.getElementById('guess-row-' + label);
+          const btn = row.querySelector('.give-up-btn');
+          if (btn) btn.disabled = true;
+
+          try {
+            const resp = await fetch('/puzzles/' + puzzleId + '/give_up', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+              body: JSON.stringify({ label: label })
+            });
+            const data = await resp.json();
+
+            if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
+
+            const officialLabel = data.official_label;
+            row.dataset.solved = 'true';
+
+            const mainRow = row.querySelector('.guess-row-main');
+            const inputEl = mainRow.querySelector('input[name="guess"]');
+            if (inputEl) {
+              const labelSpan = document.createElement('span');
+              labelSpan.style.cssText = "flex:1;font-size:13px;color:#888;font-family:'Inter',system-ui,sans-serif;font-style:italic;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+              labelSpan.textContent = officialLabel;
+              inputEl.replaceWith(labelSpan);
+            }
+            const submitBtn = mainRow.querySelector('.submit-btn');
+            if (submitBtn) submitBtn.remove();
+
+            const indicator = document.createElement('span');
+            indicator.title = 'Gave up';
+            indicator.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#bbb;color:white;font-size:11px;flex-shrink:0;';
+            indicator.textContent = '—';
+            mainRow.appendChild(indicator);
+
+            const hintCtrl = row.querySelector('.hint-ctrl');
+            if (hintCtrl) hintCtrl.remove();
+
+            updateSvgPill(label, officialLabel, getCircleColor(label));
+
+            if (data.completed) window.location.reload();
+          } catch(err) {
+            console.error('Give up fetch failed:', err);
+            if (btn) btn.disabled = false;
+          }
+        }
+
+        document.querySelectorAll('.hint-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() { fetchHint(btn.dataset.label); });
+        });
+
+        document.querySelectorAll('.give-up-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() { giveUp(btn.dataset.label); });
         });
       })();
     </script>
