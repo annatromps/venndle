@@ -15,7 +15,9 @@ Rails.application.routes.draw do
 
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
-    resources :puzzles
+    resources :puzzles do
+      member { patch :schedule }
+    end
   end
 
   get "/:id", to: "puzzles#show", constraints: { id: /\d+/ }
