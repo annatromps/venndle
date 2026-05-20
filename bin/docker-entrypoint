@@ -3,7 +3,7 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
-  FORCE=true ./bin/rails puzzles:generate_accepted_answers
+  ./bin/rails puzzles:generate_accepted_answers
 fi
 
 exec "${@}"

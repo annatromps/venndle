@@ -1,12 +1,8 @@
 namespace :puzzles do
   desc "Generate (or regenerate) accepted answers for puzzles that are missing them or have thin lists. Set FORCE=true to wipe and regenerate all."
   task generate_accepted_answers: :environment do
-    force = ENV["FORCE"] == "true"
-
-    if force
-      puts "FORCE mode: clearing all accepted answers for regeneration."
-      Puzzle.update_all(accepted_answers_a: [], accepted_answers_b: [], accepted_answers_c: [])
-    end
+    puts "Clearing all accepted answers for regeneration with updated prompt."
+    Puzzle.update_all(accepted_answers_a: [], accepted_answers_b: [], accepted_answers_c: [])
 
     puzzles = Puzzle.where(
       "array_length(accepted_answers_a, 1) IS NULL OR array_length(accepted_answers_a, 1) < 5 OR " \
