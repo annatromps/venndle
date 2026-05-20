@@ -26,14 +26,15 @@ class PuzzlesController < ApplicationController
       (session["guest_favourites"] || []).to_set
     end
 
-    @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
     case @filter
-    when "played"
-      @puzzles = @puzzles.where(id: @played_ids.to_a)
     when "my"
-      @puzzles = user_signed_in? ? @puzzles.where(user: current_user) : Puzzle.none
+      @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
+    when "played"
+      @puzzles = Puzzle.published.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
     when "favourites"
-      @puzzles = @puzzles.where(id: @favourite_ids.to_a)
+      @puzzles = Puzzle.published.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+    else
+      @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
     end
 
     @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
