@@ -63,7 +63,6 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.new(puzzle_params)
     @puzzle.user = current_user
     @puzzle.puzzle_type = "user"
-    @puzzle.published = true
 
     if @puzzle.title.blank?
       @puzzle.title = "#{Date.today.strftime("%-d %b")} · ##{(Puzzle.count + 1).to_s.rjust(3, "0")}"
@@ -197,7 +196,7 @@ class PuzzlesController < ApplicationController
 
   def puzzle_params
     permitted = params.require(:puzzle).permit(
-      :title, :label_a, :label_b, :label_c,
+      :title, :published, :label_a, :label_b, :label_c,
       words_a: [], words_b: [], words_c: [],
       words_ab: [], words_ac: [], words_bc: [], words_abc: []
     )
