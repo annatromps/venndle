@@ -3,7 +3,7 @@ require "uri"
 require "json"
 
 class AnthropicJudgeService
-  MODEL = "gemini-1.5-flash"
+  MODEL = "gemini-flash-latest"
 
   def self.call(guess, correct_label, circle_words)
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
