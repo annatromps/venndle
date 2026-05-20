@@ -35,6 +35,8 @@ class PuzzlesController < ApplicationController
     when "favourites"
       @puzzles = @puzzles.where(id: @favourite_ids.to_a)
     end
+
+    @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
   end
 
   def archive
