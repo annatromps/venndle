@@ -15,6 +15,19 @@ class Admin::PuzzlesController < ApplicationController
 
   def new
     @puzzle = Puzzle.new(puzzle_type: "daily", published: true)
+    if params[:from_import].present?
+      @puzzle.title     = params[:title].presence
+      @puzzle.label_a   = params[:label_a].presence
+      @puzzle.label_b   = params[:label_b].presence
+      @puzzle.label_c   = params[:label_c].presence
+      @puzzle.words_a   = params[:words_a].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_b   = params[:words_b].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_c   = params[:words_c].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_ab  = params[:words_ab].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_ac  = params[:words_ac].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_bc  = params[:words_bc].to_s.split(",").map(&:strip).reject(&:blank?)
+      @puzzle.words_abc = params[:words_abc].to_s.split(",").map(&:strip).reject(&:blank?)
+    end
   end
 
   def create
