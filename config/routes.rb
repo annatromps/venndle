@@ -5,7 +5,9 @@ Rails.application.routes.draw do
   get "/daily", to: "puzzles#daily"
   get "/archive", to: "puzzles#archive", as: :archive
 
-  resources :puzzles, only: [:index, :show, :new, :create]
+  resources :puzzles, only: [:index, :show, :new, :create] do
+    resource :rating, only: [:create]
+  end
   post "/puzzles/:id/guess", to: "puzzles#guess", as: :puzzle_guess
 
   get "/admin", to: redirect("/admin/puzzles")

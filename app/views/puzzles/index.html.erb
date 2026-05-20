@@ -23,7 +23,12 @@
               </svg>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;">
-              <p style="font-size:11px;color:#ccc;font-family:'Inter',system-ui,sans-serif;margin:0;">3 circles to solve</p>
+              <% avg = @rating_averages[puzzle.id]; cnt = @rating_counts[puzzle.id].to_i %>
+              <% if cnt > 0 %>
+                <span style="font-size:12px;font-family:'Inter',system-ui,sans-serif;color:#F59E0B;font-weight:600;">★ <%= avg %><span style="color:#ccc;font-weight:400;"> · <%= cnt %></span></span>
+              <% else %>
+                <p style="font-size:11px;color:#ccc;font-family:'Inter',system-ui,sans-serif;margin:0;">3 circles to solve</p>
+              <% end %>
               <button onclick="copyCardUrl(event, '<%= "#{request.base_url}/puzzles/#{puzzle.id}" %>')"
                       style="display:flex;align-items:center;gap:4px;background:transparent;border:none;padding:4px 6px;border-radius:6px;cursor:pointer;color:#aaa;font-size:11px;font-weight:600;font-family:'Inter',system-ui,sans-serif;">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

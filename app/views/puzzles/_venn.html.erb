@@ -45,6 +45,31 @@
         <% end %>
       </div>
 
+      <% if puzzle.puzzle_type == "user" %>
+        <div style="text-align:center;">
+          <% if user_signed_in? %>
+            <% user_rating = current_user.ratings.find_by(puzzle: puzzle) %>
+            <p style="font-size:12px;color:#999;margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;">
+              <%= user_rating ? "Your rating" : "Rate this puzzle" %>
+            </p>
+            <div id="stars-container" data-current="<%= user_rating&.score || 0 %>">
+              <% 5.times do |i| %>
+                <button onclick="submitRating(<%= puzzle.id %>, <%= i+1 %>)"
+                        onmouseover="hoverStars(<%= i+1 %>)"
+                        onmouseout="resetStars()"
+                        data-index="<%= i+1 %>"
+                        style="font-size:30px;background:none;border:none;cursor:pointer;padding:0 1px;line-height:1;color:<%= user_rating && (i+1) <= user_rating.score ? '#F59E0B' : '#ddd' %>;">★</button>
+              <% end %>
+            </div>
+            <p id="rating-label" style="font-size:11px;color:#aaa;margin:4px 0 0;font-family:'Inter',system-ui,sans-serif;min-height:16px;"><%= user_rating ? "#{user_rating.score}/5 — thanks!" : "" %></p>
+          <% else %>
+            <p style="font-size:12px;color:#aaa;margin:0;font-family:'Inter',system-ui,sans-serif;">
+              <a href="/users/sign_in" style="color:#5B53D6;font-weight:600;text-decoration:none;">Sign in</a> to rate this puzzle
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+
       <div>
         <div id="share-string" style="font-size:12px;color:#666;font-family:monospace;white-space:pre-wrap;line-height:2;margin-bottom:10px;"><%= build_share_string_for(game_session, puzzle) %></div>
         <button onclick="copyShare(event)" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:13px;border:none;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Copy score</button>
@@ -65,6 +90,42 @@
           const btn = e.target;
           btn.textContent = 'Copied!';
           setTimeout(function() { btn.textContent = 'Copy score'; }, 2000);
+        });
+      }
+
+      function hoverStars(n) {
+        document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+          btn.style.color = parseInt(btn.dataset.index) <= n ? '#FBBF24' : '#ddd';
+        });
+      }
+
+      function resetStars() {
+        var container = document.getElementById('stars-container');
+        if (!container) return;
+        var current = parseInt(container.dataset.current || 0);
+        document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+          btn.style.color = parseInt(btn.dataset.index) <= current ? '#F59E0B' : '#ddd';
+        });
+      }
+
+      function submitRating(puzzleId, score) {
+        var csrf = document.querySelector('meta[name="csrf-token"]').content;
+        fetch('/puzzles/' + puzzleId + '/rating', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          body: JSON.stringify({ score: score })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            var container = document.getElementById('stars-container');
+            container.dataset.current = score;
+            document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+              btn.style.color = parseInt(btn.dataset.index) <= score ? '#F59E0B' : '#ddd';
+            });
+            var label = document.getElementById('rating-label');
+            if (label) label.textContent = score + '/5 — thanks!';
+          }
         });
       }
     </script>

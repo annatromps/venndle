@@ -2,6 +2,7 @@ class Puzzle < ApplicationRecord
   belongs_to :user
   has_many :attempts, dependent: :destroy
   has_many :game_sessions, dependent: :destroy
+  has_many :ratings, dependent: :destroy
 
   validates :puzzle_type, inclusion: { in: %w[daily user] }
   validates :label_a, :label_b, :label_c, presence: true

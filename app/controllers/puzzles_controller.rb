@@ -11,6 +11,14 @@ class PuzzlesController < ApplicationController
 
   def index
     @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+    ids = @puzzles.map(&:id)
+    if ids.any?
+      @rating_averages = Rating.where(puzzle_id: ids).group(:puzzle_id).average(:score).transform_values { |v| v.to_f.round(1) }
+      @rating_counts   = Rating.where(puzzle_id: ids).group(:puzzle_id).count
+    else
+      @rating_averages = {}
+      @rating_counts   = {}
+    end
   end
 
   def archive

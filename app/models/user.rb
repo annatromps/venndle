@@ -7,6 +7,7 @@ class User < ApplicationRecord
   has_many :puzzles
   has_many :attempts
   has_many :game_sessions
+  has_many :ratings, dependent: :destroy
 
   validates :username, presence: true, uniqueness: true
 end
