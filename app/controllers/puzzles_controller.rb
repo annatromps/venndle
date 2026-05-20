@@ -184,8 +184,7 @@ class PuzzlesController < ApplicationController
       emojis = ("❌" * wrong) + (solved ? "✅" : "")
       "#{label.upcase} #{emojis}"
     end
-    base = request.base_url.sub("://", ":​//")
-    url = "#{base}/puzzles/#{puzzle.id}"
+    url = "#{request.base_url}/puzzles/#{puzzle.id}"
     title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end

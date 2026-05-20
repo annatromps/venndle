@@ -14,14 +14,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-    <%# Open Graph / social preview tags %>
-    <% _og_title = content_for?(:og_title) ? yield(:og_title).to_s.strip : "Venndle — the Venn diagram word puzzle" %>
-    <meta property="og:title" content="<%= _og_title %>">
-    <meta property="og:description" content="Figure out the three secret categories from the word clues.">
-    <meta property="og:image" content="<%= "#{request.base_url}/icon.png" %>">
-    <meta property="og:url" content="<%= request.url %>">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary">
+    <%# Open Graph / social preview tags — suppressed for WhatsApp/Facebook crawlers so shared URLs appear as plain tappable links %>
+    <% unless @suppress_og %>
+      <% _og_title = content_for?(:og_title) ? yield(:og_title).to_s.strip : "Venndle — the Venn diagram word puzzle" %>
+      <meta property="og:title" content="<%= _og_title %>">
+      <meta property="og:description" content="Figure out the three secret categories from the word clues.">
+      <meta property="og:image" content="<%= "#{request.base_url}/icon.png" %>">
+      <meta property="og:url" content="<%= request.url %>">
+      <meta property="og:type" content="website">
+      <meta name="twitter:card" content="summary">
+    <% end %>
     <style>
       @media (max-width:639px) {
         .nav-desktop { display:none !important; }

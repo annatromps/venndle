@@ -3,6 +3,11 @@ class ApplicationController < ActionController::Base
   stale_when_importmap_changes
 
   before_action :configure_permitted_parameters, if: :devise_controller?
+  before_action :detect_social_crawler
+
+  def detect_social_crawler
+    @suppress_og = request.user_agent.to_s.match?(/facebookexternalhit|WhatsApp/i)
+  end
 
   private
 
