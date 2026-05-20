@@ -24,7 +24,7 @@
 .c-type { width: 65px; }
 .c-date { white-space: nowrap; }
 .c-pub { width: 95px; }
-.c-actions { width: 120px; white-space: nowrap; }
+.c-actions { width: 170px; white-space: nowrap; }
 .c-actions-inner { display: flex; gap: 12px; align-items: center; }
 
 .bdg { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
@@ -34,6 +34,7 @@
 .bdg-daily { background: #ede9fe; color: #5B53D6; }
 .bdg-user { background: #fff7ed; color: #c05621; }
 
+.btn-view { color: #888; font-weight: 600; text-decoration: none; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; }
 .btn-edit { color: #5B53D6; font-weight: 600; text-decoration: none; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; }
 .btn-del { color: #e53e3e; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; padding: 0; font-weight: 600; }
 .btn-schedule { color: #2BAB65; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; padding: 0; font-weight: 600; }
@@ -206,6 +207,7 @@
                   </td>
                   <td class="c-actions">
                     <div class="c-actions-inner">
+                      <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
                       <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
                       <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
                             data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
@@ -246,6 +248,7 @@
                 </span>
               </div>
               <div class="pcard-actions">
+                <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
                 <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
                 <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
                       data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
