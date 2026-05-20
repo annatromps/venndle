@@ -248,7 +248,7 @@
               data = await resp.json();
             } catch(parseErr) {
               console.error('Server returned non-JSON (status ' + resp.status + ')');
-              showRowError(row, 'Server error — check that ANTHROPIC_API_KEY is set');
+              showRowError(row, 'Server error — check that GEMINI_API_KEY is set');
               btn.disabled = false;
               btn.innerHTML = '&#8594;';
               return;
