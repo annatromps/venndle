@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   post   "/puzzles/:id/give_up",   to: "puzzles#give_up",     as: :puzzle_give_up
   post   "/puzzles/:id/favourite", to: "favourites#create",   as: :puzzle_favourite
   delete "/puzzles/:id/favourite", to: "favourites#destroy"
+  post   "/puzzles/:puzzle_id/rating", to: "ratings#create", as: :puzzle_rating
 
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
