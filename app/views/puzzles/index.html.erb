@@ -14,7 +14,7 @@
             <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
               <div>
                 <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">by <%= puzzle.user.username %></p>
-                <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.2;">Puzzle #<%= puzzle.id %></p>
+                <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.2;"><%= puzzle.title.present? ? puzzle.title : "Puzzle ##{puzzle.id}" %></p>
               </div>
               <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-left:8px;opacity:0.8;">
                 <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="2"/>
