@@ -165,6 +165,12 @@ class PuzzlesController < ApplicationController
     official_label = @puzzle.send("label_#{label}").to_s
     return render json: { done: true } if revealed_count >= official_label.length
 
+    # Mark hint used on first reveal so the share string can reflect it
+    if revealed_count == 0
+      game_session = find_or_build_game_session(@puzzle)
+      game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
+    end
+
     render json: {
       letter: official_label[revealed_count],
       total_length: official_label.length,
@@ -181,7 +187,7 @@ class PuzzlesController < ApplicationController
     game_session = find_or_build_game_session(@puzzle)
     return render json: { already_solved: true } if game_session.send("solved_#{label}?")
 
-    game_session.update!("solved_#{label}" => true)
+    game_session.update!("solved_#{label}" => true, "gave_up_#{label}" => true)
     game_session.reload
     game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
@@ -253,10 +259,12 @@ class PuzzlesController < ApplicationController
   def build_share_string(game_session, puzzle)
     lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
-      solved = game_session.send("solved_#{label}?")
-      wrong = [attempts_count - (solved ? 1 : 0), 0].max
-      emojis = ("❌" * wrong) + (solved ? "✅" : "")
-      "#{label.upcase} #{emojis}"
+      solved    = game_session.send("solved_#{label}?")
+      gave_up   = game_session.respond_to?("gave_up_#{label}?")   && game_session.send("gave_up_#{label}?")
+      hint_used = game_session.respond_to?("hint_used_#{label}?") && game_session.send("hint_used_#{label}?")
+      wrong  = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
+      result = gave_up ? "🏳️" : (solved ? (hint_used ? "💡" : "✅") : "")
+      "#{label.upcase} #{("❌" * wrong)}#{result}"
     end
     url = "https://venndle.app/#{puzzle.id}"
     title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
