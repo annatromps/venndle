@@ -37,6 +37,11 @@ class PuzzlesController < ApplicationController
     end
 
     @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+
+    puzzle_ids = @puzzles.map(&:id)
+    @avg_ratings   = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
+                           .transform_values { |v| v.to_f.round(1) }
+    @rating_counts = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
   end
 
   def archive

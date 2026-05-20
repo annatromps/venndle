@@ -40,7 +40,12 @@
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
               <div style="min-width:0;">
                 <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">by <%= puzzle.user.username %> · <%= @play_counts[puzzle.id] || 0 %> plays</p>
-                <p style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><%= puzzle.title %></p>
+                <p style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><%= puzzle.title %></p>
+                <% if (_rc = @rating_counts[puzzle.id].to_i) > 0 %>
+                  <p style="font-size:11px;color:#aaa;margin:0;font-family:'Inter',system-ui,sans-serif;">
+                    <span style="color:#F59E0B;">★</span> <%= @avg_ratings[puzzle.id] %> <span style="color:#ccc;">·</span> <%= _rc %> <%= _rc == 1 ? 'rating' : 'ratings' %>
+                  </p>
+                <% end %>
               </div>
               <button
                 data-puzzle-id="<%= puzzle.id %>"
