@@ -1,7 +1,7 @@
 class Admin::PuzzlesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin
-  before_action :set_puzzle, only: [:show, :edit, :update, :destroy, :schedule]
+  before_action :set_puzzle, only: [:show, :edit, :update, :destroy, :schedule, :unschedule]
 
   def index
     @scheduled   = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
@@ -38,6 +38,11 @@ class Admin::PuzzlesController < ApplicationController
     else
       render :edit, status: :unprocessable_entity
     end
+  end
+
+  def unschedule
+    @puzzle.update!(puzzle_type: "user", scheduled_date: nil)
+    redirect_to admin_puzzles_path, notice: "Puzzle removed from schedule."
   end
 
   def destroy

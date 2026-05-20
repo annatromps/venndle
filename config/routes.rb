@@ -16,7 +16,10 @@ Rails.application.routes.draw do
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
     resources :puzzles do
-      member { patch :schedule }
+      member do
+        patch :schedule
+        patch :unschedule
+      end
     end
   end
 
