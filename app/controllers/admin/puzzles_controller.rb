@@ -1,7 +1,7 @@
 class Admin::PuzzlesController < ApplicationController
   before_action :authenticate_user!
   before_action :require_admin
-  before_action :set_puzzle, only: [:show, :edit, :update, :destroy]
+  before_action :set_puzzle, only: [:show, :edit, :update, :destroy, :schedule]
 
   def index
     @scheduled   = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
@@ -43,6 +43,14 @@ class Admin::PuzzlesController < ApplicationController
   def destroy
     @puzzle.destroy
     redirect_to admin_puzzles_path, notice: "Puzzle deleted."
+  end
+
+  def schedule
+    date = Date.parse(params[:scheduled_date])
+    @puzzle.update!(scheduled_date: date, puzzle_type: "daily", published: true)
+    redirect_to admin_puzzles_path, notice: "Puzzle scheduled for #{date.strftime("%-d %b %Y")}."
+  rescue ArgumentError
+    redirect_to admin_puzzles_path, alert: "Invalid date."
   end
 
   private
