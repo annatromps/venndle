@@ -149,6 +149,42 @@ class PuzzlesController < ApplicationController
     render json: { error: "Something went wrong: #{e.message}" }, status: :internal_server_error
   end
 
+  def hint
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+    revealed_count = params[:revealed_count].to_i
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    official_label = @puzzle.send("label_#{label}").to_s
+    return render json: { done: true } if revealed_count >= official_label.length
+
+    render json: {
+      letter: official_label[revealed_count],
+      total_length: official_label.length,
+      position: revealed_count
+    }
+  end
+
+  def give_up
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    game_session = find_or_build_game_session(@puzzle)
+    return render json: { already_solved: true } if game_session.send("solved_#{label}?")
+
+    game_session.update!("solved_#{label}" => true)
+    game_session.reload
+    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+
+    render json: {
+      official_label: @puzzle.send("label_#{label}"),
+      completed: game_session.completed?
+    }
+  end
+
   private
 
   def require_login_to_create

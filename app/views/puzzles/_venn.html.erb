@@ -179,6 +179,24 @@
             <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
               <span id="you-said-<%= lbl %>" style="font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;">you said: <%= last_correct_attempt.guess %></span>
             <% end %>
+
+            <%# Hint controls — only for unsolved rows %>
+            <% unless solved %>
+              <div class="hint-ctrl" data-label="<%= lbl %>" style="padding-left:32px;display:flex;flex-direction:column;gap:2px;">
+                <span id="hint-display-<%= lbl %>" style="display:none;font-size:11px;font-family:monospace;letter-spacing:3px;color:#666;"></span>
+                <div style="display:flex;gap:8px;align-items:center;">
+                  <button class="hint-btn" data-label="<%= lbl %>"
+                          style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
+                    Reveal letter
+                  </button>
+                  <span style="color:#ddd;font-size:10px;">|</span>
+                  <button class="give-up-btn" data-label="<%= lbl %>"
+                          style="font-size:11px;color:#e53e3e;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
+                    Give up
+                  </button>
+                </div>
+              </div>
+            <% end %>
           </div>
         <% end %>
       </div>
@@ -355,6 +373,103 @@
               if (btn) submitGuess(btn.dataset.label, btn);
             }
           });
+        });
+
+        // ── Hint state (tracks revealed letters per label, client-side only) ──
+        const hintState = { a: { revealed: [], totalLength: null }, b: { revealed: [], totalLength: null }, c: { revealed: [], totalLength: null } };
+
+        async function fetchHint(label) {
+          const row = document.getElementById('guess-row-' + label);
+          if (row.dataset.solved === 'true') return;
+          const state = hintState[label];
+          const btn = row.querySelector('.hint-btn');
+
+          try {
+            const resp = await fetch('/puzzles/' + puzzleId + '/hint', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+              body: JSON.stringify({ label: label, revealed_count: state.revealed.length })
+            });
+            const data = await resp.json();
+
+            if (data.done) {
+              if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
+              return;
+            }
+
+            state.revealed.push(data.letter.toUpperCase());
+            state.totalLength = data.total_length;
+
+            const displayEl = document.getElementById('hint-display-' + label);
+            const chars = Array.from({ length: data.total_length }, function(_, i) {
+              return i < state.revealed.length ? state.revealed[i] : '_';
+            });
+            displayEl.textContent = chars.join(' ');
+            displayEl.style.display = 'inline';
+
+            if (state.revealed.length >= data.total_length) {
+              if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
+            }
+          } catch(err) {
+            console.error('Hint fetch failed:', err);
+          }
+        }
+
+        async function giveUp(label) {
+          if (!confirm('Give up on circle ' + label.toUpperCase() + '? This will reveal the answer.')) return;
+
+          const row = document.getElementById('guess-row-' + label);
+          const btn = row.querySelector('.give-up-btn');
+          if (btn) btn.disabled = true;
+
+          try {
+            const resp = await fetch('/puzzles/' + puzzleId + '/give_up', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
+              body: JSON.stringify({ label: label })
+            });
+            const data = await resp.json();
+
+            if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
+
+            const officialLabel = data.official_label;
+            row.dataset.solved = 'true';
+
+            const mainRow = row.querySelector('.guess-row-main');
+            const inputEl = mainRow.querySelector('input[name="guess"]');
+            if (inputEl) {
+              const labelSpan = document.createElement('span');
+              labelSpan.style.cssText = "flex:1;font-size:13px;color:#888;font-family:'Inter',system-ui,sans-serif;font-style:italic;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
+              labelSpan.textContent = officialLabel;
+              inputEl.replaceWith(labelSpan);
+            }
+            const submitBtn = mainRow.querySelector('.submit-btn');
+            if (submitBtn) submitBtn.remove();
+
+            const indicator = document.createElement('span');
+            indicator.title = 'Gave up';
+            indicator.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#bbb;color:white;font-size:11px;flex-shrink:0;';
+            indicator.textContent = '—';
+            mainRow.appendChild(indicator);
+
+            const hintCtrl = row.querySelector('.hint-ctrl');
+            if (hintCtrl) hintCtrl.remove();
+
+            updateSvgPill(label, officialLabel, getCircleColor(label));
+
+            if (data.completed) window.location.reload();
+          } catch(err) {
+            console.error('Give up fetch failed:', err);
+            if (btn) btn.disabled = false;
+          }
+        }
+
+        document.querySelectorAll('.hint-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() { fetchHint(btn.dataset.label); });
+        });
+
+        document.querySelectorAll('.give-up-btn').forEach(function(btn) {
+          btn.addEventListener('click', function() { giveUp(btn.dataset.label); });
         });
       })();
     </script>
