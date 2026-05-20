@@ -3,10 +3,38 @@
   <%= form_with model: @puzzle, id: "puzzle-form", style: "flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;" do |f| %>
 
     <div style="flex-shrink:0;">
-      <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 8px;line-height:1.1;">Create a Venndle</h1>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">Create a Venndle</h1>
+        <button type="button" onclick="openImportModal()"
+          style="display:flex;align-items:center;gap:5px;background:transparent;border:1.5px solid #5B53D6;border-radius:10px;padding:5px 12px;color:#5B53D6;font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Import from text
+        </button>
+      </div>
       <%= f.text_field :title,
         style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:rgba(255,255,255,0.6);",
         placeholder: "Title — leave blank for auto" %>
+    </div>
+
+    <%# Import modal %>
+    <div id="import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;padding:20px;box-sizing:border-box;align-items:center;justify-content:center;">
+      <div style="background:white;border-radius:18px;padding:20px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h2 style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1a1a2e;margin:0 0 12px;">Import puzzle from text</h2>
+        <textarea id="import-text" rows="13"
+          style="width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.15);border-radius:10px;padding:10px 12px;font-size:12px;font-family:'Courier New',monospace;color:#1a1a2e;resize:vertical;outline:none;line-height:1.6;"
+          placeholder="title: Smoke&#10;label_a: grey&#10;label_b: rising&#10;label_c: disappearing&#10;a: slate, elephant, raincloud&#10;b: bread, tide, phoenix&#10;c: ice, memory, ink&#10;ab: storm, fog&#10;ac: ghost, ash&#10;bc: bubble, dream&#10;abc: smoke"></textarea>
+        <div id="import-error" style="display:none;font-size:12px;color:#dc2626;margin-top:6px;font-family:'Inter',system-ui,sans-serif;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button type="button" onclick="closeImportModal()"
+            style="flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:1.5px solid #ddd;background:white;color:#555;">
+            Cancel
+          </button>
+          <button type="button" onclick="runImport()"
+            style="flex:2;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:none;background:#5B53D6;color:white;">
+            Import
+          </button>
+        </div>
+      </div>
     </div>
 
     <% if @puzzle.errors.any? %>
@@ -135,6 +163,63 @@
     desc.textContent = isPublic
       ? 'Appears in the community list — anyone can find and play it.'
       : 'Only accessible via direct link — won\'t appear in the community list.';
+  }
+
+  function openImportModal() {
+    var modal = document.getElementById('import-modal');
+    modal.style.display = 'flex';
+    document.getElementById('import-text').focus();
+  }
+
+  function closeImportModal() {
+    document.getElementById('import-modal').style.display = 'none';
+    document.getElementById('import-error').style.display = 'none';
+  }
+
+  document.getElementById('import-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeImportModal();
+  });
+
+  function runImport() {
+    var raw = document.getElementById('import-text').value;
+    var errEl = document.getElementById('import-error');
+    errEl.style.display = 'none';
+
+    var data = {};
+    raw.split('\n').forEach(function(line) {
+      var idx = line.indexOf(':');
+      if (idx === -1) return;
+      var key = line.slice(0, idx).trim().toLowerCase();
+      var val = line.slice(idx + 1).trim();
+      if (key && val) data[key] = val;
+    });
+
+    var required = ['label_a', 'label_b', 'label_c', 'abc'];
+    var missing = required.filter(function(k) { return !data[k]; });
+    if (missing.length) {
+      errEl.textContent = 'Missing required fields: ' + missing.join(', ');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    function setField(selector, value) {
+      var el = document.querySelector(selector);
+      if (el) el.value = value;
+    }
+
+    if (data['title']) setField('#puzzle_title', data['title']);
+    setField('#puzzle_label_a', data['label_a'] || '');
+    setField('#puzzle_label_b', data['label_b'] || '');
+    setField('#puzzle_label_c', data['label_c'] || '');
+    setField('[name="puzzle[words_a][]"]',   data['a']   || '');
+    setField('[name="puzzle[words_b][]"]',   data['b']   || '');
+    setField('[name="puzzle[words_c][]"]',   data['c']   || '');
+    setField('[name="puzzle[words_ab][]"]',  data['ab']  || '');
+    setField('[name="puzzle[words_ac][]"]',  data['ac']  || '');
+    setField('[name="puzzle[words_bc][]"]',  data['bc']  || '');
+    setField('[name="puzzle[words_abc][]"]', data['abc'] || '');
+
+    closeImportModal();
   }
 
   document.getElementById('puzzle-form').addEventListener('submit', function() {
