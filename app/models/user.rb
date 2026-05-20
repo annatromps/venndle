@@ -7,6 +7,8 @@ class User < ApplicationRecord
   has_many :puzzles
   has_many :attempts
   has_many :game_sessions
+  has_many :favourites, dependent: :destroy
+  has_many :favourite_puzzles, through: :favourites, source: :puzzle
 
   validates :username, presence: true, uniqueness: true
 end
