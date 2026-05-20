@@ -1,7 +1,8 @@
 <style>
-.admin-page { overflow-y: auto; height: 100%; box-sizing: border-box; padding: 24px 24px 48px; }
-.admin-inner { max-width: 960px; margin: 0 auto; }
-.admin-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+.admin-page { overflow-y: auto; height: 100%; box-sizing: border-box; padding: 0; }
+.admin-sticky-hdr { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #ede8fb 0%, #fae3d5 100%); padding: 20px 24px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.admin-inner { max-width: 960px; margin: 0 auto; padding: 24px 24px 48px; }
+.admin-hdr { display: flex; align-items: center; justify-content: space-between; }
 .admin-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #aaa; margin: 0 0 4px; font-family: 'Inter', system-ui, sans-serif; }
 .admin-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: #1a1a2e; margin: 0; }
 .btn-new { background: #5B53D6; color: white; padding: 10px 18px; border-radius: 12px; font-size: 13px; font-weight: 700; text-decoration: none; font-family: 'Inter', system-ui, sans-serif; white-space: nowrap; }
@@ -44,7 +45,9 @@
 @media (max-width: 640px) {
   .tbl-scroll { display: none; }
   .puzzle-cards { display: block; }
-  .admin-hdr { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .admin-sticky-hdr { padding: 14px 16px 12px; }
+  .admin-hdr { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .admin-inner { padding: 16px 16px 48px; }
 }
 .pcard { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-family: 'Inter', system-ui, sans-serif; }
 .pcard:last-child { border-bottom: none; }
@@ -55,15 +58,20 @@
 </style>
 
 <div class="admin-page">
-  <div class="admin-inner">
 
-    <div class="admin-hdr">
-      <div>
-        <p class="admin-eyebrow">Admin</p>
-        <h1 class="admin-title">Puzzle Scheduler</h1>
+  <div class="admin-sticky-hdr">
+    <div style="max-width:960px;margin:0 auto;">
+      <div class="admin-hdr">
+        <div>
+          <p class="admin-eyebrow">Admin</p>
+          <h1 class="admin-title">Puzzle Scheduler</h1>
+        </div>
+        <a href="/admin/puzzles/new" class="btn-new">+ Schedule new daily puzzle</a>
       </div>
-      <a href="/admin/puzzles/new" class="btn-new">+ Schedule new daily puzzle</a>
     </div>
+  </div>
+
+  <div class="admin-inner">
 
     <%# ── SCHEDULED ─────────────────────────────────────────── %>
     <h2 class="section-lbl">Scheduled</h2>
