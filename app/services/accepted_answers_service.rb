@@ -3,7 +3,7 @@ require "uri"
 require "json"
 
 class AcceptedAnswersService
-  MODEL = "gemini-2.0-flash"
+  MODEL = "gemini-1.5-flash"
 
   def self.call(label, words)
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
@@ -37,7 +37,7 @@ class AcceptedAnswersService
     [label.to_s.downcase.strip]
   end
 
-  def self.gemini_request(prompt, max_tokens: 256)
+  def self.gemini_request(prompt, max_tokens: 256, retries: 3)
     uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{ENV['GEMINI_API_KEY']}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
@@ -50,8 +50,26 @@ class AcceptedAnswersService
       generationConfig: { maxOutputTokens: max_tokens }
     })
 
-    res = http.request(req)
-    data = JSON.parse(res.body)
-    data.dig("candidates", 0, "content", "parts", 0, "text").to_s.strip
+    retries.times do |attempt|
+      res = http.request(req)
+      data = JSON.parse(res.body)
+
+      if res.code == "429" || data["error"]&.dig("code") == 429
+        wait = 2 ** attempt
+        Rails.logger.warn "Gemini rate limited, retrying in #{wait}s (attempt #{attempt + 1}/#{retries})"
+        sleep wait
+        next
+      end
+
+      text = data.dig("candidates", 0, "content", "parts", 0, "text")
+      if text.nil?
+        Rails.logger.error "Gemini unexpected response (status #{res.code}): #{res.body.first(500)}"
+        return ""
+      end
+
+      return text.to_s.strip
+    end
+
+    ""
   end
 end
