@@ -34,6 +34,3 @@
 
 # OS files.
 .DS_Store
-
-# GitHub Actions (re-add manually if needed)
-.github/

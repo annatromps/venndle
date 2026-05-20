@@ -101,7 +101,7 @@
         <div style="display:flex;align-items:center;gap:36px;white-space:nowrap;">
           <a href="/"        style="<%= _nav_link_style.(_daily_active) %>">Today</a>
           <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Archive</a>
-          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community</a>
+          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community created</a>
         </div>
 
         <%# Right: create button + avatar/auth %>
@@ -149,7 +149,7 @@
     <div id="mobile-menu" style="display:none;position:fixed;top:60px;left:0;right:0;background:white;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:400;">
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
-      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community Created</a>
+      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
