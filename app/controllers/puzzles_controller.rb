@@ -10,7 +10,31 @@ class PuzzlesController < ApplicationController
   end
 
   def index
+    @filter = params[:filter].presence || "all"
+
+    @played_ids = if user_signed_in?
+      current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
+    else
+      (session["guest_game_sessions"] || {})
+        .select { |_, d| d["completed"] }
+        .keys.map(&:to_i).to_set
+    end
+
+    @favourite_ids = if user_signed_in?
+      current_user.favourites.pluck(:puzzle_id).to_set
+    else
+      (session["guest_favourites"] || []).to_set
+    end
+
     @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+    case @filter
+    when "played"
+      @puzzles = @puzzles.where(id: @played_ids.to_a)
+    when "my"
+      @puzzles = user_signed_in? ? @puzzles.where(user: current_user) : Puzzle.none
+    when "favourites"
+      @puzzles = @puzzles.where(id: @favourite_ids.to_a)
+    end
   end
 
   def archive
