@@ -1,8 +1,12 @@
-class AcceptedAnswersService
-  def self.call(label, words)
-    raise ArgumentError, "ANTHROPIC_API_KEY not configured" if ENV["ANTHROPIC_API_KEY"].blank? || ENV["ANTHROPIC_API_KEY"] == "your_api_key_here"
+require "net/http"
+require "uri"
+require "json"
 
-    client = Anthropic::Client.new(access_token: ENV["ANTHROPIC_API_KEY"])
+class AcceptedAnswersService
+  MODEL = "gemini-flash-lite-latest"
+
+  def self.call(label, words)
+    raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
 
     prompt = <<~PROMPT
       Generate every possible way a player might answer for the puzzle category "#{label}".
@@ -22,15 +26,7 @@ class AcceptedAnswersService
       Be extremely generous. Aim for at least 20-30 entries. When in doubt, include it.
     PROMPT
 
-    response = client.messages(
-      parameters: {
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 800,
-        messages: [{ role: "user", content: prompt }]
-      }
-    )
-
-    text = response.dig("content", 0, "text").to_s.strip
+    text = gemini_request(prompt, max_tokens: 800)
     text = text.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
     answers = JSON.parse(text).map { |s| s.to_s.downcase.strip }.reject(&:blank?).uniq
 
@@ -39,5 +35,41 @@ class AcceptedAnswersService
   rescue => e
     Rails.logger.error "AcceptedAnswersService error for '#{label}': #{e.class}: #{e.message}"
     [label.to_s.downcase.strip]
+  end
+
+  def self.gemini_request(prompt, max_tokens: 256, retries: 3)
+    uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{ENV['GEMINI_API_KEY']}")
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.read_timeout = 30
+
+    req = Net::HTTP::Post.new(uri)
+    req["Content-Type"] = "application/json"
+    req.body = JSON.generate({
+      contents: [ { parts: [ { text: prompt } ] } ],
+      generationConfig: { maxOutputTokens: max_tokens }
+    })
+
+    retries.times do |attempt|
+      res = http.request(req)
+      data = JSON.parse(res.body)
+
+      if res.code == "429" || data["error"]&.dig("code") == 429
+        wait = 2 ** attempt
+        Rails.logger.warn "Gemini rate limited, retrying in #{wait}s (attempt #{attempt + 1}/#{retries})"
+        sleep wait
+        next
+      end
+
+      text = data.dig("candidates", 0, "content", "parts", 0, "text")
+      if text.nil?
+        Rails.logger.error "Gemini unexpected response (status #{res.code}): #{res.body.first(500)}"
+        return ""
+      end
+
+      return text.to_s.strip
+    end
+
+    ""
   end
 end

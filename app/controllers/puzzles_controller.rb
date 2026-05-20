@@ -216,6 +216,7 @@ class PuzzlesController < ApplicationController
       "#{label.upcase} #{emojis}"
     end
     url = "#{request.base_url}/puzzles/#{puzzle.id}"
-    "Venndle ##{puzzle.id}\n#{lines.join("\n")}\n#{url}"
+    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
+    "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end
