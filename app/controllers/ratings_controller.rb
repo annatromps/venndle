@@ -5,18 +5,18 @@ class RatingsController < ApplicationController
     puzzle = Puzzle.find(params[:puzzle_id])
     score  = params[:score].to_i
 
-    unless (1..5).include?(score)
-      render json: { error: "Invalid score" }, status: :bad_request and return
+    unless score.between?(1, 5)
+      render json: { error: "Invalid score" }, status: :unprocessable_entity and return
     end
 
-    rating = Rating.find_or_initialize_by(user: current_user, puzzle: puzzle)
+    rating = Rating.find_or_initialize_by(puzzle: puzzle, user: current_user)
     rating.score = score
     rating.save!
 
-    render json: {
-      score:   rating.score,
-      average: puzzle.ratings.average(:score).to_f.round(1),
-      count:   puzzle.ratings.count
-    }
+    avg   = puzzle.ratings.average(:score).to_f.round(1)
+    count = puzzle.ratings.count
+    render json: { success: true, average: avg, count: count, your_score: score, score: rating.score }
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 end
