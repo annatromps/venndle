@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html style="height:100%;overflow:hidden;">
   <head>
-    <title><%= content_for(:title) || "Venndle" %></title>
+    <title><%= yield(:title).presence || "Venndle" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -18,7 +18,9 @@
     <% _og_title = content_for?(:og_title) ? yield(:og_title).to_s.strip : "Venndle — the Venn diagram word puzzle" %>
     <meta property="og:title" content="<%= _og_title %>">
     <meta property="og:description" content="Figure out the three secret categories from the word clues.">
+    <% unless content_for?(:no_og_image) %>
     <meta property="og:image" content="<%= "#{request.base_url}/icon.png" %>">
+    <% end %>
     <meta property="og:url" content="<%= request.url %>">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
@@ -164,6 +166,9 @@
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
+        <% if current_user.admin? %>
+          <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
+        <% end %>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 24px;">
           <span style="font-size:14px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></span>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,
