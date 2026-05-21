@@ -90,6 +90,23 @@
       </div>
     </div>
 
+    <%# Visibility toggle %>
+    <div style="flex-shrink:0;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Visibility</div>
+      <div style="display:flex;gap:8px;margin-bottom:6px;">
+        <button type="button" id="toggle-public" onclick="setVisibility('public')"
+          style="flex:1;padding:8px 0;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:1.5px solid #1a1a2e;background:#1a1a2e;color:white;">
+          Public
+        </button>
+        <button type="button" id="toggle-private" onclick="setVisibility('private')"
+          style="flex:1;padding:8px 0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:1.5px solid #ddd;background:white;color:#555;">
+          Private
+        </button>
+      </div>
+      <p id="visibility-desc" style="font-size:11px;color:#aaa;margin:0;font-family:'Inter',system-ui,sans-serif;">Appears in the community list — anyone can find and play it.</p>
+      <input type="hidden" name="puzzle[published]" id="published-input" value="true">
+    </div>
+
     <%= f.submit "Create puzzle",
       style: "flex-shrink:0;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
 
@@ -97,6 +114,29 @@
 </div>
 
 <script>
+  function setVisibility(mode) {
+    var isPublic = mode === 'public';
+    document.getElementById('published-input').value = isPublic ? 'true' : 'false';
+
+    var pub  = document.getElementById('toggle-public');
+    var priv = document.getElementById('toggle-private');
+    var desc = document.getElementById('visibility-desc');
+
+    pub.style.background  = isPublic ? '#1a1a2e' : 'white';
+    pub.style.color       = isPublic ? 'white'   : '#555';
+    pub.style.borderColor = isPublic ? '#1a1a2e' : '#ddd';
+    pub.style.fontWeight  = isPublic ? '700'     : '600';
+
+    priv.style.background  = isPublic ? 'white'   : '#1a1a2e';
+    priv.style.color       = isPublic ? '#555'    : 'white';
+    priv.style.borderColor = isPublic ? '#ddd'    : '#1a1a2e';
+    priv.style.fontWeight  = isPublic ? '600'     : '700';
+
+    desc.textContent = isPublic
+      ? 'Appears in the community list — anyone can find and play it.'
+      : 'Only accessible via direct link — won\'t appear in the community list.';
+  }
+
   document.getElementById('puzzle-form').addEventListener('submit', function() {
     ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
      'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'].forEach(function(name) {

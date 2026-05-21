@@ -1,82 +1,142 @@
+<%
+  _pill = ->(key, label, href, active, guest_redirect) {
+    is_active = key == @filter
+    base = "display:inline-flex;align-items:center;padding:6px 16px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;"
+    style = base + (is_active ? "background:#1a1a2e;color:white;border-color:#1a1a2e;" : "background:white;color:#555;border-color:#ddd;")
+    if guest_redirect && !user_signed_in?
+      "<a href=\"#{guest_redirect}\" style=\"#{style}\">#{label}</a>"
+    else
+      "<a href=\"#{href}\" style=\"#{style}\">#{label}</a>"
+    end
+  }
+
+  _sort_pill = ->(key, label) {
+    is_active = key == @sort
+    base = "display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;"
+    style = base + (is_active ? "background:#5B53D6;color:white;border-color:#5B53D6;" : "background:white;color:#888;border-color:#e0e0e0;")
+    href = puzzles_path(filter: @filter == "all" ? nil : @filter, sort: key == "newest" ? nil : key)
+    "<a href=\"#{href}\" style=\"#{style}\">#{label}</a>"
+  }
+%>
+
 <div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;">
   <div style="max-width:760px;margin:0 auto;padding:20px 20px 40px;">
 
     <div style="margin-bottom:20px;">
       <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Community</p>
-      <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-        <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-bottom:4px;">
-          <% [["newest","Newest"],["oldest","Oldest"],["top_rated","★ Top rated"],["lowest_rated","★ Lowest"]].each do |val, label| %>
-            <% active = @sort == val %>
-            <a href="?sort=<%= val %>"
-               style="font-size:12px;font-weight:600;font-family:'Inter',system-ui,sans-serif;text-decoration:none;padding:5px 12px;border-radius:999px;white-space:nowrap;<%= active ? 'background:#1a1a2e;color:white;' : 'background:white;color:#555;border:1.5px solid rgba(0,0,0,0.12);' %>">
-              <%= label %>
-            </a>
-          <% end %>
-        </div>
-      </div>
+      <h1 style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#1a1a2e;margin:0;letter-spacing:-0.03em;line-height:1;">Puzzles</h1>
+    </div>
+
+    <%# Filter pills %>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+      <%= _pill.("all",        "All",        puzzles_path,                   @filter, nil).html_safe %>
+      <%= _pill.("played",     "Played",     puzzles_path(filter: "played"), @filter, nil).html_safe %>
+      <%= _pill.("my",         "My puzzles", puzzles_path(filter: "my"),     @filter, new_user_session_path).html_safe %>
+      <%= _pill.("favourites", "Favourites", puzzles_path(filter: "favourites"), @filter, new_user_session_path).html_safe %>
+    </div>
+
+    <%# Sort pills %>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;align-items:center;">
+      <span style="font-size:11px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:0.08em;margin-right:2px;font-family:'Inter',system-ui,sans-serif;">Sort:</span>
+      <%= _sort_pill.("newest",   "Newest").html_safe %>
+      <%= _sort_pill.("popular",  "Most played").html_safe %>
+      <%= _sort_pill.("top_rated","Top rated").html_safe %>
     </div>
 
     <% if @puzzles.any? %>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;">
         <% @puzzles.each do |puzzle| %>
-          <div onclick="window.location='/puzzles/<%= puzzle.id %>'"
-               style="display:block;background:white;border-radius:18px;padding:18px 16px;border:2px solid transparent;box-shadow:0 2px 12px rgba(0,0,0,0.07);cursor:pointer;position:relative;">
-            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
-              <div>
-                <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">by <%= puzzle.user.username %></p>
-                <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.2;"><%= puzzle.title.present? ? puzzle.title : "Puzzle ##{puzzle.id}" %></p>
+          <%
+            _favourited = @favourite_ids.include?(puzzle.id)
+            _played = @played_ids.include?(puzzle.id)
+          %>
+          <div style="background:white;border-radius:18px;padding:18px 16px;border:2px solid transparent;box-shadow:0 2px 12px rgba(0,0,0,0.07);display:flex;flex-direction:column;gap:12px;">
+
+            <%# Top row: creator + heart %>
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div style="min-width:0;">
+                <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">by <%= puzzle.user.username %> · <%= @play_counts[puzzle.id] || 0 %> plays</p>
+                <p style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;"><%= puzzle.title %></p>
+                <% if (_rc = @rating_counts[puzzle.id].to_i) > 0 %>
+                  <p style="font-size:11px;color:#aaa;margin:0;font-family:'Inter',system-ui,sans-serif;">
+                    <span style="color:#F59E0B;">★</span> <%= @avg_ratings[puzzle.id] %> <span style="color:#ccc;">·</span> <%= _rc %> <%= _rc == 1 ? 'rating' : 'ratings' %>
+                  </p>
+                <% end %>
               </div>
-              <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-left:8px;opacity:0.8;">
-                <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="2"/>
-                <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="2"/>
-                <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="2"/>
-              </svg>
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <% avg = @rating_averages[puzzle.id]; cnt = @rating_counts[puzzle.id].to_i %>
-              <% if cnt > 0 %>
-                <span style="font-size:12px;font-family:'Inter',system-ui,sans-serif;color:#F59E0B;font-weight:600;">★ <%= avg %><span style="color:#ccc;font-weight:400;"> · <%= cnt %></span></span>
-              <% else %>
-                <p style="font-size:11px;color:#ccc;font-family:'Inter',system-ui,sans-serif;margin:0;">3 circles to solve</p>
-              <% end %>
-              <button onclick="copyCardUrl(event, '<%= "#{request.base_url}/puzzles/#{puzzle.id}" %>')"
-                      style="display:flex;align-items:center;gap:4px;background:transparent;border:none;padding:4px 6px;border-radius:6px;cursor:pointer;color:#aaa;font-size:11px;font-weight:600;font-family:'Inter',system-ui,sans-serif;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                </svg>
-                <span class="share-card-label">Copy link</span>
+              <button
+                data-puzzle-id="<%= puzzle.id %>"
+                data-favourited="<%= _favourited %>"
+                onclick="toggleFavourite(event, this)"
+                style="background:none;border:none;cursor:pointer;padding:2px;flex-shrink:0;line-height:0;">
+                <% if _favourited %>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <% else %>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <% end %>
               </button>
             </div>
+
+            <%# Bottom row: played badge + play button %>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+              <% if _played %>
+                <span style="font-size:11px;font-weight:700;color:#2BAB65;background:#f0fdf4;border-radius:20px;padding:3px 10px;border:1px solid #bbf7d0;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">✓ Played</span>
+              <% else %>
+                <span></span>
+              <% end %>
+              <a href="/puzzles/<%= puzzle.id %>"
+                 style="font-size:12px;font-weight:700;color:white;background:#1a1a2e;border-radius:8px;padding:6px 12px;text-decoration:none;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">
+                Play →
+              </a>
+            </div>
+
           </div>
         <% end %>
       </div>
     <% else %>
       <div style="text-align:center;padding:60px 0;">
-        <p style="color:#aaa;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">No puzzles yet — be the first.</p>
-        <% if user_signed_in? %>
-          <a href="/puzzles/new" style="display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;">Create a puzzle</a>
+        <% if @filter == "played" %>
+          <p style="color:#aaa;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">You haven't completed any community puzzles yet.</p>
+          <%= link_to "Browse all puzzles", puzzles_path, style: "display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;" %>
+        <% elsif @filter == "my" %>
+          <p style="color:#aaa;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">You haven't created any puzzles yet.</p>
+          <%= link_to "+ Create a puzzle", new_puzzle_path, style: "display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#E8631A;color:white;text-decoration:none;" %>
+        <% elsif @filter == "favourites" %>
+          <p style="color:#aaa;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">You haven't favourited any puzzles yet.</p>
+          <%= link_to "Browse all puzzles", puzzles_path, style: "display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;" %>
         <% else %>
-          <a href="/users/sign_up" style="display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;">Sign up to create</a>
+          <p style="color:#aaa;font-size:15px;font-weight:500;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;">No puzzles yet — be the first.</p>
+          <% if user_signed_in? %>
+            <%= link_to "Create a puzzle", new_puzzle_path, style: "display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;" %>
+          <% else %>
+            <%= link_to "Sign up to create", new_user_registration_path, style: "display:inline-block;font-weight:700;font-size:14px;padding:12px 24px;border-radius:12px;background:#1a1a2e;color:white;text-decoration:none;" %>
+          <% end %>
         <% end %>
       </div>
     <% end %>
+
   </div>
 </div>
 
 <script>
-  function copyCardUrl(e, url) {
-    e.stopPropagation();
-    const btn = e.currentTarget;
-    const label = btn.querySelector('.share-card-label');
-    navigator.clipboard.writeText(url).then(function() {
-      label.textContent = 'Copied!';
-      btn.style.color = '#2BAB65';
-      setTimeout(function() {
-        label.textContent = 'Copy link';
-        btn.style.color = '';
-      }, 2000);
-    });
+  var HEART_FILLED = '<svg width="18" height="18" viewBox="0 0 24 24" fill="#ef4444" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+  var HEART_OUTLINE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+  function toggleFavourite(event, btn) {
+    event.stopPropagation();
+    var puzzleId = btn.dataset.puzzleId;
+    var favourited = btn.dataset.favourited === 'true';
+    var method = favourited ? 'DELETE' : 'POST';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    fetch('/puzzles/' + puzzleId + '/favourite', {
+      method: method,
+      headers: { 'X-CSRF-Token': csrfToken, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    }).then(function(res) {
+      return res.json();
+    }).then(function(data) {
+      btn.dataset.favourited = data.favourited ? 'true' : 'false';
+      btn.innerHTML = data.favourited ? HEART_FILLED : HEART_OUTLINE;
+    }).catch(function() {});
   }
 </script>

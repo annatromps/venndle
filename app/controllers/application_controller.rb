@@ -12,7 +12,7 @@ class ApplicationController < ActionController::Base
   private
 
   def generate_accepted_answers_for(puzzle)
-    return if ENV["ANTHROPIC_API_KEY"].blank? || ENV["ANTHROPIC_API_KEY"] == "your_api_key_here"
+    return if ENV["GEMINI_API_KEY"].blank?
     %w[a b c].each do |lbl|
       answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
       puzzle.update_column("accepted_answers_#{lbl}", answers)

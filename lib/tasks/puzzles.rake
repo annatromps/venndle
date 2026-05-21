@@ -1,7 +1,6 @@
 namespace :puzzles do
-  desc "Generate (or regenerate) accepted answers for puzzles that are missing them or have thin lists"
+  desc "Generate (or regenerate) accepted answers for puzzles that are missing them or have thin lists. Set FORCE=true to wipe and regenerate all."
   task generate_accepted_answers: :environment do
-    # Catch empty arrays AND thin lists (< 5 entries = likely just the fallback label from a failed API call)
     puzzles = Puzzle.where(
       "array_length(accepted_answers_a, 1) IS NULL OR array_length(accepted_answers_a, 1) < 5 OR " \
       "array_length(accepted_answers_b, 1) IS NULL OR array_length(accepted_answers_b, 1) < 5 OR " \
@@ -17,6 +16,7 @@ namespace :puzzles do
         answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
         puzzle.update_column("accepted_answers_#{lbl}", answers)
         puts "    Circle #{lbl.upcase} (#{puzzle.send("label_#{lbl}")}): #{answers.count} answers — #{answers.first(5).join(', ')}..."
+        sleep 2
       end
     rescue => e
       puts "    ERROR: #{e.message}"

@@ -15,7 +15,7 @@ class RatingsController < ApplicationController
 
     avg   = puzzle.ratings.average(:score).to_f.round(1)
     count = puzzle.ratings.count
-    render json: { success: true, average: avg, count: count, your_score: score }
+    render json: { success: true, average: avg, count: count, your_score: score, score: rating.score }
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: e.message }, status: :unprocessable_entity
   end

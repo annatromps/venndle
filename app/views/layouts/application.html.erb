@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html style="height:100%;overflow:hidden;">
   <head>
-    <title><%= content_for(:title) || "Venndle" %></title>
+    <title><%= yield(:title).presence || "Venndle" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -61,11 +61,18 @@
       }
     %>
 
+    <%# Staging banner — only shown when STAGING env var is set %>
+    <% if ENV["STAGING"].present? %>
+      <div style="flex-shrink:0;background:#F59E0B;color:white;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:5px 0;font-family:'Inter',system-ui,sans-serif;">
+        Staging environment — not production
+      </div>
+    <% end %>
+
     <%# Navbar — fixed 60px height, white background %>
     <nav style="height:60px;flex-shrink:0;background:white;padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
       <%# ── Mobile row — logo + create button + hamburger ── %>
-      <div class="nav-mobile" style="display:none;width:100%;align-items:center;justify-content:space-between;gap:10px;">
+      <div class="nav-mobile" style="display:none;width:100%;align-items:center;">
 
         <%# Logo %>
         <a href="/" style="text-decoration:none;display:flex;align-items:center;gap:8px;white-space:nowrap;flex-shrink:0;">
@@ -77,17 +84,21 @@
           <span style="font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em;line-height:1;">Venndle</span>
         </a>
 
-        <%# Right side: create button + hamburger %>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-          <a href="/puzzles/new"
-             style="background:#E8631A;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:5px 11px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
-            + Create
-          </a>
-          <button id="hamburger-btn" onclick="toggleMobileMenu(event)"
-            style="background:none;border:none;cursor:pointer;padding:6px;font-size:22px;color:#1a1a2e;line-height:1;display:flex;align-items:center;justify-content:center;">
-            ☰
-          </button>
-        </div>
+        <%# Create button — left, next to logo %>
+        <a href="/puzzles/new"
+           style="margin-left:12px;background:#E8631A;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:5px 11px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;flex-shrink:0;">
+          + Create
+        </a>
+
+        <%# Hamburger — pushed to far right %>
+        <button id="hamburger-btn" onclick="toggleMobileMenu(event)"
+          style="margin-left:auto;background:none;border:none;cursor:pointer;padding:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect y="0"  width="22" height="2" rx="1" fill="#1a1a2e"/>
+            <rect y="7"  width="22" height="2" rx="1" fill="#1a1a2e"/>
+            <rect y="14" width="22" height="2" rx="1" fill="#1a1a2e"/>
+          </svg>
+        </button>
       </div>
 
       <%# ── Desktop layout — logo left, nav centre, actions right ── %>
@@ -106,8 +117,8 @@
         <%# Centre: primary nav links %>
         <div style="display:flex;align-items:center;gap:36px;white-space:nowrap;">
           <a href="/"        style="<%= _nav_link_style.(_daily_active) %>">Today</a>
+          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community created</a>
           <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Archive</a>
-          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community</a>
           <button onclick="showInstructions()" style="font-size:14px;font-weight:500;color:#555;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0 0 3px;">How to play</button>
         </div>
 
@@ -155,12 +166,15 @@
     <%# Mobile dropdown menu %>
     <div id="mobile-menu" style="display:none;position:fixed;top:60px;left:0;right:0;background:white;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:400;">
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
+      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
-      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community Created</a>
       <button onclick="document.getElementById('mobile-menu').style.display='none'; showInstructions();" style="display:block;width:100%;text-align:left;padding:14px 24px;font-size:15px;font-weight:500;color:#444;background:none;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">How to play</button>
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
+        <% if current_user.admin? %>
+          <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
+        <% end %>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 24px;">
           <span style="font-size:14px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></span>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,

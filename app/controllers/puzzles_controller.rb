@@ -10,29 +10,58 @@ class PuzzlesController < ApplicationController
   end
 
   def index
-    @sort = params[:sort].presence_in(%w[newest oldest top_rated lowest_rated]) || "newest"
+    @filter = params[:filter].presence || "all"
+    @sort   = params[:sort].presence_in(%w[newest oldest top_rated lowest_rated popular]) || "newest"
 
-    base = Puzzle.published.includes(:user)
-    @puzzles = case @sort
-               when "oldest" then base.order(created_at: :asc)
-               else               base.order(created_at: :desc)
-               end
-
-    ids = @puzzles.map(&:id)
-    if ids.any?
-      @rating_averages = Rating.where(puzzle_id: ids).group(:puzzle_id).average(:score).transform_values { |v| v.to_f.round(1) }
-      @rating_counts   = Rating.where(puzzle_id: ids).group(:puzzle_id).count
+    @played_ids = if user_signed_in?
+      current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
     else
-      @rating_averages = {}
-      @rating_counts   = {}
+      (session["guest_game_sessions"] || {})
+        .select { |_, d| d["completed"] }
+        .keys.map(&:to_i).to_set
     end
 
-    @puzzles = @puzzles.sort_by { |p| [-(@rating_averages[p.id] || 0), -p.id] } if @sort == "top_rated"
-    @puzzles = @puzzles.sort_by { |p| [(@rating_averages[p.id] ? @rating_averages[p.id] : Float::INFINITY), -p.id] } if @sort == "lowest_rated"
+    @favourite_ids = if user_signed_in?
+      current_user.favourites.pluck(:puzzle_id).to_set
+    else
+      (session["guest_favourites"] || []).to_set
+    end
+
+    case @filter
+    when "my"
+      @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
+    when "played"
+      @puzzles = Puzzle.published.user_created.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
+    when "favourites"
+      @puzzles = Puzzle.published.user_created.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+    else
+      base = Puzzle.published.user_created.includes(:user)
+      @puzzles = @sort == "oldest" ? base.order(created_at: :asc) : base.order(created_at: :desc)
+    end
+
+    @puzzles = @puzzles.to_a
+
+    puzzle_ids = @puzzles.map(&:id)
+    @play_counts    = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+    @rating_averages = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
+                             .transform_values { |v| v.to_f.round(1) }
+    @avg_ratings    = @rating_averages
+    @rating_counts  = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+
+    case @sort
+    when "popular"
+      @puzzles = @puzzles.sort_by { |p| -(@play_counts[p.id] || 0) }
+    when "top_rated"
+      @puzzles = @puzzles.sort_by { |p| [-(@rating_averages[p.id] || 0), -p.id] }
+    when "lowest_rated"
+      @puzzles = @puzzles.sort_by { |p| [(@rating_averages[p.id] ? @rating_averages[p.id] : Float::INFINITY), -p.id] }
+    end
   end
 
   def archive
-    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc)
+    scope = Puzzle.published.daily
+    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    @puzzles = scope.order(scheduled_date: :desc)
     played_ids = if user_signed_in?
       current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
     else
@@ -55,7 +84,6 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.new(puzzle_params)
     @puzzle.user = current_user
     @puzzle.puzzle_type = "user"
-    @puzzle.published = true
 
     if @puzzle.title.blank?
       @puzzle.title = "#{Date.today.strftime("%-d %b")} · ##{(Puzzle.count + 1).to_s.rjust(3, "0")}"
@@ -91,7 +119,14 @@ class PuzzlesController < ApplicationController
     end
 
     correct_label = @puzzle.send("label_#{label}")
-    accepted = @puzzle.send("accepted_answers_#{label}") || []
+    raw_accepted = @puzzle.send("accepted_answers_#{label}") || []
+    accepted = raw_accepted.map { |a| a.to_s.downcase.strip }
+
+    Rails.logger.info "=== GUESS DEBUG ==="
+    Rails.logger.info "Guess: #{normalized_guess}"
+    Rails.logger.info "Label #{label}: #{correct_label}"
+    Rails.logger.info "Accepted answers (#{accepted.size}): #{accepted.first(6).inspect}"
+    Rails.logger.info "Match result: #{accepted.include?(normalized_guess)}"
 
     if accepted.include?(normalized_guess)
       correct = true
@@ -133,6 +168,46 @@ class PuzzlesController < ApplicationController
   rescue => e
     Rails.logger.error "Guess action error: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
     render json: { error: "Something went wrong: #{e.message}" }, status: :internal_server_error
+  end
+
+  def hint
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+    revealed_count = params[:revealed_count].to_i
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    official_label = @puzzle.send("label_#{label}").to_s
+    return render json: { done: true } if revealed_count >= official_label.length
+
+    game_session = find_or_build_game_session(@puzzle)
+    game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
+    game_session.increment!("hints_#{label}")
+
+    render json: {
+      letter: official_label[revealed_count],
+      total_length: official_label.length,
+      position: revealed_count
+    }
+  end
+
+  def give_up
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    game_session = find_or_build_game_session(@puzzle)
+    return render json: { already_solved: true } if game_session.send("solved_#{label}?")
+
+    game_session.update!("solved_#{label}" => true, "gave_up_#{label}" => true)
+    game_session.reload
+    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+
+    render json: {
+      official_label: @puzzle.send("label_#{label}"),
+      completed: game_session.completed?
+    }
   end
 
   private
@@ -182,7 +257,7 @@ class PuzzlesController < ApplicationController
 
   def puzzle_params
     permitted = params.require(:puzzle).permit(
-      :title, :label_a, :label_b, :label_c,
+      :title, :published, :label_a, :label_b, :label_c,
       words_a: [], words_b: [], words_c: [],
       words_ab: [], words_ac: [], words_bc: [], words_abc: []
     )
@@ -197,13 +272,20 @@ class PuzzlesController < ApplicationController
   def build_share_string(game_session, puzzle)
     lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
-      solved = game_session.send("solved_#{label}?")
-      wrong = [attempts_count - (solved ? 1 : 0), 0].max
-      emojis = ("❌" * wrong) + (solved ? "✅" : "")
-      "#{label.upcase} #{emojis}"
+      solved   = game_session.send("solved_#{label}?")
+      gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
+      hints    = game_session.respond_to?("hints_#{label}") ? game_session.send("hints_#{label}").to_i : 0
+      wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
+      result   = gave_up ? "🏳️" : (solved ? "✅" : "")
+      hint_str = hints > 0 ? ("💡" * hints) : ""
+      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "#{request.base_url}/puzzles/#{puzzle.id}"
-    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
+    url = "venndle.app/#{puzzle.id}"
+    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    else
+      puzzle.title.presence || "Venndle ##{puzzle.id}"
+    end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end
