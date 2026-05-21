@@ -76,13 +76,16 @@
               </button>
             </div>
 
-            <%# Bottom row: played badge + play button %>
+            <%# Bottom row: badges + play button %>
             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-              <% if _played %>
-                <span style="font-size:11px;font-weight:700;color:#2BAB65;background:#f0fdf4;border-radius:20px;padding:3px 10px;border:1px solid #bbf7d0;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">✓ Played</span>
-              <% else %>
-                <span></span>
-              <% end %>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                <% unless puzzle.published? %>
+                  <span style="font-size:11px;font-weight:700;color:#7c3aed;background:#f5f3ff;border-radius:20px;padding:3px 10px;border:1px solid #ddd6fe;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">Private</span>
+                <% end %>
+                <% if _played %>
+                  <span style="font-size:11px;font-weight:700;color:#2BAB65;background:#f0fdf4;border-radius:20px;padding:3px 10px;border:1px solid #bbf7d0;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">✓ Played</span>
+                <% end %>
+              </div>
               <a href="/puzzles/<%= puzzle.id %>"
                  style="font-size:12px;font-weight:700;color:white;background:#1a1a2e;border-radius:8px;padding:6px 12px;text-decoration:none;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">
                 Play →

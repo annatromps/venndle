@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   root "puzzles#daily"
   get "/daily", to: "puzzles#daily"
+  get "/daily:number", to: "puzzles#show_by_daily_number", constraints: { number: /\d+/ }
   get "/archive", to: "puzzles#archive", as: :archive
 
   resources :puzzles, only: [:index, :show, :new, :create]

@@ -122,6 +122,25 @@
 <% end %>
 
 <script>
+  // Auto-fill title from centre word (words_abc), unless user has manually set a title
+  (function() {
+    var titleInput = document.getElementById('puzzle_title');
+    var abcInput   = document.querySelector('[name="puzzle[words_abc][]"]');
+    if (!titleInput || !abcInput) return;
+
+    var autoFill = titleInput.value === '';
+
+    titleInput.addEventListener('input', function() {
+      autoFill = titleInput.value === '';
+    });
+
+    abcInput.addEventListener('input', function() {
+      if (!autoFill) return;
+      var first = abcInput.value.split(',')[0].trim();
+      titleInput.value = first;
+    });
+  })();
+
   document.getElementById('admin-puzzle-form').addEventListener('submit', function() {
     ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
      'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'].forEach(function(name) {
