@@ -64,11 +64,11 @@ class PuzzlesController < ApplicationController
     @puzzles = scope.order(scheduled_date: :desc)
 
     if user_signed_in?
-      game_sessions = current_user.game_sessions.where(puzzle_id: @puzzles.select(:id))
+      game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.select(:id))
       @played_ids = game_sessions.pluck(:puzzle_id).to_set
       @game_sessions_by_puzzle_id = game_sessions.index_by(&:puzzle_id)
     else
-      guest_sessions = (session["guest_game_sessions"] || {})
+      guest_sessions = (session["guest_game_sessions"] || {}).select { |_, d| d["completed"] }
       @played_ids = guest_sessions.keys.map(&:to_i).to_set
       @game_sessions_by_puzzle_id = {}
       @played_ids.each do |pid|
