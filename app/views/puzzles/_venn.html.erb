@@ -23,7 +23,8 @@
         total_wrong += [cnt - (solved ? 1 : 0), 0].max
       end
     %>
-    <div style="height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
+    <%# ── SCORE PANEL ── %>
+    <div id="score-panel" style="height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
 
       <div>
         <h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.1;">Nicely done.</h2>
@@ -75,12 +76,55 @@
         <button onclick="copyShare(event)" style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:13px;border:none;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Copy score</button>
       </div>
 
+      <div style="text-align:center;">
+        <button onclick="showPuzzleView()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#888;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:3px;">View puzzle →</button>
+      </div>
+
       <% unless user_signed_in? %>
         <div style="text-align:center;padding-top:4px;">
           <p style="font-size:12px;color:#aaa;margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;">Want to track your stats and create puzzles?</p>
           <a href="/users/sign_up" style="font-size:12px;font-weight:700;color:#5B53D6;text-decoration:none;">Create a free account &rarr;</a>
         </div>
       <% end %>
+    </div>
+
+    <%# ── PUZZLE VIEW PANEL ── %>
+    <div id="puzzle-panel" style="display:none;height:100%;flex-direction:column;padding:10px 16px 8px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
+      <div style="flex-shrink:0;margin-bottom:6px;">
+        <button onclick="showScoreView()" style="background:none;border:none;cursor:pointer;font-size:13px;font-weight:600;color:#888;font-family:'Inter',system-ui,sans-serif;padding:0;text-decoration:underline;text-underline-offset:3px;">← Back to score</button>
+      </div>
+      <div style="flex:1;min-height:0;overflow:hidden;">
+        <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="pill-shadow2" x="-20%" y="-40%" width="140%" height="180%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
+            </filter>
+          </defs>
+
+          <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
+          <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
+          <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
+
+          <% [["a", puzzle.label_a, 280, "#5B53D6", 8, 27],
+              ["b", puzzle.label_b, 185, "#2BAB65", 399, 418],
+              ["c", puzzle.label_c, 375, "#E8631A", 399, 418]].each do |_, label, cx, color, ry, ty| %>
+            <% pw = [label.to_s.length * 8 + 24, 60].max %>
+            <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="28" rx="14" fill="<%= color %>"/>
+            <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= label.to_s.upcase %></text>
+          <% end %>
+
+          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
+               words_ab: [208,202,219], words_ac: [352,202,219],
+               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+            <% word = puzzle.send(region)&.first %>
+            <% if word %>
+              <% pw = [word.length * 8 + 24, 60].max %>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow2)"/>
+              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+            <% end %>
+          <% end %>
+        </svg>
+      </div>
     </div>
 
     <script>
@@ -91,6 +135,16 @@
           btn.textContent = 'Copied!';
           setTimeout(function() { btn.textContent = 'Copy score'; }, 2000);
         });
+      }
+
+      function showPuzzleView() {
+        document.getElementById('score-panel').style.display = 'none';
+        var p = document.getElementById('puzzle-panel');
+        p.style.display = 'flex';
+      }
+      function showScoreView() {
+        document.getElementById('puzzle-panel').style.display = 'none';
+        document.getElementById('score-panel').style.display = 'flex';
       }
 
       function hoverStars(n) {
