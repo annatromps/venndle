@@ -4,10 +4,12 @@ class Admin::PuzzlesController < ApplicationController
   before_action :set_puzzle, only: [:show, :edit, :update, :destroy]
 
   def index
-    @scheduled   = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
-                         .order(scheduled_date: :asc)
-    @unscheduled = Puzzle.where(puzzle_type: "user").where(scheduled_date: nil)
-                         .includes(:user).order(created_at: :desc)
+    @scheduled         = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
+                               .order(scheduled_date: :asc)
+    @unscheduled_daily = Puzzle.where(puzzle_type: "daily").where(scheduled_date: nil)
+                               .order(created_at: :desc)
+    @unscheduled       = Puzzle.where(puzzle_type: "user").where(scheduled_date: nil)
+                               .includes(:user).order(created_at: :desc)
   end
 
   def show

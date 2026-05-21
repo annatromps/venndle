@@ -21,7 +21,7 @@
             style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
     </div>
     <div>
-      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:4px;">Scheduled date</label>
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:4px;">Scheduled date <span style="font-weight:400;text-transform:none;">(optional)</span></label>
       <%= f.date_field :scheduled_date,
             style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
     </div>
@@ -117,7 +117,7 @@
     </div>
   </div>
 
-  <%= f.submit puzzle.persisted? ? "Save changes" : "Schedule puzzle",
+  <%= f.submit puzzle.persisted? ? "Save changes" : "Save puzzle",
         style: "background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;width:100%;margin-top:8px;" %>
 
 <% end %>
