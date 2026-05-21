@@ -55,7 +55,9 @@ class PuzzlesController < ApplicationController
   end
 
   def archive
-    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc)
+    scope = Puzzle.published.daily
+    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    @puzzles = scope.order(scheduled_date: :desc)
     played_ids = if user_signed_in?
       current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
     else
