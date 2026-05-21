@@ -11,7 +11,7 @@ class PuzzlesController < ApplicationController
 
   def index
     @filter = params[:filter].presence || "all"
-    @sort   = params[:sort].presence   || "newest"
+    @sort   = params[:sort].presence_in(%w[newest oldest top_rated lowest_rated popular]) || "newest"
 
     @played_ids = if user_signed_in?
       current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
@@ -35,22 +35,26 @@ class PuzzlesController < ApplicationController
     when "favourites"
       @puzzles = Puzzle.published.user_created.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
     else
-      @puzzles = Puzzle.published.user_created.includes(:user).order(created_at: :desc)
+      base = Puzzle.published.user_created.includes(:user)
+      @puzzles = @sort == "oldest" ? base.order(created_at: :asc) : base.order(created_at: :desc)
     end
 
     @puzzles = @puzzles.to_a
 
     puzzle_ids = @puzzles.map(&:id)
-    @play_counts   = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
-    @avg_ratings   = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
-                           .transform_values { |v| v.to_f.round(1) }
-    @rating_counts = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+    @play_counts    = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+    @rating_averages = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
+                             .transform_values { |v| v.to_f.round(1) }
+    @avg_ratings    = @rating_averages
+    @rating_counts  = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
 
     case @sort
     when "popular"
       @puzzles = @puzzles.sort_by { |p| -(@play_counts[p.id] || 0) }
     when "top_rated"
-      @puzzles = @puzzles.sort_by { |p| -(@avg_ratings[p.id] || 0) }
+      @puzzles = @puzzles.sort_by { |p| [-(@rating_averages[p.id] || 0), -p.id] }
+    when "lowest_rated"
+      @puzzles = @puzzles.sort_by { |p| [(@rating_averages[p.id] ? @rating_averages[p.id] : Float::INFINITY), -p.id] }
     end
   end
 

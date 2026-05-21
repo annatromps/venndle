@@ -99,12 +99,18 @@ class Admin::PuzzlesController < ApplicationController
     permitted = params.require(:puzzle).permit(
       :title, :puzzle_type, :scheduled_date, :published,
       :label_a, :label_b, :label_c,
+      :accepted_answers_a, :accepted_answers_b, :accepted_answers_c,
       words_a: [], words_b: [], words_c: [],
       words_ab: [], words_ac: [], words_bc: [], words_abc: []
     )
     %w[words_a words_b words_c words_ab words_ac words_bc words_abc].each do |field|
       if permitted[field].present?
         permitted[field] = permitted[field].flat_map { |w| w.split(",") }.map(&:strip).reject(&:blank?)
+      end
+    end
+    %w[accepted_answers_a accepted_answers_b accepted_answers_c].each do |field|
+      if permitted[field].is_a?(String)
+        permitted[field] = permitted[field].split(",").map { |v| v.strip.downcase }.reject(&:blank?)
       end
     end
     permitted

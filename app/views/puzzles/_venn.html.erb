@@ -244,7 +244,6 @@
           });
         });
 
-        // Paint initial state
         const initial = parseInt(starsEl.dataset.selected || 0);
         if (initial) paintStars(initial);
       })();
@@ -337,7 +336,7 @@
               <% else %>
                 <input type="text" name="guess"
                        placeholder="Category <%= lbl.upcase %>..."
-                       autocomplete="off"
+                       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                        style="flex:1;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;min-width:0;"
                        data-placeholder-color="<%= placeholder_color %>" />
                 <button class="submit-btn" data-label="<%= lbl %>"
