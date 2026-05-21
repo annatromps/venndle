@@ -58,12 +58,19 @@ class PuzzlesController < ApplicationController
     scope = Puzzle.published.daily
     scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc)
-    played_ids = if user_signed_in?
-      current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
+
+    if user_signed_in?
+      game_sessions = current_user.game_sessions.where(puzzle_id: @puzzles.select(:id))
+      @played_ids = game_sessions.pluck(:puzzle_id).to_set
+      @game_sessions_by_puzzle_id = game_sessions.index_by(&:puzzle_id)
     else
-      (session["guest_game_sessions"] || {}).keys.map(&:to_i)
+      guest_sessions = (session["guest_game_sessions"] || {})
+      @played_ids = guest_sessions.keys.map(&:to_i).to_set
+      @game_sessions_by_puzzle_id = {}
+      @played_ids.each do |pid|
+        @game_sessions_by_puzzle_id[pid] = GuestGameSession.find_or_create(session, pid)
+      end
     end
-    @played_ids = played_ids.to_set
   end
 
   def show
