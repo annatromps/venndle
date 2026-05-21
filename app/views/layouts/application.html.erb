@@ -159,6 +159,9 @@
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
+        <% if current_user.admin? %>
+          <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
+        <% end %>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 24px;">
           <span style="font-size:14px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></span>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,
