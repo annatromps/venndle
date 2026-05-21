@@ -26,7 +26,7 @@ class PuzzlesController < ApplicationController
       (session["guest_favourites"] || []).to_set
     end
 
-    @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+    @puzzles = Puzzle.published.where.not(puzzle_type: "admin").includes(:user).order(created_at: :desc)
     case @filter
     when "played"
       @puzzles = @puzzles.where(id: @played_ids.to_a)

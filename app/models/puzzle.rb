@@ -4,12 +4,13 @@ class Puzzle < ApplicationRecord
   has_many :game_sessions, dependent: :destroy
   has_many :favourites, dependent: :destroy
 
-  validates :puzzle_type, inclusion: { in: %w[daily user] }
+  validates :puzzle_type, inclusion: { in: %w[daily user admin] }
   validates :label_a, :label_b, :label_c, presence: true
 
   scope :published, -> { where(published: true) }
   scope :daily, -> { where(puzzle_type: "daily") }
   scope :user_created, -> { where(puzzle_type: "user") }
+  scope :admin_created, -> { where(puzzle_type: "admin") }
 
   def all_words
     (words_a + words_b + words_c + words_ab + words_ac + words_bc + words_abc).uniq

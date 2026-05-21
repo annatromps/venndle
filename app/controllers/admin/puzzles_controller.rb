@@ -4,25 +4,34 @@ class Admin::PuzzlesController < ApplicationController
   before_action :set_puzzle, only: [:show, :edit, :update, :destroy]
 
   def index
-    @scheduled   = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
-                         .order(scheduled_date: :asc)
-    @unscheduled = Puzzle.where(puzzle_type: "user").where(scheduled_date: nil)
-                         .includes(:user).order(created_at: :desc)
+    @scheduled     = Puzzle.where(puzzle_type: "daily").where.not(scheduled_date: nil)
+                           .order(scheduled_date: :asc)
+    @community     = Puzzle.where(puzzle_type: "user").where(scheduled_date: nil)
+                           .includes(:user).order(created_at: :desc)
+    @admin_created = Puzzle.where(puzzle_type: "admin")
+                           .order(created_at: :desc)
   end
 
   def show
   end
 
   def new
-    @puzzle = Puzzle.new(puzzle_type: "daily", published: true)
+    @puzzle = Puzzle.new(puzzle_type: "admin", published: false)
   end
 
   def create
-    @puzzle = Puzzle.new(puzzle_params)
+    attrs = puzzle_params
+    if attrs[:scheduled_date].present?
+      attrs = attrs.merge(puzzle_type: "daily", published: true)
+    else
+      attrs = attrs.merge(puzzle_type: "admin", published: false)
+    end
+    @puzzle = Puzzle.new(attrs)
     @puzzle.user = current_user
     if @puzzle.save
       generate_accepted_answers_for(@puzzle)
-      redirect_to admin_puzzles_path, notice: "Puzzle scheduled."
+      notice = @puzzle.puzzle_type == "daily" ? "Puzzle scheduled." : "Puzzle saved to your library."
+      redirect_to admin_puzzles_path, notice: notice
     else
       render :new, status: :unprocessable_entity
     end
@@ -32,9 +41,14 @@ class Admin::PuzzlesController < ApplicationController
   end
 
   def update
-    if @puzzle.update(puzzle_params)
+    attrs = puzzle_params
+    if @puzzle.puzzle_type == "admin" && attrs[:scheduled_date].present?
+      attrs = attrs.merge(puzzle_type: "daily", published: true)
+    end
+    if @puzzle.update(attrs)
       generate_accepted_answers_for(@puzzle)
-      redirect_to admin_puzzle_path(@puzzle), notice: "Puzzle updated."
+      notice = @puzzle.puzzle_type == "daily" && @puzzle.scheduled_date? ? "Puzzle scheduled." : "Puzzle updated."
+      redirect_to admin_puzzles_path, notice: notice
     else
       render :edit, status: :unprocessable_entity
     end
