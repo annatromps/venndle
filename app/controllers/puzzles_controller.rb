@@ -11,6 +11,7 @@ class PuzzlesController < ApplicationController
 
   def index
     @filter = params[:filter].presence || "all"
+    @sort   = params[:sort].presence   || "newest"
 
     @played_ids = if user_signed_in?
       current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
@@ -36,12 +37,20 @@ class PuzzlesController < ApplicationController
       @puzzles = @puzzles.where(id: @favourite_ids.to_a)
     end
 
-    @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    @puzzles = @puzzles.to_a
 
     puzzle_ids = @puzzles.map(&:id)
+    @play_counts   = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
     @avg_ratings   = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
                            .transform_values { |v| v.to_f.round(1) }
     @rating_counts = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+
+    case @sort
+    when "popular"
+      @puzzles = @puzzles.sort_by { |p| -(@play_counts[p.id] || 0) }
+    when "top_rated"
+      @puzzles = @puzzles.sort_by { |p| -(@avg_ratings[p.id] || 0) }
+    end
   end
 
   def archive

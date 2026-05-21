@@ -9,6 +9,14 @@
       "<a href=\"#{href}\" style=\"#{style}\">#{label}</a>"
     end
   }
+
+  _sort_pill = ->(key, label) {
+    is_active = key == @sort
+    base = "display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;border:1.5px solid;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;"
+    style = base + (is_active ? "background:#5B53D6;color:white;border-color:#5B53D6;" : "background:white;color:#888;border-color:#e0e0e0;")
+    href = puzzles_path(filter: @filter == "all" ? nil : @filter, sort: key == "newest" ? nil : key)
+    "<a href=\"#{href}\" style=\"#{style}\">#{label}</a>"
+  }
 %>
 
 <div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;">
@@ -20,11 +28,19 @@
     </div>
 
     <%# Filter pills %>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
       <%= _pill.("all",        "All",        puzzles_path,                   @filter, nil).html_safe %>
       <%= _pill.("played",     "Played",     puzzles_path(filter: "played"), @filter, nil).html_safe %>
       <%= _pill.("my",         "My puzzles", puzzles_path(filter: "my"),     @filter, new_user_session_path).html_safe %>
       <%= _pill.("favourites", "Favourites", puzzles_path(filter: "favourites"), @filter, new_user_session_path).html_safe %>
+    </div>
+
+    <%# Sort pills %>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;align-items:center;">
+      <span style="font-size:11px;font-weight:600;color:#bbb;text-transform:uppercase;letter-spacing:0.08em;margin-right:2px;font-family:'Inter',system-ui,sans-serif;">Sort:</span>
+      <%= _sort_pill.("newest",   "Newest").html_safe %>
+      <%= _sort_pill.("popular",  "Most played").html_safe %>
+      <%= _sort_pill.("top_rated","Top rated").html_safe %>
     </div>
 
     <% if @puzzles.any? %>
