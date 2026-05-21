@@ -7,11 +7,11 @@
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
         <span style="width:7px;height:7px;border-radius:50%;background:#F59E0B;display:inline-block;flex-shrink:0;"></span>
         <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
-          <%= (@puzzle.scheduled_date || Date.today).strftime("%A %-d %B").upcase %>
+          Daily &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%A %-d %B") %>
         </span>
       </div>
       <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
-        <%= @puzzle.title.present? ? @puzzle.title : "Puzzle №#{@puzzle.id}" %>
+        #<%= @puzzle.id %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
       </h1>
     </div>
 

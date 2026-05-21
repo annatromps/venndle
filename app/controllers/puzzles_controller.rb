@@ -58,18 +58,39 @@ class PuzzlesController < ApplicationController
     scope = Puzzle.published.daily
     scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc)
-    played_ids = if user_signed_in?
-      current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
+
+    if user_signed_in?
+      game_sessions = current_user.game_sessions.where(puzzle_id: @puzzles.select(:id))
+      @played_ids = game_sessions.pluck(:puzzle_id).to_set
+      @game_sessions_by_puzzle_id = game_sessions.index_by(&:puzzle_id)
     else
-      (session["guest_game_sessions"] || {}).keys.map(&:to_i)
+      guest_sessions = (session["guest_game_sessions"] || {})
+      @played_ids = guest_sessions.keys.map(&:to_i).to_set
+      @game_sessions_by_puzzle_id = {}
+      @played_ids.each do |pid|
+        @game_sessions_by_puzzle_id[pid] = GuestGameSession.find_or_create(session, pid)
+      end
     end
-    @played_ids = played_ids.to_set
   end
 
   def show
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+  end
+
+  def show_by_daily_number
+    number = params[:number].to_i
+    @puzzle = Puzzle.published.daily.order(:scheduled_date).offset(number - 1).limit(1).first
+    if @puzzle.nil?
+      redirect_to archive_path, alert: "Daily ##{number} not found." and return
+    end
+    unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
+      redirect_to archive_path, alert: "That puzzle isn't available yet." and return
+    end
+    @game_session = find_or_build_game_session(@puzzle)
+    @attempts = load_attempts(@puzzle)
+    render :show
   end
 
   def new
@@ -276,11 +297,13 @@ class PuzzlesController < ApplicationController
       hint_str = hints > 0 ? ("💡" * hints) : ""
       "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "venndle.app/#{puzzle.id}"
-    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
-      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
+      url   = "venndle.app/daily#{day_num}"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
-      puzzle.title.presence || "Venndle ##{puzzle.id}"
+      url   = "venndle.app/#{puzzle.id}"
+      title = puzzle.title.presence || "Venndle ##{puzzle.id}"
     end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
