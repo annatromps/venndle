@@ -8,9 +8,10 @@
 
     <div style="display:flex;flex-direction:column;gap:8px;">
       <% @puzzles.each do |puzzle| %>
-        <% played = @played_ids.include?(puzzle.id)
-           upcoming = puzzle.scheduled_date > Date.today %>
-        <div style="display:flex;align-items:center;gap:12px;background:<%= played ? 'rgba(255,255,255,0.4)' : 'white' %>;border:1.5px solid <%= upcoming ? '#e0d9fc' : (played ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.1)') %>;border-radius:12px;padding:12px 16px;opacity:<%= played ? '0.6' : '1' %>;">
+        <% played   = @played_ids.include?(puzzle.id)
+           upcoming = puzzle.scheduled_date > Date.today
+           gs       = @game_sessions_by_puzzle_id[puzzle.id] %>
+        <div style="display:flex;align-items:center;gap:12px;background:white;border:1.5px solid <%= upcoming ? '#e0d9fc' : (played ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.1)') %>;border-radius:12px;padding:12px 16px;opacity:<%= played ? '0.75' : '1' %>;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.05em;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;margin-bottom:2px;">
               <%= puzzle.scheduled_date.strftime("%-d %B %Y") %>
@@ -18,18 +19,39 @@
                 <span style="margin-left:6px;background:#ede9fe;color:#5B53D6;border-radius:999px;padding:1px 7px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Upcoming</span>
               <% end %>
             </div>
-            <div style="font-size:14px;font-weight:600;color:<%= played ? '#aaa' : '#1a1a2e' %>;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <div style="font-size:14px;font-weight:600;color:<%= played ? '#888' : '#1a1a2e' %>;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               <%= puzzle.title.presence || "Puzzle ##{puzzle.id}" %>
             </div>
           </div>
-          <% if played %>
-            <span style="font-size:12px;font-weight:600;color:#aaa;font-family:'Inter',system-ui,sans-serif;flex-shrink:0;">Played ✓</span>
-          <% else %>
-            <a href="<%= puzzle_path(puzzle) %>"
-               style="flex-shrink:0;background:#1a1a2e;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
-              <%= upcoming ? "Preview" : "Play" %>
-            </a>
-          <% end %>
+
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <% if upcoming %>
+              <a href="<%= puzzle_path(puzzle) %>"
+                 style="background:#ede9fe;color:#5B53D6;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
+                Preview
+              </a>
+            <% elsif played && gs %>
+              <% share_str = build_share_string_for(gs, puzzle) %>
+              <button onclick="archiveShare(this)"
+                      data-share="<%= h(share_str) %>"
+                      style="background:transparent;border:1.5px solid #ddd;border-radius:8px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                      title="Share your score">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                </svg>
+              </button>
+              <a href="<%= puzzle_path(puzzle) %>"
+                 style="background:#f4f4f5;color:#444;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
+                View completed
+              </a>
+            <% else %>
+              <a href="<%= puzzle_path(puzzle) %>"
+                 style="background:#1a1a2e;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
+                Play
+              </a>
+            <% end %>
+          </div>
         </div>
       <% end %>
 
@@ -39,3 +61,14 @@
     </div>
   </div>
 </div>
+
+<script>
+  function archiveShare(btn) {
+    var text = btn.dataset.share;
+    navigator.clipboard.writeText(text).then(function() {
+      var orig = btn.innerHTML;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2BAB65" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(function() { btn.innerHTML = orig; }, 2000);
+    });
+  }
+</script>

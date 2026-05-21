@@ -14,16 +14,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-    <%# Open Graph / social preview tags %>
-    <% _og_title = content_for?(:og_title) ? yield(:og_title).to_s.strip : "Venndle — the Venn diagram word puzzle" %>
-    <meta property="og:title" content="<%= _og_title %>">
-    <meta property="og:description" content="Figure out the three secret categories from the word clues.">
-    <% unless content_for?(:no_og_image) %>
-    <meta property="og:image" content="<%= "#{request.base_url}/icon.png" %>">
+    <%# Open Graph / social preview tags — suppressed for WhatsApp/Facebook crawlers so shared URLs appear as plain tappable links %>
+    <% unless @suppress_og %>
+      <% _og_title = content_for?(:og_title) ? yield(:og_title).to_s.strip : "Venndle — the Venn diagram word puzzle" %>
+      <meta property="og:title" content="<%= _og_title %>">
+      <meta property="og:description" content="Figure out the three secret categories from the word clues.">
+      <meta property="og:image" content="<%= "#{request.base_url}/icon.png" %>">
+      <meta property="og:url" content="<%= request.url %>">
+      <meta property="og:type" content="website">
+      <meta name="twitter:card" content="summary">
     <% end %>
-    <meta property="og:url" content="<%= request.url %>">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary">
     <style>
       @media (max-width:639px) {
         .nav-desktop { display:none !important; }
@@ -32,6 +32,10 @@
       @media (min-width:640px) {
         .nav-mobile  { display:none !important; }
         #mobile-menu { display:none !important; }
+      }
+      @media (max-width:639px) {
+        #instructions-modal { align-items:flex-end !important; padding:0 !important; }
+        #instructions-panel { max-width:100% !important; border-radius:24px 24px 0 0 !important; max-height:92vh !important; }
       }
     </style>
   </head>
@@ -113,8 +117,9 @@
         <%# Centre: primary nav links %>
         <div style="display:flex;align-items:center;gap:36px;white-space:nowrap;">
           <a href="/"        style="<%= _nav_link_style.(_daily_active) %>">Today</a>
+          <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Daily archive</a>
           <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community created</a>
-          <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Archive</a>
+          <button onclick="showInstructions()" style="font-size:14px;font-weight:500;color:#555;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0 0 3px;">How to play</button>
         </div>
 
         <%# Right: create button + avatar/auth %>
@@ -161,8 +166,9 @@
     <%# Mobile dropdown menu %>
     <div id="mobile-menu" style="display:none;position:fixed;top:60px;left:0;right:0;background:white;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:400;">
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
+      <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Daily archive</a>
       <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
-      <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
+      <button onclick="document.getElementById('mobile-menu').style.display='none'; showInstructions();" style="display:block;width:100%;text-align:left;padding:14px 24px;font-size:15px;font-weight:500;color:#444;background:none;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">How to play</button>
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
@@ -220,6 +226,92 @@
 
     <%# Content area — fills remaining viewport height, no overflow %>
     <main style="flex:1;min-height:0;overflow:hidden;"><%= yield %></main>
+
+    <%# ===== HOW TO PLAY MODAL ===== %>
+    <div id="instructions-modal" onclick="hideInstructions()" style="display:none;position:fixed;inset:0;background:rgba(15,15,35,0.55);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
+      <div id="instructions-panel" onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#ede8fb 0%,#fae3d5 100%);border-radius:24px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:32px 28px;box-sizing:border-box;">
+
+        <%# Wordmark %>
+        <div style="text-align:center;margin-bottom:18px;">
+          <div style="display:inline-flex;align-items:center;gap:8px;">
+            <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="2.5"/>
+              <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.85" stroke="#2BAB65" stroke-width="2.5"/>
+              <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.85" stroke="#E8631A" stroke-width="2.5"/>
+            </svg>
+            <span style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em;">Venndle</span>
+          </div>
+        </div>
+
+        <%# Heading %>
+        <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;text-align:center;margin:0 0 8px;line-height:1.1;">How to play</h2>
+        <p style="font-size:14px;color:#666;text-align:center;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Three circles. Seven clues.<br>Can you figure out what connects each one?</p>
+
+        <%# Mini Venn diagram with example words %>
+        <div style="background:rgba(255,255,255,0.6);border-radius:16px;padding:8px 12px 4px;margin-bottom:20px;">
+          <svg viewBox="0 0 280 210" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="140" cy="76"  r="60" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="1.5"/>
+            <circle cx="97"  cy="148" r="60" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="1.5"/>
+            <circle cx="183" cy="148" r="60" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="1.5"/>
+            <text x="140" y="30"  text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#3730a3">arctic</text>
+            <text x="140" y="44"  text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#3730a3">frigid</text>
+            <text x="53"  y="175" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#166534">ivory</text>
+            <text x="53"  y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#166534">pale</text>
+            <text x="227" y="175" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#92400e">fluffy</text>
+            <text x="227" y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#92400e">soft</text>
+            <text x="106" y="104" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">snow</text>
+            <text x="174" y="104" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">frost</text>
+            <text x="140" y="188" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">cloud</text>
+            <text x="140" y="136" text-anchor="middle" font-size="11" font-weight="bold" font-family="system-ui,sans-serif" fill="#1a1a2e">winter</text>
+          </svg>
+        </div>
+
+        <%# Bullet points %>
+        <ul style="margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-family:'Inter',system-ui,sans-serif;">
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">A</span>
+            Each circle has a secret category label
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#2BAB65;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">B</span>
+            Words in overlapping regions belong to both circles
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
+            <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#E8631A;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">C</span>
+            Type your guess for each circle — synonyms and variations are accepted
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
+            <span style="flex-shrink:0;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">
+              <svg width="20" height="20" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="34" r="24" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="3"/>
+                <circle cx="32" cy="66" r="24" fill="#B8E4C8" fill-opacity="0.85" stroke="#2BAB65" stroke-width="3"/>
+                <circle cx="68" cy="66" r="24" fill="#F5C4A0" fill-opacity="0.85" stroke="#E8631A" stroke-width="3"/>
+              </svg>
+            </span>
+            The centre word belongs to all three categories
+          </li>
+        </ul>
+
+        <%# CTA %>
+        <button onclick="hideInstructions()" style="width:100%;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:50px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Let's play →</button>
+
+      </div>
+    </div>
+
+    <script>
+      function showInstructions() {
+        document.getElementById('instructions-modal').style.display = 'flex';
+      }
+      function hideInstructions() {
+        localStorage.setItem('venndle_seen_instructions', '1');
+        document.getElementById('instructions-modal').style.display = 'none';
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!localStorage.getItem('venndle_seen_instructions')) {
+          showInstructions();
+        }
+      });
+    </script>
 
   </body>
 </html>
