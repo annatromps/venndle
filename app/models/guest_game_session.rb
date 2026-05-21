@@ -25,6 +25,9 @@ class GuestGameSession
   def hint_used_a? = data["hint_used_a"]
   def hint_used_b? = data["hint_used_b"]
   def hint_used_c? = data["hint_used_c"]
+  def hints_a = data["hints_a"] || 0
+  def hints_b = data["hints_b"] || 0
+  def hints_c = data["hints_c"] || 0
 
   def increment!(field)
     mutate { |d| d[field.to_s] = (d[field.to_s] || 0) + 1 }
@@ -48,7 +51,8 @@ class GuestGameSession
       "completed" => false,
       "attempts_a" => 0, "attempts_b" => 0, "attempts_c" => 0,
       "gave_up_a" => false, "gave_up_b" => false, "gave_up_c" => false,
-      "hint_used_a" => false, "hint_used_b" => false, "hint_used_c" => false
+      "hint_used_a" => false, "hint_used_b" => false, "hint_used_c" => false,
+      "hints_a" => 0, "hints_b" => 0, "hints_c" => 0
     }
   end
 

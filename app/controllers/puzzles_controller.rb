@@ -30,11 +30,11 @@ class PuzzlesController < ApplicationController
     when "my"
       @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
     when "played"
-      @puzzles = Puzzle.published.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
     when "favourites"
-      @puzzles = Puzzle.published.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
     else
-      @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.includes(:user).order(created_at: :desc)
     end
 
     @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
@@ -165,11 +165,9 @@ class PuzzlesController < ApplicationController
     official_label = @puzzle.send("label_#{label}").to_s
     return render json: { done: true } if revealed_count >= official_label.length
 
-    # Mark hint used on first reveal so the share string can reflect it
-    if revealed_count == 0
-      game_session = find_or_build_game_session(@puzzle)
-      game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
-    end
+    game_session = find_or_build_game_session(@puzzle)
+    game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
+    game_session.increment!("hints_#{label}")
 
     render json: {
       letter: official_label[revealed_count],
@@ -259,15 +257,20 @@ class PuzzlesController < ApplicationController
   def build_share_string(game_session, puzzle)
     lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
-      solved    = game_session.send("solved_#{label}?")
-      gave_up   = game_session.respond_to?("gave_up_#{label}?")   && game_session.send("gave_up_#{label}?")
-      hint_used = game_session.respond_to?("hint_used_#{label}?") && game_session.send("hint_used_#{label}?")
-      wrong  = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
-      result = gave_up ? "🏳️" : (solved ? (hint_used ? "💡" : "✅") : "")
-      "#{label.upcase} #{("❌" * wrong)}#{result}"
+      solved   = game_session.send("solved_#{label}?")
+      gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
+      hints    = game_session.respond_to?("hints_#{label}") ? game_session.send("hints_#{label}").to_i : 0
+      wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
+      result   = gave_up ? "🏳️" : (solved ? "✅" : "")
+      hint_str = hints > 0 ? ("💡" * hints) : ""
+      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
     url = "https://venndle.app/#{puzzle.id}"
-    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
+    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    else
+      puzzle.title.presence || "Venndle ##{puzzle.id}"
+    end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end
