@@ -276,7 +276,7 @@ class PuzzlesController < ApplicationController
       hint_str = hints > 0 ? ("💡" * hints) : ""
       "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "https://venndle.app/#{puzzle.id}"
+    url = "venndle.app/#{puzzle.id}"
     title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
       "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
