@@ -11,6 +11,7 @@ class PuzzlesController < ApplicationController
 
   def index
     @filter = params[:filter].presence || "all"
+    @sort   = params[:sort].presence   || "newest"
 
     @played_ids = if user_signed_in?
       current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
@@ -30,23 +31,33 @@ class PuzzlesController < ApplicationController
     when "my"
       @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
     when "played"
-      @puzzles = Puzzle.published.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
     when "favourites"
-      @puzzles = Puzzle.published.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
     else
-      @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
+      @puzzles = Puzzle.published.user_created.includes(:user).order(created_at: :desc)
     end
 
-    @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    @puzzles = @puzzles.to_a
 
     puzzle_ids = @puzzles.map(&:id)
+    @play_counts   = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
     @avg_ratings   = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
                            .transform_values { |v| v.to_f.round(1) }
     @rating_counts = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+
+    case @sort
+    when "popular"
+      @puzzles = @puzzles.sort_by { |p| -(@play_counts[p.id] || 0) }
+    when "top_rated"
+      @puzzles = @puzzles.sort_by { |p| -(@avg_ratings[p.id] || 0) }
+    end
   end
 
   def archive
-    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc)
+    scope = Puzzle.published.daily
+    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    @puzzles = scope.order(scheduled_date: :desc)
     played_ids = if user_signed_in?
       current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
     else
@@ -165,6 +176,10 @@ class PuzzlesController < ApplicationController
     official_label = @puzzle.send("label_#{label}").to_s
     return render json: { done: true } if revealed_count >= official_label.length
 
+    game_session = find_or_build_game_session(@puzzle)
+    game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
+    game_session.increment!("hints_#{label}")
+
     render json: {
       letter: official_label[revealed_count],
       total_length: official_label.length,
@@ -181,7 +196,7 @@ class PuzzlesController < ApplicationController
     game_session = find_or_build_game_session(@puzzle)
     return render json: { already_solved: true } if game_session.send("solved_#{label}?")
 
-    game_session.update!("solved_#{label}" => true)
+    game_session.update!("solved_#{label}" => true, "gave_up_#{label}" => true)
     game_session.reload
     game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
@@ -253,13 +268,20 @@ class PuzzlesController < ApplicationController
   def build_share_string(game_session, puzzle)
     lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
-      solved = game_session.send("solved_#{label}?")
-      wrong = [attempts_count - (solved ? 1 : 0), 0].max
-      emojis = ("❌" * wrong) + (solved ? "✅" : "")
-      "#{label.upcase} #{emojis}"
+      solved   = game_session.send("solved_#{label}?")
+      gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
+      hints    = game_session.respond_to?("hints_#{label}") ? game_session.send("hints_#{label}").to_i : 0
+      wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
+      result   = gave_up ? "🏳️" : (solved ? "✅" : "")
+      hint_str = hints > 0 ? ("💡" * hints) : ""
+      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "https://venndle.app/#{puzzle.id}"
-    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
+    url = "venndle.app/#{puzzle.id}"
+    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    else
+      puzzle.title.presence || "Venndle ##{puzzle.id}"
+    end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end

@@ -1,8 +1,6 @@
 <%= form_with model: [:admin, puzzle], id: "admin-puzzle-form",
       style: "display:flex;flex-direction:column;gap:12px;font-family:'Inter',system-ui,sans-serif;" do |f| %>
 
-  <%= f.hidden_field :puzzle_type, value: puzzle.puzzle_type.presence || "daily" %>
-
   <% if puzzle.errors.any? %>
     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;">
       <ul style="margin:0;padding:0 0 0 16px;font-size:13px;color:#991b1b;">
@@ -13,23 +11,17 @@
     </div>
   <% end %>
 
-  <%# Title + Date + Published in one row %>
-  <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;">
+  <%# Title + Date in one row %>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end;">
     <div>
       <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:4px;">Title <span style="font-weight:400;text-transform:none;">(optional)</span></label>
       <%= f.text_field :title, placeholder: "Leave blank to auto-generate",
             style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
     </div>
     <div>
-      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:4px;">Scheduled date</label>
+      <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#888;margin-bottom:4px;">Schedule for date <span style="font-weight:400;text-transform:none;">(optional — leave blank to save to library)</span></label>
       <%= f.date_field :scheduled_date,
             style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
-    </div>
-    <div style="padding-bottom:2px;">
-      <%= f.label :published, style: "display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a2e;" do %>
-        <%= f.check_box :published, style: "width:16px;height:16px;cursor:pointer;" %>
-        Published
-      <% end %>
     </div>
   </div>
 
@@ -117,7 +109,7 @@
     </div>
   </div>
 
-  <%= f.submit puzzle.persisted? ? "Save changes" : "Schedule puzzle",
+  <%= f.submit puzzle.persisted? ? "Save changes" : "Save puzzle",
         style: "background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;width:100%;margin-top:8px;" %>
 
 <% end %>

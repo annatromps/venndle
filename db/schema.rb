@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_20_141231) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_20_144746) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_20_141231) do
     t.integer "attempts_c", default: 0
     t.boolean "completed", default: false
     t.datetime "created_at", null: false
+    t.boolean "gave_up_a", default: false, null: false
+    t.boolean "gave_up_b", default: false, null: false
+    t.boolean "gave_up_c", default: false, null: false
+    t.boolean "hint_used_a", default: false, null: false
+    t.boolean "hint_used_b", default: false, null: false
+    t.boolean "hint_used_c", default: false, null: false
     t.bigint "puzzle_id", null: false
     t.boolean "solved_a", default: false
     t.boolean "solved_b", default: false

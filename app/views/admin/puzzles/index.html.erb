@@ -24,7 +24,7 @@
 .c-type { width: 65px; }
 .c-date { white-space: nowrap; }
 .c-pub { width: 95px; }
-.c-actions { width: 120px; white-space: nowrap; }
+.c-actions { width: 170px; white-space: nowrap; }
 .c-actions-inner { display: flex; gap: 12px; align-items: center; }
 
 .bdg { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; }
@@ -34,6 +34,7 @@
 .bdg-daily { background: #ede9fe; color: #5B53D6; }
 .bdg-user { background: #fff7ed; color: #c05621; }
 
+.btn-view { color: #888; font-weight: 600; text-decoration: none; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; }
 .btn-edit { color: #5B53D6; font-weight: 600; text-decoration: none; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; }
 .btn-del { color: #e53e3e; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; padding: 0; font-weight: 600; }
 .btn-schedule { color: #2BAB65; background: transparent; border: none; cursor: pointer; font-size: 13px; font-family: 'Inter', system-ui, sans-serif; padding: 0; font-weight: 600; }
@@ -72,7 +73,41 @@
           <p class="admin-eyebrow">Admin</p>
           <h1 class="admin-title">Puzzle Scheduler</h1>
         </div>
-        <a href="/admin/puzzles/new" class="btn-new">+ Schedule new daily puzzle</a>
+        <div style="position:relative;display:inline-block;">
+          <button type="button" onclick="toggleNewMenu(event)" class="btn-new" style="display:flex;align-items:center;gap:6px;">
+            + New puzzle
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div id="new-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);background:white;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.15);min-width:180px;overflow:hidden;z-index:200;border:1px solid rgba(0,0,0,0.08);">
+            <a href="/admin/puzzles/new" style="display:block;padding:11px 16px;font-size:13px;font-weight:600;color:#1a1a2e;text-decoration:none;font-family:'Inter',system-ui,sans-serif;" onmouseover="this.style.background='#f8f8f8'" onmouseout="this.style.background=''">
+              Create manually
+            </a>
+            <button type="button" onclick="openAdminImport()" style="display:block;width:100%;text-align:left;padding:11px 16px;font-size:13px;font-weight:600;color:#5B53D6;background:none;border:none;border-top:1px solid #f0f0f0;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" onmouseover="this.style.background='#f5f3ff'" onmouseout="this.style.background=''">
+              Import from text
+            </button>
+          </div>
+        </div>
+
+        <%# Import modal %>
+        <div id="admin-import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;padding:20px;box-sizing:border-box;align-items:center;justify-content:center;">
+          <div style="background:white;border-radius:18px;padding:20px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+            <h2 style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#1a1a2e;margin:0 0 12px;">Import puzzle from text</h2>
+            <textarea id="admin-import-text" rows="13"
+              style="width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.15);border-radius:10px;padding:10px 12px;font-size:12px;font-family:'Courier New',monospace;color:#1a1a2e;resize:vertical;outline:none;line-height:1.6;"
+              placeholder="title: Smoke&#10;label_a: grey&#10;label_b: rising&#10;label_c: disappearing&#10;a: slate, elephant, raincloud&#10;b: bread, tide, phoenix&#10;c: ice, memory, ink&#10;ab: storm, fog&#10;ac: ghost, ash&#10;bc: bubble, dream&#10;abc: smoke"></textarea>
+            <div id="admin-import-error" style="display:none;font-size:12px;color:#dc2626;margin-top:6px;font-family:'Inter',system-ui,sans-serif;"></div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button type="button" onclick="closeAdminImport()"
+                style="flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:1.5px solid #ddd;background:white;color:#555;">
+                Cancel
+              </button>
+              <button type="button" onclick="runAdminImport()"
+                style="flex:2;padding:10px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',system-ui,sans-serif;border:none;background:#5B53D6;color:white;">
+                Import
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -124,8 +159,8 @@
                   <td class="c-actions">
                     <div class="c-actions-inner">
                       <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
-                      <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
-                            data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
+                      <%= button_to "Remove", unschedule_admin_puzzle_path(puzzle), method: :patch,
+                            data: { turbo_confirm: "Remove from schedule? The puzzle will stay in the community list." },
                             form: { style: "display:contents;" },
                             class: "btn-del" %>
                     </div>
@@ -156,8 +191,8 @@
               </div>
               <div class="pcard-actions">
                 <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
-                <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
-                      data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
+                <%= button_to "Remove", unschedule_admin_puzzle_path(puzzle), method: :patch,
+                      data: { turbo_confirm: "Remove from schedule? The puzzle will stay in the community list." },
                       form: { style: "display:contents;" },
                       class: "btn-del" %>
               </div>
@@ -172,10 +207,10 @@
       <% end %>
     </div>
 
-    <%# ── UNSCHEDULED ─────────────────────────────────────────── %>
-    <h2 class="section-lbl">Unscheduled community puzzles</h2>
+    <%# ── COMMUNITY ─────────────────────────────────────────── %>
+    <h2 class="section-lbl">Community created</h2>
     <div class="admin-card">
-      <% if @unscheduled.any? %>
+      <% if @community.any? %>
 
         <%# Desktop table %>
         <div class="tbl-scroll">
@@ -191,7 +226,7 @@
               </tr>
             </thead>
             <tbody>
-              <% @unscheduled.each do |puzzle| %>
+              <% @community.each do |puzzle| %>
                 <tr>
                   <td class="c-id">#<%= puzzle.id %></td>
                   <td class="c-title">
@@ -206,6 +241,7 @@
                   </td>
                   <td class="c-actions">
                     <div class="c-actions-inner">
+                      <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
                       <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
                       <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
                             data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
@@ -234,7 +270,7 @@
 
         <%# Mobile cards %>
         <div class="puzzle-cards">
-          <% @unscheduled.each do |puzzle| %>
+          <% @community.each do |puzzle| %>
             <div class="pcard">
               <div class="pcard-id">#<%= puzzle.id %></div>
               <div class="pcard-title"><%= puzzle.title.presence || "—" %></div>
@@ -246,6 +282,7 @@
                 </span>
               </div>
               <div class="pcard-actions">
+                <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
                 <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
                 <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
                       data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
@@ -267,7 +304,98 @@
         </div>
 
       <% else %>
-        <div class="empty-state">No unscheduled community puzzles.</div>
+        <div class="empty-state">No community puzzles yet.</div>
+      <% end %>
+    </div>
+
+    <%# ── ADMIN CREATED ─────────────────────────────────────────── %>
+    <h2 class="section-lbl">Admin created</h2>
+    <div class="admin-card">
+      <% if @admin_created.any? %>
+
+        <%# Desktop table %>
+        <div class="tbl-scroll">
+          <table class="admin-tbl">
+            <thead>
+              <tr>
+                <th class="c-id">ID</th>
+                <th class="c-title">Title</th>
+                <th class="c-date">Created</th>
+                <th class="c-actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% @admin_created.each do |puzzle| %>
+                <tr>
+                  <td class="c-id">#<%= puzzle.id %></td>
+                  <td class="c-title">
+                    <span class="c-title-inner" title="<%= puzzle.title %>"><%= puzzle.title.presence || "—" %></span>
+                  </td>
+                  <td class="c-date" style="color:#aaa;"><%= puzzle.created_at.strftime("%-d %b %Y") %></td>
+                  <td class="c-actions">
+                    <div class="c-actions-inner">
+                      <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
+                      <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
+                      <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
+                            data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
+                            form: { style: "display:contents;" },
+                            class: "btn-del" %>
+                      <button type="button" class="btn-schedule" onclick="toggleScheduleRow('admin-<%= puzzle.id %>')">Schedule</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr id="schedule-row-admin-<%= puzzle.id %>" class="schedule-row" style="display:none;">
+                  <td colspan="4">
+                    <%= form_with url: schedule_admin_puzzle_path(puzzle), method: :patch, local: true, style: "display:contents;" do |f| %>
+                      <div class="schedule-form">
+                        <label style="font-size:13px;font-weight:600;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;">Set date as daily puzzle:</label>
+                        <%= f.date_field :scheduled_date, class: "schedule-date-input", required: true, min: Date.today.to_s %>
+                        <button type="submit" class="btn-schedule-confirm">Confirm</button>
+                        <button type="button" class="btn-schedule-cancel" onclick="toggleScheduleRow('admin-<%= puzzle.id %>')">Cancel</button>
+                      </div>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+
+        <%# Mobile cards %>
+        <div class="puzzle-cards">
+          <% @admin_created.each do |puzzle| %>
+            <div class="pcard">
+              <div class="pcard-id">#<%= puzzle.id %></div>
+              <div class="pcard-title"><%= puzzle.title.presence || "—" %></div>
+              <div class="pcard-meta">
+                <span><%= puzzle.created_at.strftime("%-d %b %Y") %></span>
+              </div>
+              <div class="pcard-actions">
+                <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
+                <a href="/admin/puzzles/<%= puzzle.id %>/edit" class="btn-edit">Edit</a>
+                <%= button_to "Delete", admin_puzzle_path(puzzle), method: :delete,
+                      data: { turbo_confirm: "Are you sure you want to delete this puzzle? This cannot be undone." },
+                      form: { style: "display:contents;" },
+                      class: "btn-del" %>
+                <button type="button" class="btn-schedule" onclick="toggleScheduleCard('admin-<%= puzzle.id %>')">Schedule</button>
+              </div>
+              <div id="schedule-card-admin-<%= puzzle.id %>" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #d1fae5;">
+                <%= form_with url: schedule_admin_puzzle_path(puzzle), method: :patch, local: true do |f| %>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <%= f.date_field :scheduled_date, class: "schedule-date-input", required: true, min: Date.today.to_s, style: "flex:1;min-width:140px;" %>
+                    <button type="submit" class="btn-schedule-confirm">Confirm</button>
+                    <button type="button" class="btn-schedule-cancel" onclick="toggleScheduleCard('admin-<%= puzzle.id %>')">Cancel</button>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+      <% else %>
+        <div class="empty-state">
+          No admin puzzles yet. <a href="/admin/puzzles/new" class="empty-link">Create one now.</a>
+        </div>
       <% end %>
     </div>
 
@@ -282,5 +410,67 @@
   function toggleScheduleCard(id) {
     var card = document.getElementById('schedule-card-' + id);
     card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function toggleNewMenu(e) {
+    e.stopPropagation();
+    var menu = document.getElementById('new-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  }
+  document.addEventListener('click', function() {
+    var menu = document.getElementById('new-menu');
+    if (menu) menu.style.display = 'none';
+  });
+
+  function openAdminImport() {
+    document.getElementById('new-menu').style.display = 'none';
+    var modal = document.getElementById('admin-import-modal');
+    modal.style.display = 'flex';
+    document.getElementById('admin-import-text').focus();
+  }
+  function closeAdminImport() {
+    document.getElementById('admin-import-modal').style.display = 'none';
+    document.getElementById('admin-import-error').style.display = 'none';
+  }
+  document.getElementById('admin-import-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminImport();
+  });
+
+  function runAdminImport() {
+    var raw = document.getElementById('admin-import-text').value;
+    var errEl = document.getElementById('admin-import-error');
+    errEl.style.display = 'none';
+
+    var data = {};
+    raw.split('\n').forEach(function(line) {
+      var idx = line.indexOf(':');
+      if (idx === -1) return;
+      var key = line.slice(0, idx).trim().toLowerCase();
+      var val = line.slice(idx + 1).trim();
+      if (key && val) data[key] = val;
+    });
+
+    var required = ['label_a', 'label_b', 'label_c', 'abc'];
+    var missing = required.filter(function(k) { return !data[k]; });
+    if (missing.length) {
+      errEl.textContent = 'Missing required fields: ' + missing.join(', ');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    var params = new URLSearchParams({ from_import: '1' });
+    if (data['title'])    params.set('title',    data['title']);
+    if (data['label_a'])  params.set('label_a',  data['label_a']);
+    if (data['label_b'])  params.set('label_b',  data['label_b']);
+    if (data['label_c'])  params.set('label_c',  data['label_c']);
+    if (data['a'])        params.set('words_a',  data['a']);
+    if (data['b'])        params.set('words_b',  data['b']);
+    if (data['c'])        params.set('words_c',  data['c']);
+    if (data['ab'])       params.set('words_ab', data['ab']);
+    if (data['ac'])       params.set('words_ac', data['ac']);
+    if (data['bc'])       params.set('words_bc', data['bc']);
+    if (data['abc'])      params.set('words_abc',data['abc']);
+
+    window.location.href = '/admin/puzzles/new?' + params.toString();
   }
 </script>
