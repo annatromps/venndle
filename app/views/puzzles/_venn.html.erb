@@ -298,7 +298,6 @@
             <%# Hint controls — only for unsolved rows %>
             <% unless solved %>
               <div class="hint-ctrl" data-label="<%= lbl %>" style="padding-left:32px;display:flex;flex-direction:column;gap:2px;">
-                <span id="hint-display-<%= lbl %>" style="display:none;font-size:11px;font-family:monospace;letter-spacing:3px;color:#666;"></span>
                 <div style="display:flex;gap:8px;align-items:center;">
                   <button class="hint-btn" data-label="<%= lbl %>"
                           style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
@@ -515,12 +514,11 @@
             state.revealed.push(data.letter.toUpperCase());
             state.totalLength = data.total_length;
 
-            const displayEl = document.getElementById('hint-display-' + label);
             const chars = Array.from({ length: data.total_length }, function(_, i) {
               return i < state.revealed.length ? state.revealed[i] : '_';
             });
-            displayEl.textContent = chars.join(' ');
-            displayEl.style.display = 'inline';
+            const input = row.querySelector('input[name="guess"]');
+            if (input) input.placeholder = chars.join(' ');
 
             if (state.revealed.length >= data.total_length) {
               if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
