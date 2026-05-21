@@ -72,6 +72,20 @@ class PuzzlesController < ApplicationController
     @attempts = load_attempts(@puzzle)
   end
 
+  def show_by_daily_number
+    number = params[:number].to_i
+    @puzzle = Puzzle.published.daily.order(:scheduled_date).offset(number - 1).limit(1).first
+    if @puzzle.nil?
+      redirect_to archive_path, alert: "Daily ##{number} not found." and return
+    end
+    unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
+      redirect_to archive_path, alert: "That puzzle isn't available yet." and return
+    end
+    @game_session = find_or_build_game_session(@puzzle)
+    @attempts = load_attempts(@puzzle)
+    render :show
+  end
+
   def new
     @puzzle = Puzzle.new
   end
@@ -276,11 +290,13 @@ class PuzzlesController < ApplicationController
       hint_str = hints > 0 ? ("💡" * hints) : ""
       "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "venndle.app/#{puzzle.id}"
-    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
-      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
+      url   = "venndle.app/daily#{day_num}"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
-      puzzle.title.presence || "Venndle ##{puzzle.id}"
+      url   = "venndle.app/#{puzzle.id}"
+      title = puzzle.title.presence || "Venndle ##{puzzle.id}"
     end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end

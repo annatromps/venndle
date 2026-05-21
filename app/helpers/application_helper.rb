@@ -10,11 +10,13 @@ module ApplicationHelper
       hint_str = hints > 0 ? ("💡" * hints) : ""
       "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    url = "venndle.app/#{puzzle.id}"
-    title = if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
-      "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+    if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
+      url   = "venndle.app/daily#{day_num}"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
-      puzzle.title.presence || "Venndle ##{puzzle.id}"
+      url   = "venndle.app/#{puzzle.id}"
+      title = puzzle.title.presence || "Venndle ##{puzzle.id}"
     end
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
