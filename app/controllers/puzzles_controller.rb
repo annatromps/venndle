@@ -59,9 +59,11 @@ class PuzzlesController < ApplicationController
     scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc)
     played_ids = if user_signed_in?
-      current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
+      current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
     else
-      (session["guest_game_sessions"] || {}).keys.map(&:to_i)
+      (session["guest_game_sessions"] || {})
+        .select { |_, d| d["completed"] }
+        .keys.map(&:to_i)
     end
     @played_ids = played_ids.to_set
   end
