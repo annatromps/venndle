@@ -55,6 +55,13 @@
       }
     %>
 
+    <%# Staging banner — only shown when STAGING env var is set %>
+    <% if ENV["STAGING"].present? %>
+      <div style="flex-shrink:0;background:#F59E0B;color:white;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:5px 0;font-family:'Inter',system-ui,sans-serif;">
+        Staging environment — not production
+      </div>
+    <% end %>
+
     <%# Navbar — fixed 60px height, white background %>
     <nav style="height:60px;flex-shrink:0;background:white;padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
@@ -154,10 +161,6 @@
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
       <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
-<<<<<<< HEAD
-=======
-      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
->>>>>>> origin/main
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
