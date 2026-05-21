@@ -57,6 +57,13 @@
       }
     %>
 
+    <%# Staging banner — only shown when STAGING env var is set %>
+    <% if ENV["STAGING"].present? %>
+      <div style="flex-shrink:0;background:#F59E0B;color:white;text-align:center;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;padding:5px 0;font-family:'Inter',system-ui,sans-serif;">
+        Staging environment — not production
+      </div>
+    <% end %>
+
     <%# Navbar — fixed 60px height, white background %>
     <nav style="height:60px;flex-shrink:0;background:white;padding:0 20px;display:flex;align-items:center;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 1px 3px rgba(0,0,0,0.04);">
 
