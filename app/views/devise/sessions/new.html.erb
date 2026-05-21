@@ -18,7 +18,7 @@
 
         <% if devise_mapping.rememberable? %>
           <div style="display:flex;align-items:center;gap:8px;">
-            <%= f.check_box :remember_me %>
+            <%= f.check_box :remember_me, checked: true %>
             <%= f.label :remember_me, style: "font-size:13px;color:#666;font-family:'Inter',system-ui,sans-serif;" %>
           </div>
         <% end %>
