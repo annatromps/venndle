@@ -21,7 +21,7 @@
           <% if played %>
             <span style="font-size:12px;font-weight:600;color:#aaa;font-family:'Inter',system-ui,sans-serif;flex-shrink:0;">Played ✓</span>
           <% else %>
-            <a href="<%= puzzle_path(puzzle) %>"
+            <a href="/daily/<%= @day_numbers[puzzle.id] %>"
                style="flex-shrink:0;background:#1a1a2e;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
               Play
             </a>

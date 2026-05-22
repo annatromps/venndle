@@ -2,10 +2,21 @@ class PuzzlesController < ApplicationController
   before_action :require_login_to_create, only: [:new, :create]
 
   def daily
-    @puzzle = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).first
-    if @puzzle
-      @game_session = find_or_build_game_session(@puzzle)
-      @attempts = load_attempts(@puzzle)
+    all_daily = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :asc)
+
+    if params[:day_number].present?
+      @day_number = params[:day_number].to_i
+      @puzzle = all_daily.offset(@day_number - 1).first
+      if @puzzle
+        @game_session = find_or_build_game_session(@puzzle)
+        @attempts = load_attempts(@puzzle)
+      end
+    else
+      current_day = all_daily.count
+      if current_day > 0
+        redirect_to daily_puzzle_path(current_day) and return
+      end
+      @puzzle = nil
     end
   end
 
@@ -40,9 +51,13 @@ class PuzzlesController < ApplicationController
   end
 
   def archive
-    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc)
+    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).to_a
+    total = @puzzles.size
+    @day_numbers = {}
+    @puzzles.each_with_index { |p, i| @day_numbers[p.id] = total - i }
+    puzzle_ids = @puzzles.map(&:id)
     played_ids = if user_signed_in?
-      current_user.game_sessions.where(puzzle_id: @puzzles.select(:id)).pluck(:puzzle_id)
+      current_user.game_sessions.where(puzzle_id: puzzle_ids).pluck(:puzzle_id)
     else
       (session["guest_game_sessions"] || {}).keys.map(&:to_i)
     end
@@ -216,7 +231,11 @@ class PuzzlesController < ApplicationController
       emojis = ("❌" * wrong) + (solved ? "✅" : "")
       "#{label.upcase} #{emojis}"
     end
-    url = "#{request.base_url}/puzzles/#{puzzle.id}"
+    if puzzle.puzzle_type == "daily"
+      url = "#{request.base_url}/daily/#{puzzle.day_number}"
+    else
+      url = "#{request.base_url}/puzzles/#{puzzle.id}"
+    end
     title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end

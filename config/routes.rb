@@ -2,7 +2,8 @@ Rails.application.routes.draw do
   devise_for :users
 
   root "puzzles#daily"
-  get "/daily", to: "puzzles#daily"
+  get "/daily", to: "puzzles#daily", as: :daily
+  get "/daily/:day_number", to: "puzzles#daily", as: :daily_puzzle
   get "/archive", to: "puzzles#archive", as: :archive
 
   resources :puzzles, only: [:index, :show, :new, :create]

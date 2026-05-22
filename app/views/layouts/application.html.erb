@@ -39,7 +39,7 @@
 
     <%# Precompute nav active states %>
     <%
-      _daily_active     = request.path == "/" || request.path == "/daily"
+      _daily_active     = request.path == "/" || request.path == "/daily" || request.path.start_with?("/daily/")
       _archive_active   = request.path == "/archive"
       _community_active = request.path.start_with?("/puzzles") && !request.path.start_with?("/puzzles/new")
 
@@ -154,10 +154,6 @@
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
       <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Archive</a>
-<<<<<<< HEAD
-=======
-      <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
->>>>>>> origin/main
       <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
 
       <% if user_signed_in? %>
