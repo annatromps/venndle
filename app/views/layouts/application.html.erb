@@ -205,7 +205,10 @@
       <a href="/"        style="display:block;padding:14px 24px;font-size:15px;text-decoration:none;border-left:3px solid;font-weight:<%= _daily_active ? '700' : '500' %>;color:#2BAB65;border-left-color:<%= _daily_active ? '#2BAB65' : 'transparent' %>;">Today</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Daily archive</a>
       <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
-      <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
+      <% if user_signed_in? %>
+        <a href="/my/stats" style="<%= _ml_link_style.(request.path == '/my/stats') %>">My stats</a>
+      <% end %>
+      <div style="height:8px;"></div>
       <button onclick="document.getElementById('mobile-menu').style.display='none'; showInstructions();" style="display:block;width:100%;text-align:left;padding:14px 24px;font-size:15px;font-weight:500;color:#5B53D6;background:none;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">How to play</button>
 
       <% if user_signed_in? %>
@@ -219,7 +222,6 @@
             <span style="font-size:11px;font-weight:700;background:<%= admin_view? ? '#ede9fe' : '#f0fdf4' %>;color:<%= admin_view? ? '#5B53D6' : '#2BAB65' %>;border-radius:999px;padding:2px 8px;margin-right:4px;">ON</span>
           <% end %>
         <% end %>
-        <a href="/my/stats" style="<%= _ml_link_style.(request.path == '/my/stats') %>">My stats</a>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 24px;">
           <span style="font-size:15px;font-weight:700;color:#888;font-family:'Playfair Display',serif;"><%= current_user.username %></span>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,
