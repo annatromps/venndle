@@ -185,11 +185,13 @@
                 <button onclick="document.getElementById('user-menu').style.display='none';showInstructions();" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;width:100%;text-align:left;">How to play</button>
                 <a href="/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My puzzles</a>
                 <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
-                <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;">
-                  <span style="flex:1;font-size:13px;font-weight:700;color:#888;font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= current_user.username %></span>
-                  <a href="/my/stats" style="font-size:12px;font-weight:600;color:#5B53D6;text-decoration:none;white-space:nowrap;flex-shrink:0;">My stats</a>
+                <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;">
+                  <span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#888;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= current_user.username %></span>
+                  <span style="color:#ccc;font-size:13px;flex-shrink:0;">&middot;</span>
+                  <a href="/my/stats" style="font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;white-space:nowrap;flex-shrink:0;">My stats</a>
+                  <span style="color:#ccc;font-size:13px;flex-shrink:0;">&middot;</span>
                   <%= button_to "Sign out", destroy_user_session_path, method: :delete,
-                        style: "flex-shrink:0;background:transparent;border:none;font-size:12px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
+                        style: "flex-shrink:0;background:transparent;border:none;font-size:13px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
                 </div>
               </div>
             </div>
@@ -222,9 +224,11 @@
             </div>
           <% end %>
         <% end %>
-        <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 24px;">
-          <span style="font-size:15px;font-weight:700;color:#888;font-family:'Playfair Display',serif;"><%= current_user.username %></span>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:10px 24px;">
+          <span style="font-size:14px;font-weight:600;color:#888;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></span>
+          <span style="color:#ccc;font-size:14px;">&middot;</span>
           <a href="/my/stats" style="font-size:14px;font-weight:600;color:#5B53D6;text-decoration:none;">My stats</a>
+          <span style="color:#ccc;font-size:14px;">&middot;</span>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,
                 style: "background:transparent;border:none;font-size:14px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
         </div>
