@@ -22,6 +22,9 @@
         <div style="background:white;border-radius:16px;padding:20px 20px 18px;border:1.5px solid rgba(0,0,0,0.07);">
           <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#aaa;font-family:'Inter',system-ui,sans-serif;margin-bottom:10px;">Current streak</div>
           <div style="display:flex;align-items:baseline;gap:6px;">
+            <% if @current_streak > 0 %>
+              <span style="font-size:36px;line-height:1;margin-right:2px;">🔥</span>
+            <% end %>
             <span style="font-size:48px;font-weight:800;color:<%= @current_streak > 0 ? '#1a1a2e' : '#ccc' %>;font-family:'Inter',system-ui,sans-serif;line-height:1;">
               <%= @current_streak %>
             </span>
@@ -35,7 +38,7 @@
             <% elsif @current_streak == 1 %>
               Keep it going!
             <% else %>
-              🔥 Don't break it
+              Don't break it
             <% end %>
           </div>
         </div>
@@ -99,7 +102,30 @@
         </div>
       </div>
 
-      <%# ── Row 3: Totals ── %>
+      <%# ── Row 3: Score distribution ── %>
+      <% max_count = @score_distribution.map(&:last).max.to_f %>
+      <% max_count = 1.0 if max_count == 0 %>
+      <div style="background:white;border-radius:16px;padding:20px 20px 18px;border:1.5px solid rgba(0,0,0,0.07);margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#aaa;font-family:'Inter',system-ui,sans-serif;margin-bottom:14px;">Score distribution</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <% @score_distribution.each do |label, count| %>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div style="font-size:12px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;width:22px;text-align:right;flex-shrink:0;"><%= label %></div>
+              <div style="flex:1;position:relative;height:24px;">
+                <% pct = count > 0 ? [(count / max_count * 100).round, 8].max : 4 %>
+                <div style="width:<%= pct %>%;height:100%;background:<%= count > 0 ? '#1a1a2e' : '#e5e7eb' %>;border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:<%= count > 0 ? '8px' : '0' %>;box-sizing:border-box;min-width:24px;">
+                  <% if count > 0 %>
+                    <span style="font-size:12px;font-weight:700;color:white;font-family:'Inter',system-ui,sans-serif;"><%= count %></span>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#ccc;font-family:'Inter',system-ui,sans-serif;">Wrong guesses per puzzle — lower is better</div>
+      </div>
+
+      <%# ── Row 4: Totals ── %>
       <div style="background:white;border-radius:16px;padding:18px 20px;border:1.5px solid rgba(0,0,0,0.07);">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div style="font-size:13px;font-weight:500;color:#555;font-family:'Inter',system-ui,sans-serif;">Daily puzzles completed</div>
