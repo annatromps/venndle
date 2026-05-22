@@ -59,14 +59,14 @@ class PuzzlesController < ApplicationController
 
   def archive
     scope = Puzzle.published.daily
-    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    scope = admin_view? ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc).to_a
 
     past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
     @day_numbers = {}
     past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
 
-    if user_signed_in? && current_user.admin?
+    if admin_view?
       @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
     end
 
@@ -88,7 +88,7 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
-    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if user_signed_in? && current_user.admin?
+    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if admin_view?
   end
 
   def show_by_daily_number
@@ -97,7 +97,7 @@ class PuzzlesController < ApplicationController
     if @puzzle.nil?
       redirect_to archive_path, alert: "Daily ##{number} not found." and return
     end
-    unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
+    unless @puzzle.scheduled_date <= Date.today || admin_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
     @daily_number = number

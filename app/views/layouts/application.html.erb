@@ -174,7 +174,14 @@
                   <div style="font-size:13px;font-weight:600;color:#555;margin-top:2px;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></div>
                 </div>
                 <% if current_user.admin? %>
-                  <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
+                  <% if admin_view? %>
+                    <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
+                  <% end %>
+                  <%= button_to toggle_admin_view_path, method: :post,
+                        style: "display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#{admin_view? ? '#5B53D6' : '#2BAB65'};background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;text-align:left;" do %>
+                    <span><%= admin_view? ? "Admin view" : "User view" %></span>
+                    <span style="font-size:11px;font-weight:700;background:<%= admin_view? ? '#ede9fe' : '#f0fdf4' %>;color:<%= admin_view? ? '#5B53D6' : '#2BAB65' %>;border-radius:999px;padding:2px 8px;">ON</span>
+                  <% end %>
                   <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
                 <% end %>
                 <button onclick="document.getElementById('user-menu').style.display='none';showInstructions();" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;width:100%;text-align:left;">How to play</button>
@@ -203,7 +210,14 @@
 
       <% if user_signed_in? %>
         <% if current_user.admin? %>
-          <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
+          <% if admin_view? %>
+            <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
+          <% end %>
+          <%= button_to toggle_admin_view_path, method: :post,
+                style: "display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 24px;font-size:15px;font-weight:600;color:#{admin_view? ? '#5B53D6' : '#2BAB65'};background:transparent;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;box-sizing:border-box;" do %>
+            <span><%= admin_view? ? "Admin view" : "User view" %></span>
+            <span style="font-size:11px;font-weight:700;background:<%= admin_view? ? '#ede9fe' : '#f0fdf4' %>;color:<%= admin_view? ? '#5B53D6' : '#2BAB65' %>;border-radius:999px;padding:2px 8px;margin-right:4px;">ON</span>
+          <% end %>
         <% end %>
         <a href="/my/stats" style="<%= _ml_link_style.(request.path == '/my/stats') %>">My stats</a>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 24px;">
