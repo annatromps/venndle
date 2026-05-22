@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   delete "/puzzles/:id/favourite",     to: "favourites#destroy"
   post   "/puzzles/:puzzle_id/rating", to: "ratings#create",    as: :puzzle_rating
 
+  get "/my/stats", to: "stats#show", as: :my_stats
+
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
     resources :puzzles do
