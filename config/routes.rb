@@ -1,9 +1,9 @@
 Rails.application.routes.draw do
-  devise_for :users
+  devise_for :users, controllers: { registrations: 'users/registrations' }
 
   root "puzzles#daily"
-  get "/daily", to: "puzzles#daily"
-  get "/daily:number", to: "puzzles#show_by_daily_number", constraints: { number: /\d+/ }
+  get "/daily", to: "puzzles#daily", as: :daily
+  get "/daily:number", to: "puzzles#show_by_daily_number", constraints: { number: /\d+/ }, as: :daily_number
   get "/archive", to: "puzzles#archive", as: :archive
 
   resources :puzzles, only: [:index, :show, :new, :create]
@@ -13,6 +13,8 @@ Rails.application.routes.draw do
   post   "/puzzles/:id/favourite",     to: "favourites#create", as: :puzzle_favourite
   delete "/puzzles/:id/favourite",     to: "favourites#destroy"
   post   "/puzzles/:puzzle_id/rating", to: "ratings#create",    as: :puzzle_rating
+
+  get "/my/stats", to: "stats#show", as: :my_stats
 
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do

@@ -2,12 +2,10 @@ class PuzzlesController < ApplicationController
   before_action :require_login_to_create, only: [:new, :create]
 
   def daily
-    @puzzle = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).first
-    if @puzzle
-      @daily_number = Puzzle.published.daily.where("scheduled_date <= ?", @puzzle.scheduled_date).count
-      @game_session = find_or_build_game_session(@puzzle)
-      @attempts = load_attempts(@puzzle)
-    end
+    all_daily = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :asc)
+    current_day = all_daily.count
+    return redirect_to "/daily#{current_day}" if current_day > 0
+    @puzzle = nil
   end
 
   def index
@@ -62,10 +60,18 @@ class PuzzlesController < ApplicationController
   def archive
     scope = Puzzle.published.daily
     scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
-    @puzzles = scope.order(scheduled_date: :desc)
+    @puzzles = scope.order(scheduled_date: :desc).to_a
+
+    past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
+    @day_numbers = {}
+    past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
+
+    if user_signed_in? && current_user.admin?
+      @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    end
 
     if user_signed_in?
-      game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.select(:id))
+      game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.map(&:id))
       @played_ids = game_sessions.pluck(:puzzle_id).to_set
       @game_sessions_by_puzzle_id = game_sessions.index_by(&:puzzle_id)
     else
@@ -82,6 +88,7 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if user_signed_in? && current_user.admin?
   end
 
   def show_by_daily_number
@@ -93,9 +100,10 @@ class PuzzlesController < ApplicationController
     unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
+    @daily_number = number
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
-    render :show
+    render :daily
   end
 
   def new

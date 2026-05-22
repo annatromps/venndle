@@ -4,18 +4,15 @@
 
     <%# Header — compact, fixed height %>
     <div style="flex-shrink:0;margin-bottom:6px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-        <span style="width:7px;height:7px;border-radius:50%;background:#F59E0B;display:inline-block;flex-shrink:0;"></span>
-        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
-          Daily &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %>
-        </span>
+      <div style="margin-bottom:4px;">
+        <span style="display:inline-flex;align-items:center;background:#F59E0B;color:white;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:999px;font-family:'Inter',system-ui,sans-serif;">Daily</span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
-          #<%= @daily_number %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
+        <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.15;min-width:0;">
+          #<%= @daily_number %> &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
         </h1>
         <button onclick="document.getElementById('how-to-play-modal').style.display='flex'"
-                style="width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;flex-shrink:0;"
+                style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
                 title="How to play">i</button>
       </div>
     </div>

@@ -13,6 +13,11 @@ class Puzzle < ApplicationRecord
   scope :user_created, -> { where(puzzle_type: "user") }
   scope :admin_created, -> { where(puzzle_type: "admin") }
 
+  def day_number
+    return nil unless puzzle_type == "daily" && scheduled_date.present?
+    Puzzle.published.daily.where("scheduled_date <= ?", scheduled_date).count
+  end
+
   def all_words
     (words_a + words_b + words_c + words_ab + words_ac + words_bc + words_abc).uniq
   end
