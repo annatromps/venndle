@@ -311,11 +311,14 @@
                 <span style="flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= label_text %></span>
                 <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#16a34a;color:white;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>
               <% else %>
-                <input type="text" name="guess"
-                       placeholder="Category <%= lbl.upcase %>..."
-                       autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                       style="flex:1;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;min-width:0;"
-                       data-placeholder-color="<%= placeholder_color %>" />
+                <div class="guess-input-wrap" style="flex:1;display:flex;align-items:center;min-width:0;">
+                  <span class="hint-prefix" style="font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;line-height:1;flex-shrink:0;"></span>
+                  <input type="text" name="guess"
+                         placeholder="Category <%= lbl.upcase %>..."
+                         autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                         style="flex:1;min-width:40px;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;"
+                         data-placeholder-color="<%= placeholder_color %>" />
+                </div>
                 <button class="submit-btn" data-label="<%= lbl %>"
                         style="flex-shrink:0;background:<%= color %>;color:white;font-weight:700;font-size:13px;border:none;border-radius:999px;height:26px;padding:0 12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;">
                   &#8594;
@@ -404,9 +407,11 @@
         async function submitGuess(label, btn) {
           const row = document.getElementById('guess-row-' + label);
           const input = row.querySelector('input[name="guess"]');
-          if (!input || !input.value.trim()) return;
+          const hintPfx = row.querySelector('.hint-prefix');
+          const prefix = hintPfx ? hintPfx.textContent : '';
+          if (!input || (!input.value.trim() && !prefix)) return;
 
-          const guess = input.value.trim();
+          const guess = prefix + input.value.trim();
           btn.disabled = true;
           btn.textContent = '…';
 
@@ -468,12 +473,12 @@
               row.dataset.solved = 'true';
               const officialLabel = data.official_label;
               const mainRow = row.querySelector('.guess-row-main');
-              const inputEl = mainRow.querySelector('input[name="guess"]');
-              if (inputEl) {
+              const inputWrap = mainRow.querySelector('.guess-input-wrap') || mainRow.querySelector('input[name="guess"]');
+              if (inputWrap) {
                 const labelSpan = document.createElement('span');
                 labelSpan.style.cssText = "flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
                 labelSpan.textContent = officialLabel;
-                inputEl.replaceWith(labelSpan);
+                inputWrap.replaceWith(labelSpan);
               }
               btn.remove();
               const check = document.createElement('span');
@@ -556,11 +561,13 @@
             state.revealed.push(data.letter.toUpperCase());
             state.totalLength = data.total_length;
 
-            const chars = Array.from({ length: data.total_length }, function(_, i) {
-              return i < state.revealed.length ? state.revealed[i] : '_';
-            });
+            const hintPrefix = row.querySelector('.hint-prefix');
+            if (hintPrefix) hintPrefix.textContent = state.revealed.join('');
             const input = row.querySelector('input[name="guess"]');
-            if (input) input.placeholder = chars.join(' ');
+            if (input) {
+              input.placeholder = state.revealed.length < data.total_length ? '...' : '';
+              input.focus();
+            }
 
             if (state.revealed.length >= data.total_length) {
               if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
