@@ -145,19 +145,21 @@
         </a>
 
         <%# Centre: primary nav links %>
-        <div style="display:flex;align-items:center;gap:36px;white-space:nowrap;">
+        <div style="display:flex;align-items:center;gap:28px;white-space:nowrap;">
           <a href="/"        style="<%= _nav_link_style.(_daily_active) %>">Today</a>
-          <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Daily archive</a>
-          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community created</a>
-          <button onclick="showInstructions()" style="font-size:14px;font-weight:500;color:#555;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0 0 3px;">How to play</button>
+          <a href="/archive" style="<%= _nav_link_style.(_archive_active) %>">Archive</a>
+          <a href="/puzzles" style="<%= _nav_link_style.(_community_active) %>">Community</a>
         </div>
 
-        <%# Right: create button + avatar/auth %>
-        <div style="display:flex;align-items:center;gap:12px;justify-content:flex-end;white-space:nowrap;">
+        <%# Right: create button + how to play + avatar/auth %>
+        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;white-space:nowrap;">
           <a href="/puzzles/new"
-             style="background:#E8631A;color:white;font-size:13px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
+             style="background:#E8631A;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:7px;padding:5px 12px;font-family:'Inter',system-ui,sans-serif;">
             + Create
           </a>
+          <button onclick="showInstructions()"
+                  style="width:30px;height:30px;border-radius:50%;background:transparent;border:1.5px solid #e0e0e0;color:#bbb;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
+                  title="How to play">?</button>
 
           <% if user_signed_in? %>
             <%
@@ -165,12 +167,9 @@
               _avatar_color  = _avatar_colors[current_user.username.ord % _avatar_colors.length]
               _initial       = current_user.username[0].upcase
             %>
-            <% if current_user.admin? %>
-              <a href="/admin/puzzles" style="font-size:12px;font-weight:600;color:#5B53D6;text-decoration:none;">Admin</a>
-            <% end %>
             <div style="position:relative;">
               <button id="avatar-btn" onclick="toggleUserMenu(event)"
-                style="width:34px;height:34px;border-radius:50%;background:<%= _avatar_color %>;color:white;font-weight:700;font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;flex-shrink:0;">
+                style="width:32px;height:32px;border-radius:50%;background:<%= _avatar_color %>;color:white;font-weight:700;font-size:13px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;flex-shrink:0;">
                 <%= _initial %>
               </button>
               <div id="user-menu" style="display:none;position:absolute;right:0;top:calc(100% + 10px);background:white;border:1px solid rgba(0,0,0,0.1);border-radius:14px;padding:6px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:500;">
@@ -178,6 +177,10 @@
                   <div style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;">Signed in as</div>
                   <div style="font-size:13px;font-weight:600;color:#555;margin-top:2px;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></div>
                 </div>
+                <% if current_user.admin? %>
+                  <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
+                  <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
+                <% end %>
                 <a href="/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My puzzles</a>
                 <a href="/my/stats" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My stats</a>
                 <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
