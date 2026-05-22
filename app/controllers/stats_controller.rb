@@ -25,6 +25,10 @@ class StatsController < ApplicationController
 
     @avg_misses  = misses.empty? ? nil : (misses.sum.to_f / misses.size).round(1)
     @best_misses = misses.empty? ? nil : misses.min
+
+    dist = Hash.new(0)
+    misses.each { |m| dist[m > 3 ? "3+" : m.to_s] += 1 }
+    @score_distribution = [["0", dist["0"]], ["1", dist["1"]], ["2", dist["2"]], ["3+", dist["3+"]]]
   end
 
   private
