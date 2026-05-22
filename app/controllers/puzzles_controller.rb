@@ -100,10 +100,10 @@ class PuzzlesController < ApplicationController
     unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
+    @daily_number = number
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
-    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if user_signed_in? && current_user.admin?
-    render :show
+    render :daily
   end
 
   def new
