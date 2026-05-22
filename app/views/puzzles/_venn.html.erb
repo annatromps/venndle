@@ -25,7 +25,7 @@
     %>
 
     <%# ── Score panel ── %>
-    <div id="score-panel" style="height:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
+    <div id="score-panel" style="height:100%;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:28px 20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
 
       <%# Nicely done + score boxes + share as one tight group %>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -80,6 +80,40 @@
               <a href="/users/sign_in" style="color:#5B53D6;font-weight:600;text-decoration:none;">Sign in</a> to rate this puzzle
             </p>
           <% end %>
+        </div>
+      <% end %>
+
+      <%# Mini stats — signed-in users only %>
+      <% if user_signed_in? %>
+        <%
+          _gs = current_user.game_sessions
+            .joins(:puzzle)
+            .where(puzzles: { puzzle_type: "daily" }, completed: true)
+            .where("puzzles.scheduled_date <= ?", Date.today)
+            .includes(:puzzle).to_a
+          _dates = _gs.map { |s| s.puzzle.scheduled_date }.to_set
+          _sd = _dates.include?(Date.today) ? Date.today : Date.today - 1
+          _streak = 0; _d = _sd
+          while _dates.include?(_d); _streak += 1; _d -= 1; end
+          _misses = _gs.map { |s|
+            (s.attempts_a - (s.gave_up_a? ? 0 : 1)) +
+            (s.attempts_b - (s.gave_up_b? ? 0 : 1)) +
+            (s.attempts_c - (s.gave_up_c? ? 0 : 1))
+          }
+          _avg = _misses.empty? ? nil : (_misses.sum.to_f / _misses.size).round(1)
+        %>
+        <div style="display:flex;align-items:center;gap:0;background:#f7f6fe;border-radius:12px;padding:10px 14px;font-family:'Inter',system-ui,sans-serif;">
+          <div style="display:flex;align-items:baseline;gap:4px;flex:1;">
+            <% if _streak > 0 %><span style="font-size:15px;line-height:1;margin-right:2px;">🔥</span><% end %>
+            <span style="font-size:22px;font-weight:800;color:#1a1a2e;line-height:1;"><%= _streak %></span>
+            <span style="font-size:11px;color:#aaa;font-weight:500;">day streak</span>
+          </div>
+          <div style="width:1px;height:22px;background:#e0ddf7;margin:0 12px;flex-shrink:0;"></div>
+          <div style="display:flex;align-items:baseline;gap:4px;flex:1;">
+            <span style="font-size:22px;font-weight:800;color:#1a1a2e;line-height:1;"><%= _avg || '—' %></span>
+            <span style="font-size:11px;color:#aaa;font-weight:500;">avg misses</span>
+          </div>
+          <a href="/my/stats" style="font-size:11px;font-weight:700;color:#5B53D6;text-decoration:none;flex-shrink:0;margin-left:8px;">All stats →</a>
         </div>
       <% end %>
 
@@ -162,12 +196,16 @@
     <script>
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
-        navigator.clipboard.writeText(text).then(function() {
-          gtag('event', 'share_score', { 'game_id': gameId });
-          const btn = document.getElementById('share-score-btn');
-          btn.textContent = 'Copied!';
-          setTimeout(function() { btn.textContent = 'Share score'; }, 2000);
-        });
+        gtag('event', 'share_score', { 'game_id': gameId });
+        if (navigator.share) {
+          navigator.share({ text: text }).catch(function(){});
+        } else {
+          navigator.clipboard.writeText(text).then(function() {
+            const btn = document.getElementById('share-score-btn');
+            btn.textContent = 'Copied!';
+            setTimeout(function() { btn.textContent = 'Share score'; }, 2000);
+          });
+        }
       }
 
       function showDiagramPanel() {
@@ -601,7 +639,7 @@
 
             if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
 
-            gtag('event', 'game_give_up', { 'game_id': gameId });
+            gtag('event', 'game_give_up', { 'answer_level': label.toUpperCase(), 'game_id': gameId });
             const officialLabel = data.official_label;
             row.dataset.solved = 'true';
 
