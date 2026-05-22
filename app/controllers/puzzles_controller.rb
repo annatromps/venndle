@@ -300,7 +300,7 @@ class PuzzlesController < ApplicationController
       wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
       result   = gave_up ? "🏳️" : (solved ? "✅" : "")
       hint_str = hints > 0 ? ("💡" * hints) : ""
-      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
+      "#{label.upcase} #{("❌" * wrong)}#{hint_str}#{result}"
     end
     if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
       day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
