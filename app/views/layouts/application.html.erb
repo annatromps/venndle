@@ -178,9 +178,11 @@
                     <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
                   <% end %>
                   <%= button_to toggle_admin_view_path, method: :post,
-                        style: "display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#{admin_view? ? '#5B53D6' : '#2BAB65'};background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;text-align:left;" do %>
-                    <span><%= admin_view? ? "Admin view" : "User view" %></span>
-                    <span style="font-size:11px;font-weight:700;background:<%= admin_view? ? '#ede9fe' : '#f0fdf4' %>;color:<%= admin_view? ? '#5B53D6' : '#2BAB65' %>;border-radius:999px;padding:2px 8px;">ON</span>
+                        style: "display:flex;align-items:center;justify-content:space-between;width:100%;padding:8px 12px;background:transparent;border:none;cursor:pointer;border-radius:8px;" do %>
+                    <span style="font-size:13px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;">Admin mode</span>
+                    <div style="width:36px;height:20px;border-radius:10px;background:<%= admin_view? ? '#5B53D6' : '#ddd' %>;position:relative;flex-shrink:0;">
+                      <div style="position:absolute;<%= admin_view? ? 'right:2px' : 'left:2px' %>;top:2px;width:16px;height:16px;border-radius:50%;background:white;"></div>
+                    </div>
                   <% end %>
                   <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
                 <% end %>
@@ -217,9 +219,11 @@
             <a href="/admin/puzzles" style="display:block;padding:14px 24px;font-size:15px;font-weight:700;color:#5B53D6;text-decoration:none;">Admin</a>
           <% end %>
           <%= button_to toggle_admin_view_path, method: :post,
-                style: "display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 24px;font-size:15px;font-weight:600;color:#{admin_view? ? '#5B53D6' : '#2BAB65'};background:transparent;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;box-sizing:border-box;" do %>
-            <span><%= admin_view? ? "Admin view" : "User view" %></span>
-            <span style="font-size:11px;font-weight:700;background:<%= admin_view? ? '#ede9fe' : '#f0fdf4' %>;color:<%= admin_view? ? '#5B53D6' : '#2BAB65' %>;border-radius:999px;padding:2px 8px;margin-right:4px;">ON</span>
+                style: "display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 24px;background:transparent;border:none;border-left:3px solid transparent;cursor:pointer;box-sizing:border-box;" do %>
+            <span style="font-size:15px;font-weight:600;color:#555;font-family:'Inter',system-ui,sans-serif;">Admin mode</span>
+            <div style="width:40px;height:22px;border-radius:11px;background:<%= admin_view? ? '#5B53D6' : '#ddd' %>;position:relative;flex-shrink:0;margin-right:4px;">
+              <div style="position:absolute;<%= admin_view? ? 'right:2px' : 'left:2px' %>;top:2px;width:18px;height:18px;border-radius:50%;background:white;"></div>
+            </div>
           <% end %>
         <% end %>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 24px;">
