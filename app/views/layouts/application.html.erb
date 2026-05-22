@@ -259,10 +259,10 @@
 
     <%# ===== HOW TO PLAY MODAL ===== %>
     <div id="instructions-modal" onclick="hideInstructions()" style="display:none;position:fixed;inset:0;background:rgba(15,15,35,0.55);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
-      <div id="instructions-panel" onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#ede8fb 0%,#fae3d5 100%);border-radius:24px;max-width:460px;width:100%;overflow-y:auto;max-height:calc(100dvh - 40px);padding:24px 22px;box-sizing:border-box;">
+      <div id="instructions-panel" onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#ede8fb 0%,#fae3d5 100%);border-radius:24px;max-width:460px;width:100%;overflow-y:auto;max-height:calc(100dvh - 40px);padding:16px 20px;box-sizing:border-box;">
 
         <%# Wordmark %>
-        <div style="text-align:center;margin-bottom:10px;">
+        <div style="text-align:center;margin-bottom:6px;">
           <div style="display:inline-flex;align-items:center;gap:8px;">
             <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="2.5"/>
@@ -275,11 +275,11 @@
 
         <%# Heading %>
         <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#1a1a2e;text-align:center;margin:0 0 4px;line-height:1.1;">How to play</h2>
-        <p style="font-size:13px;color:#666;text-align:center;margin:0 0 14px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Seven clues. Three circles.<br>Can you figure out what connects all 4 clues in each?</p>
+        <p style="font-size:13px;color:#666;text-align:center;margin:0 0 10px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Seven clues. Three circles.<br>Can you figure out what connects all 4 clues in each?</p>
 
         <%# Mini Venn diagram — real lemon puzzle (YELLOW / SHARP / SPHERICAL) %>
-        <div style="background:rgba(255,255,255,0.6);border-radius:16px;padding:8px 12px 6px;margin-bottom:12px;">
-          <svg viewBox="0 0 280 220" style="width:100%;max-width:240px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+        <div style="background:rgba(255,255,255,0.6);border-radius:16px;padding:6px 12px 4px;margin-bottom:8px;">
+          <svg viewBox="0 0 280 220" style="width:100%;max-width:200px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="instr-shadow" x="-20%" y="-40%" width="140%" height="180%">
                 <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.12"/>
@@ -322,18 +322,18 @@
         </div>
 
         <%# Fake input rows — mirrors the real game UI %>
-        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
-          <div style="border:1.5px solid #5B53D6;border-radius:12px;padding:7px 10px;background:#EDEAFC;display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;flex-direction:column;gap:3px;margin-bottom:10px;">
+          <div style="border:1.5px solid #5B53D6;border-radius:12px;padding:5px 10px;background:#EDEAFC;display:flex;align-items:center;gap:8px;">
             <span style="width:22px;height:22px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">A</span>
             <span style="flex:1;font-size:12px;color:#9B94E8;font-family:'Inter',system-ui,sans-serif;">Category A...</span>
             <span style="flex-shrink:0;background:#5B53D6;color:white;font-size:12px;border-radius:999px;height:22px;padding:0 10px;display:flex;align-items:center;font-family:'Inter',system-ui,sans-serif;">&#8594;</span>
           </div>
-          <div style="border:1.5px solid #2BAB65;border-radius:12px;padding:7px 10px;background:#E5F5EC;display:flex;align-items:center;gap:8px;">
+          <div style="border:1.5px solid #2BAB65;border-radius:12px;padding:5px 10px;background:#E5F5EC;display:flex;align-items:center;gap:8px;">
             <span style="width:22px;height:22px;border-radius:50%;background:#2BAB65;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">B</span>
             <span style="flex:1;font-size:12px;color:#72C894;font-family:'Inter',system-ui,sans-serif;">Category B...</span>
             <span style="flex-shrink:0;background:#2BAB65;color:white;font-size:12px;border-radius:999px;height:22px;padding:0 10px;display:flex;align-items:center;font-family:'Inter',system-ui,sans-serif;">&#8594;</span>
           </div>
-          <div style="border:1.5px solid #E8631A;border-radius:12px;padding:7px 10px;background:#FDF0E9;display:flex;align-items:center;gap:8px;">
+          <div style="border:1.5px solid #E8631A;border-radius:12px;padding:5px 10px;background:#FDF0E9;display:flex;align-items:center;gap:8px;">
             <span style="width:22px;height:22px;border-radius:50%;background:#E8631A;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">C</span>
             <span style="flex:1;font-size:12px;color:#F0956A;font-family:'Inter',system-ui,sans-serif;">Category C...</span>
             <span style="flex-shrink:0;background:#E8631A;color:white;font-size:12px;border-radius:999px;height:22px;padding:0 10px;display:flex;align-items:center;font-family:'Inter',system-ui,sans-serif;">&#8594;</span>
@@ -341,7 +341,7 @@
         </div>
 
         <%# Bullet points %>
-        <ul style="margin:0 0 16px;padding:0;list-style:none;display:flex;flex-direction:column;gap:7px;font-family:'Inter',system-ui,sans-serif;">
+        <ul style="margin:0 0 12px;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px;font-family:'Inter',system-ui,sans-serif;">
           <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
             <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">A</span>
             Each circle has a secret category — guess it in the box below
@@ -371,7 +371,7 @@
         </ul>
 
         <%# CTA %>
-        <button onclick="hideInstructions()" style="width:100%;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:50px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Let's play →</button>
+        <button onclick="hideInstructions()" style="width:100%;background:#5B53D6;color:white;font-weight:700;font-size:14px;border:none;border-radius:14px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Let's play →</button>
 
       </div>
     </div>
