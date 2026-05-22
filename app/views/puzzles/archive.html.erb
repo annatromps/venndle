@@ -41,12 +41,12 @@
                   <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                 </svg>
               </button>
-              <a href="<%= puzzle_path(puzzle) %>"
+              <a href="/daily<%= @day_numbers[puzzle.id] %>"
                  style="background:#f4f4f5;color:#444;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
                 View completed
               </a>
             <% else %>
-              <a href="<%= puzzle_path(puzzle) %>"
+              <a href="/daily<%= @day_numbers[puzzle.id] %>"
                  style="background:#1a1a2e;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
                 Play
               </a>
