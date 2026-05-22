@@ -45,7 +45,7 @@
 
     <%# Precompute nav active states %>
     <%
-      _daily_active     = request.path == "/" || request.path == "/daily"
+      _daily_active     = request.path == "/" || request.path == "/daily" || request.path.start_with?("/daily/")
       _archive_active   = request.path == "/archive"
       _community_active = request.path.start_with?("/puzzles") && !request.path.start_with?("/puzzles/new")
 
