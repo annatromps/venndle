@@ -159,7 +159,7 @@
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
         navigator.clipboard.writeText(text).then(function() {
-          gtag('event', 'share_score');
+          gtag('event', 'share_score', { 'game_id': gameId });
           const btn = document.getElementById('share-score-btn');
           btn.textContent = 'Copied!';
           setTimeout(function() { btn.textContent = 'Share score'; }, 2000);
@@ -365,6 +365,7 @@
     <script>
       (function() {
         const puzzleId = "<%= puzzle.id %>";
+        const gameId   = "<%= game_id_for(puzzle) %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
         // Placeholder colours via injected style since inline ::placeholder doesn't work
@@ -498,7 +499,7 @@
               btn.innerHTML = '&#8594;';
             }
 
-            if (data.completed) { gtag('event', 'game_complete'); window.location.reload(); }
+            if (data.completed) { gtag('event', 'game_complete', { 'game_id': gameId }); window.location.reload(); }
           } catch(err) {
             console.error('Guess fetch failed:', err);
             showRowError(row, 'Network error — please try again');
@@ -559,7 +560,7 @@
               return;
             }
 
-            gtag('event', 'use_hint', { 'answer_level': label.toUpperCase() });
+            gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId });
             state.revealed.push(data.letter.toUpperCase());
             state.totalLength = data.total_length;
 
@@ -596,7 +597,7 @@
 
             if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
 
-            gtag('event', 'game_give_up');
+            gtag('event', 'game_give_up', { 'game_id': gameId });
             const officialLabel = data.official_label;
             row.dataset.solved = 'true';
 
@@ -622,7 +623,7 @@
 
             updateSvgPill(label, officialLabel, getCircleColor(label));
 
-            if (data.completed) { gtag('event', 'game_complete'); window.location.reload(); }
+            if (data.completed) { gtag('event', 'game_complete', { 'game_id': gameId }); window.location.reload(); }
           } catch(err) {
             console.error('Give up fetch failed:', err);
             if (btn) btn.disabled = false;
