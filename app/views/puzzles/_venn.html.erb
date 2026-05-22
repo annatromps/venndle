@@ -47,6 +47,31 @@
         <% end %>
       </div>
 
+      <% if puzzle.puzzle_type == "user" %>
+        <div style="text-align:center;">
+          <% if user_signed_in? %>
+            <% user_rating = current_user.ratings.find_by(puzzle: puzzle) %>
+            <p style="font-size:12px;color:#999;margin:0 0 6px;font-family:'Inter',system-ui,sans-serif;">
+              <%= user_rating ? "Your rating" : "Rate this puzzle" %>
+            </p>
+            <div id="stars-container" data-current="<%= user_rating&.score || 0 %>">
+              <% 5.times do |i| %>
+                <button onclick="submitRating(<%= puzzle.id %>, <%= i+1 %>)"
+                        onmouseover="hoverStars(<%= i+1 %>)"
+                        onmouseout="resetStars()"
+                        data-index="<%= i+1 %>"
+                        style="font-size:30px;background:none;border:none;cursor:pointer;padding:0 1px;line-height:1;color:<%= user_rating && (i+1) <= user_rating.score ? '#F59E0B' : '#ddd' %>;">★</button>
+              <% end %>
+            </div>
+            <p id="rating-label" style="font-size:11px;color:#aaa;margin:4px 0 0;font-family:'Inter',system-ui,sans-serif;min-height:16px;"><%= user_rating ? "#{user_rating.score}/5 — thanks!" : "" %></p>
+          <% else %>
+            <p style="font-size:12px;color:#aaa;margin:0;font-family:'Inter',system-ui,sans-serif;">
+              <a href="/users/sign_in" style="color:#5B53D6;font-weight:600;text-decoration:none;">Sign in</a> to rate this puzzle
+            </p>
+          <% end %>
+        </div>
+      <% end %>
+
       <%# Hidden share string for clipboard %>
       <div id="share-string" style="display:none;"><%= build_share_string_for(game_session, puzzle) %></div>
 
@@ -76,39 +101,6 @@
             </div>
           </div>
         </div>
-      </div>
-
-      <%# Star rating %>
-      <%
-        _user_rating = user_signed_in? ? current_user.ratings.find_by(puzzle: puzzle) : nil
-        _avg = puzzle.ratings.average(:score)&.to_f&.round(1)
-        _count = puzzle.ratings.count
-      %>
-      <div id="star-rating-section" style="border-top:1px solid #f0f0f0;padding-top:14px;">
-        <p style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin:0 0 8px;font-family:'Inter',system-ui,sans-serif;">
-          Rate this puzzle
-          <% if _count > 0 %>
-            <span id="avg-display" style="text-transform:none;letter-spacing:0;font-weight:400;color:#888;"> · <span style="color:#F59E0B;">★</span> <span id="avg-value"><%= _avg %></span> (<span id="avg-count"><%= _count %></span>)</span>
-          <% else %>
-            <span id="avg-display" style="display:none;text-transform:none;letter-spacing:0;font-weight:400;color:#888;"> · <span style="color:#F59E0B;">★</span> <span id="avg-value"></span> (<span id="avg-count"></span>)</span>
-          <% end %>
-        </p>
-        <% if user_signed_in? %>
-          <div id="stars" style="display:flex;gap:4px;margin-bottom:4px;" data-puzzle-id="<%= puzzle.id %>" data-selected="<%= _user_rating&.score.to_i %>">
-            <% 5.times do |i| %>
-              <button class="star-btn" data-score="<%= i + 1 %>"
-                      style="background:none;border:none;cursor:pointer;font-size:28px;padding:0;line-height:1;color:<%= _user_rating&.score.to_i > i ? '#F59E0B' : '#ddd' %>;">★</button>
-            <% end %>
-          </div>
-          <p id="rating-feedback" style="font-size:11px;color:#aaa;font-family:'Inter',system-ui,sans-serif;margin:0;min-height:16px;">
-            <%= _user_rating ? "You rated this #{_user_rating.score}/5" : "Tap a star to rate" %>
-          </p>
-        <% else %>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:22px;color:#ddd;letter-spacing:2px;">★★★★★</span>
-            <a href="/users/sign_in" style="font-size:12px;color:#5B53D6;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Sign in to rate</a>
-          </div>
-        <% end %>
       </div>
 
       <% unless user_signed_in? %>
@@ -175,7 +167,7 @@
 
       function showDiagramPanel() {
         document.getElementById('score-panel').style.display = 'none';
-        const dp = document.getElementById('diagram-panel');
+        var dp = document.getElementById('diagram-panel');
         dp.style.display = 'flex';
       }
 
@@ -186,8 +178,8 @@
 
       function togglePlayMoreMenu(event) {
         event.stopPropagation();
-        const menu = document.getElementById('play-more-menu');
-        const isOpen = menu.style.display !== 'none';
+        var menu = document.getElementById('play-more-menu');
+        var isOpen = menu.style.display !== 'none';
         menu.style.display = isOpen ? 'none' : 'block';
         if (!isOpen) {
           document.addEventListener('click', function closeMenu() {
@@ -197,56 +189,41 @@
         }
       }
 
-      (function() {
-        const starsEl = document.getElementById('stars');
-        if (!starsEl) return;
-        const puzzleId = starsEl.dataset.puzzleId;
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        const btns = starsEl.querySelectorAll('.star-btn');
-        const feedback = document.getElementById('rating-feedback');
-        const avgDisplay = document.getElementById('avg-display');
-        const avgValue = document.getElementById('avg-value');
-        const avgCount = document.getElementById('avg-count');
-
-        function paintStars(score) {
-          btns.forEach(function(b) {
-            b.style.color = parseInt(b.dataset.score) <= score ? '#F59E0B' : '#ddd';
-          });
-        }
-
-        btns.forEach(function(btn) {
-          btn.addEventListener('mouseenter', function() { paintStars(parseInt(btn.dataset.score)); });
-          btn.addEventListener('mouseleave', function() {
-            const current = parseInt(starsEl.dataset.selected || 0);
-            paintStars(current);
-          });
-          btn.addEventListener('click', async function() {
-            const score = parseInt(btn.dataset.score);
-            starsEl.dataset.selected = score;
-            paintStars(score);
-            if (feedback) feedback.textContent = 'Saving…';
-            try {
-              const resp = await fetch('/puzzles/' + puzzleId + '/rating', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken },
-                body: JSON.stringify({ score: score })
-              });
-              const data = await resp.json();
-              if (resp.ok) {
-                if (feedback) feedback.textContent = 'You rated this ' + data.score + '/5';
-                if (avgValue) avgValue.textContent = data.average;
-                if (avgCount) avgCount.textContent = data.count;
-                if (avgDisplay) avgDisplay.style.display = 'inline';
-              }
-            } catch(err) {
-              if (feedback) feedback.textContent = 'Could not save — try again';
-            }
-          });
+      function hoverStars(n) {
+        document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+          btn.style.color = parseInt(btn.dataset.index) <= n ? '#FBBF24' : '#ddd';
         });
+      }
 
-        const initial = parseInt(starsEl.dataset.selected || 0);
-        if (initial) paintStars(initial);
-      })();
+      function resetStars() {
+        var container = document.getElementById('stars-container');
+        if (!container) return;
+        var current = parseInt(container.dataset.current || 0);
+        document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+          btn.style.color = parseInt(btn.dataset.index) <= current ? '#F59E0B' : '#ddd';
+        });
+      }
+
+      function submitRating(puzzleId, score) {
+        var csrf = document.querySelector('meta[name="csrf-token"]').content;
+        fetch('/puzzles/' + puzzleId + '/rating', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+          body: JSON.stringify({ score: score })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.success) {
+            var container = document.getElementById('stars-container');
+            container.dataset.current = score;
+            document.querySelectorAll('#stars-container button[data-index]').forEach(function(btn) {
+              btn.style.color = parseInt(btn.dataset.index) <= score ? '#F59E0B' : '#ddd';
+            });
+            var label = document.getElementById('rating-label');
+            if (label) label.textContent = score + '/5 — thanks!';
+          }
+        });
+      }
     </script>
 
   <% elsif game_session %>
