@@ -27,24 +27,35 @@
     <%# ── Score panel ── %>
     <div id="score-panel" style="height:100%;overflow-y:auto;display:flex;flex-direction:column;justify-content:space-between;gap:8px;padding:28px 20px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
 
-      <div>
-        <h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.1;">Nicely done.</h2>
-        <p style="color:#999;font-size:13px;margin:0;font-family:'Inter',system-ui,sans-serif;">Puzzle #<%= puzzle.id %> &mdash; <%= total_wrong %> <%= total_wrong == 1 ? 'miss' : 'misses' %></p>
-      </div>
+      <%# Nicely done + score boxes + share as one tight group %>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <h2 style="font-family:'Playfair Display',serif;font-size:34px;font-weight:700;color:#1a1a2e;margin:0 0 4px;line-height:1.1;">Nicely done.</h2>
+          <p style="color:#999;font-size:13px;margin:0;font-family:'Inter',system-ui,sans-serif;">Puzzle #<%= puzzle.id %> &mdash; <%= total_wrong %> <%= total_wrong == 1 ? 'miss' : 'misses' %></p>
+        </div>
 
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <% [["a","#5B53D6","#EDEAFC"],["b","#2BAB65","#E5F5EC"],["c","#E8631A","#FDF0E9"]].each do |lbl, color, bg| %>
-          <% label_text = puzzle.send("label_#{lbl}") %>
-          <% cnt = game_session.send("attempts_#{lbl}") %>
-          <% solved = game_session.send("solved_#{lbl}?") %>
-          <% wrong = [cnt - (solved ? 1 : 0), 0].max %>
-          <div style="display:flex;align-items:center;gap:9px;border:1.5px solid <%= color %>;border-radius:12px;padding:9px 12px;background:<%= bg %>;">
-            <span style="width:22px;height:22px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;"><%= lbl.upcase %></span>
-            <span style="flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;"><%= label_text %></span>
-            <span style="font-size:12px;letter-spacing:2px;color:#aaa;"><%= "✗" * wrong %></span>
-            <% if solved %><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:<%= color %>;color:white;font-size:10px;font-weight:700;">✓</span><% end %>
-          </div>
-        <% end %>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <% [["a","#5B53D6","#EDEAFC"],["b","#2BAB65","#E5F5EC"],["c","#E8631A","#FDF0E9"]].each do |lbl, color, bg| %>
+            <% label_text = puzzle.send("label_#{lbl}") %>
+            <% cnt = game_session.send("attempts_#{lbl}") %>
+            <% solved = game_session.send("solved_#{lbl}?") %>
+            <% wrong = [cnt - (solved ? 1 : 0), 0].max %>
+            <div style="display:flex;align-items:center;gap:9px;border:1.5px solid <%= color %>;border-radius:12px;padding:9px 12px;background:<%= bg %>;">
+              <span style="width:22px;height:22px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;"><%= lbl.upcase %></span>
+              <span style="flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;"><%= label_text %></span>
+              <span style="font-size:12px;letter-spacing:2px;color:#aaa;"><%= "✗" * wrong %></span>
+              <% if solved %><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:<%= color %>;color:white;font-size:10px;font-weight:700;">✓</span><% end %>
+            </div>
+          <% end %>
+        </div>
+
+        <%# Hidden share string for clipboard %>
+        <div id="share-string" style="display:none;"><%= build_share_string_for(game_session, puzzle) %></div>
+
+        <button onclick="copyShare(event)" id="share-score-btn"
+                style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+          Share score
+        </button>
       </div>
 
       <% if puzzle.puzzle_type == "user" %>
@@ -72,10 +83,7 @@
         </div>
       <% end %>
 
-      <%# Hidden share string for clipboard %>
-      <div id="share-string" style="display:none;"><%= build_share_string_for(game_session, puzzle) %></div>
-
-      <%# Mini stats — signed-in users only, not included in share %>
+      <%# Mini stats — signed-in users only %>
       <% if user_signed_in? %>
         <%
           _gs = current_user.game_sessions
@@ -98,7 +106,7 @@
           <div style="display:flex;align-items:baseline;gap:4px;flex:1;">
             <% if _streak > 0 %><span style="font-size:15px;line-height:1;margin-right:2px;">🔥</span><% end %>
             <span style="font-size:22px;font-weight:800;color:#1a1a2e;line-height:1;"><%= _streak %></span>
-            <span style="font-size:11px;color:#aaa;font-weight:500;"><%= _streak == 1 ? 'day streak' : 'day streak' %></span>
+            <span style="font-size:11px;color:#aaa;font-weight:500;">day streak</span>
           </div>
           <div style="width:1px;height:22px;background:#e0ddf7;margin:0 12px;flex-shrink:0;"></div>
           <div style="display:flex;align-items:baseline;gap:4px;flex:1;">
@@ -109,12 +117,8 @@
         </div>
       <% end %>
 
-      <%# CTAs %>
+      <%# Other CTAs %>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button onclick="copyShare(event)" id="share-score-btn"
-                style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
-          Share score
-        </button>
         <button onclick="showDiagramPanel()"
                 style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
           View completed puzzle
