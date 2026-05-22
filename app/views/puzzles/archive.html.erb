@@ -65,6 +65,7 @@
 <script>
   function archiveShare(btn) {
     var text = btn.dataset.share;
+    gtag('event', 'share_score');
     if (navigator.share) {
       navigator.share({ text: text }).catch(function(){});
     } else {

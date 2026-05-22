@@ -159,6 +159,7 @@
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
         navigator.clipboard.writeText(text).then(function() {
+          gtag('event', 'share_score');
           const btn = document.getElementById('share-score-btn');
           btn.textContent = 'Copied!';
           setTimeout(function() { btn.textContent = 'Share score'; }, 2000);
@@ -497,7 +498,7 @@
               btn.innerHTML = '&#8594;';
             }
 
-            if (data.completed) window.location.reload();
+            if (data.completed) { gtag('event', 'game_complete'); window.location.reload(); }
           } catch(err) {
             console.error('Guess fetch failed:', err);
             showRowError(row, 'Network error — please try again');
@@ -558,6 +559,7 @@
               return;
             }
 
+            gtag('event', 'use_hint', { 'answer_level': label.toUpperCase() });
             state.revealed.push(data.letter.toUpperCase());
             state.totalLength = data.total_length;
 
@@ -594,6 +596,7 @@
 
             if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
 
+            gtag('event', 'game_give_up');
             const officialLabel = data.official_label;
             row.dataset.solved = 'true';
 
@@ -619,7 +622,7 @@
 
             updateSvgPill(label, officialLabel, getCircleColor(label));
 
-            if (data.completed) window.location.reload();
+            if (data.completed) { gtag('event', 'game_complete'); window.location.reload(); }
           } catch(err) {
             console.error('Give up fetch failed:', err);
             if (btn) btn.disabled = false;
