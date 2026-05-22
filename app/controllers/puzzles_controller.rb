@@ -4,6 +4,7 @@ class PuzzlesController < ApplicationController
   def daily
     @puzzle = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).first
     if @puzzle
+      @daily_number = Puzzle.published.daily.where("scheduled_date <= ?", @puzzle.scheduled_date).count
       @game_session = find_or_build_game_session(@puzzle)
       @attempts = load_attempts(@puzzle)
     end
