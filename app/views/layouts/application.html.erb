@@ -169,10 +169,6 @@
                 <%= _initial %>
               </button>
               <div id="user-menu" style="display:none;position:absolute;right:0;top:calc(100% + 10px);background:white;border:1px solid rgba(0,0,0,0.1);border-radius:14px;padding:6px;min-width:190px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:500;">
-                <div style="padding:8px 12px 10px;border-bottom:1px solid rgba(0,0,0,0.07);margin-bottom:4px;">
-                  <div style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;">Signed in as</div>
-                  <div style="font-size:13px;font-weight:600;color:#555;margin-top:2px;font-family:'Inter',system-ui,sans-serif;"><%= current_user.username %></div>
-                </div>
                 <% if current_user.admin? %>
                   <% if admin_view? %>
                     <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
@@ -188,10 +184,13 @@
                 <% end %>
                 <button onclick="document.getElementById('user-menu').style.display='none';showInstructions();" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;width:100%;text-align:left;">How to play</button>
                 <a href="/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My puzzles</a>
-                <a href="/my/stats" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My stats</a>
                 <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
-                <%= button_to "Sign out", destroy_user_session_path, method: :delete,
-                      style: "display:block;width:100%;text-align:left;padding:8px 12px;font-size:13px;font-weight:500;color:#e53e3e;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;" %>
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 12px;">
+                  <span style="flex:1;font-size:13px;font-weight:700;color:#888;font-family:'Playfair Display',serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><%= current_user.username %></span>
+                  <a href="/my/stats" style="font-size:12px;font-weight:600;color:#5B53D6;text-decoration:none;white-space:nowrap;flex-shrink:0;">My stats</a>
+                  <%= button_to "Sign out", destroy_user_session_path, method: :delete,
+                        style: "flex-shrink:0;background:transparent;border:none;font-size:12px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
+                </div>
               </div>
             </div>
           <% else %>
@@ -207,9 +206,6 @@
       <a href="/"        style="display:block;padding:14px 24px;font-size:15px;text-decoration:none;border-left:3px solid;font-weight:<%= _daily_active ? '700' : '500' %>;color:#2BAB65;border-left-color:<%= _daily_active ? '#2BAB65' : 'transparent' %>;">Today</a>
       <a href="/archive" style="<%= _ml_link_style.(_archive_active) %>">Daily archive</a>
       <a href="/puzzles" style="<%= _ml_link_style.(_community_active) %>">Community created</a>
-      <% if user_signed_in? %>
-        <a href="/my/stats" style="<%= _ml_link_style.(request.path == '/my/stats') %>">My stats</a>
-      <% end %>
       <div style="height:8px;"></div>
       <button onclick="document.getElementById('mobile-menu').style.display='none'; showInstructions();" style="display:block;width:100%;text-align:left;padding:14px 24px;font-size:15px;font-weight:500;color:#5B53D6;background:none;border:none;border-left:3px solid transparent;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">How to play</button>
 
@@ -228,6 +224,7 @@
         <% end %>
         <div style="display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 24px;">
           <span style="font-size:15px;font-weight:700;color:#888;font-family:'Playfair Display',serif;"><%= current_user.username %></span>
+          <a href="/my/stats" style="font-size:14px;font-weight:600;color:#5B53D6;text-decoration:none;">My stats</a>
           <%= button_to "Sign out", destroy_user_session_path, method: :delete,
                 style: "background:transparent;border:none;font-size:14px;font-weight:600;color:#e53e3e;cursor:pointer;font-family:'Inter',system-ui,sans-serif;padding:0;" %>
         </div>
