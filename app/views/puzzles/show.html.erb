@@ -1,4 +1,9 @@
-<% content_for :og_title, "#{@puzzle.title.present? ? @puzzle.title : "Venndle \##{@puzzle.id}"} — can you solve it?" %>
+<%
+  _share_title = "#{@puzzle.title.present? ? @puzzle.title : "Puzzle \##{@puzzle.id}"} — can you solve it?"
+%>
+<% content_for :title, _share_title %>
+<% content_for :og_title, _share_title %>
+<% content_for :no_og_image, "1" %>
 
 <% if flash[:just_created].to_i == @puzzle.id %>
   <%# ===== PUZZLE CREATED SCREEN ===== %>
@@ -17,7 +22,7 @@
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button id="created-share-btn"
                 onclick="copyCreatedUrl(this)"
-                data-url="<%= "#{request.base_url}/puzzles/#{@puzzle.id}" %>"
+                data-url="venndle.app/<%= @puzzle.id %>"
                 style="width:100%;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:14px;height:50px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
           Share puzzle
         </button>
@@ -35,10 +40,15 @@
 
   <script>
     function copyCreatedUrl(btn) {
-      navigator.clipboard.writeText(btn.dataset.url).then(function() {
-        btn.textContent = 'Copied! ✓';
-        setTimeout(function() { btn.textContent = 'Share puzzle'; }, 2000);
-      });
+      var url = 'https://' + btn.dataset.url;
+      if (navigator.share) {
+        navigator.share({ title: 'Can you solve this Venndle?', url: url }).catch(function(){});
+      } else {
+        navigator.clipboard.writeText(url).then(function() {
+          btn.textContent = 'Copied! ✓';
+          setTimeout(function() { btn.textContent = 'Share puzzle'; }, 2000);
+        });
+      }
     }
   </script>
 
@@ -55,18 +65,60 @@
         </span>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
-          <%= @puzzle.title.present? ? @puzzle.title : "Puzzle №#{@puzzle.id}" %>
-        </h1>
-        <button id="show-share-btn"
-                onclick="copyShowPuzzleUrl(this)"
-                data-url="<%= "#{request.base_url}/puzzles/#{@puzzle.id}" %>"
-                style="flex-shrink:0;display:flex;align-items:center;gap:5px;background:transparent;border:1.5px solid #5B53D6;border-radius:10px;padding:6px 12px;color:#5B53D6;font-weight:700;font-size:12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-          </svg>
-          Share puzzle
+        <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+          <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <%= @puzzle.title.present? ? @puzzle.title : "Puzzle №#{@puzzle.id}" %>
+          </h1>
+          <button id="show-share-btn"
+                  onclick="copyShowPuzzleUrl(this)"
+                  data-url="venndle.app/<%= @puzzle.id %>"
+                  style="flex-shrink:0;width:30px;height:30px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"
+                  title="Share puzzle">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+        </div>
+        <button onclick="document.getElementById('how-to-play-modal').style.display='flex'"
+                style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
+                title="How to play">i</button>
+      </div>
+    </div>
+
+    <%# How to play modal %>
+    <div id="how-to-play-modal"
+         onclick="if(event.target===this)this.style.display='none'"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+      <div style="background:white;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.18);position:relative;">
+        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+                style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:4px;">✕</button>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 16px;">How to play</h2>
+        <div style="display:flex;flex-direction:column;gap:14px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#444;line-height:1.55;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-top:1px;">
+              <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="3"/>
+              <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="3"/>
+              <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="3"/>
+            </svg>
+            <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that connects the words inside it.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;">A</div>
+            <p style="margin:0;">Tap a circle, type your guess for its label, and press <strong>Enter</strong>. The AI judges whether you're right.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;">⟲</div>
+            <p style="margin:0;">Words in the <strong>overlapping regions</strong> belong to more than one circle — use them as extra clues.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
+            <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+                style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+          Got it
         </button>
       </div>
     </div>
@@ -78,13 +130,23 @@
   </div>
 
   <script>
+    var _shareIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
     function copyShowPuzzleUrl(btn) {
-      navigator.clipboard.writeText(btn.dataset.url).then(function() {
-        btn.textContent = 'Copied!';
-        setTimeout(function() {
-          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Share puzzle';
-        }, 2000);
-      });
+      var url = 'https://' + btn.dataset.url;
+      if (navigator.share) {
+        navigator.share({ title: 'Can you solve this Venndle?', url: url }).catch(function(){});
+      } else {
+        navigator.clipboard.writeText(url).then(function() {
+          btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BAB65" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          btn.style.borderColor = '#2BAB65';
+          btn.style.color = '#2BAB65';
+          setTimeout(function() {
+            btn.innerHTML = _shareIcon;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+          }, 2000);
+        });
+      }
     }
   </script>
 <% end %>

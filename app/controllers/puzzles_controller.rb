@@ -3,25 +3,14 @@ class PuzzlesController < ApplicationController
 
   def daily
     all_daily = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :asc)
-
-    if params[:day_number].present?
-      @day_number = params[:day_number].to_i
-      @puzzle = all_daily.offset(@day_number - 1).first
-      if @puzzle
-        @game_session = find_or_build_game_session(@puzzle)
-        @attempts = load_attempts(@puzzle)
-      end
-    else
-      current_day = all_daily.count
-      if current_day > 0
-        redirect_to daily_puzzle_path(current_day) and return
-      end
-      @puzzle = nil
-    end
+    current_day = all_daily.count
+    return redirect_to "/daily#{current_day}" if current_day > 0
+    @puzzle = nil
   end
 
   def index
     @filter = params[:filter].presence || "all"
+    @sort   = params[:sort].presence_in(%w[newest oldest top_rated lowest_rated popular]) || "newest"
 
     @played_ids = if user_signed_in?
       current_user.game_sessions.where(completed: true).pluck(:puzzle_id).to_set
@@ -37,37 +26,78 @@ class PuzzlesController < ApplicationController
       (session["guest_favourites"] || []).to_set
     end
 
-    @puzzles = Puzzle.published.includes(:user).order(created_at: :desc)
     case @filter
-    when "played"
-      @puzzles = @puzzles.where(id: @played_ids.to_a)
     when "my"
-      @puzzles = user_signed_in? ? @puzzles.where(user: current_user) : Puzzle.none
+      @puzzles = user_signed_in? ? Puzzle.where(user: current_user).includes(:user).order(created_at: :desc) : Puzzle.none
+    when "played"
+      @puzzles = Puzzle.published.user_created.where(id: @played_ids.to_a).includes(:user).order(created_at: :desc)
     when "favourites"
-      @puzzles = @puzzles.where(id: @favourite_ids.to_a)
+      @puzzles = Puzzle.published.user_created.where(id: @favourite_ids.to_a).includes(:user).order(created_at: :desc)
+    else
+      base = Puzzle.published.user_created.includes(:user)
+      @puzzles = @sort == "oldest" ? base.order(created_at: :asc) : base.order(created_at: :desc)
     end
 
-    @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    @puzzles = @puzzles.to_a
+
+    puzzle_ids = @puzzles.map(&:id)
+    @play_counts    = GameSession.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+    @rating_averages = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).average(:score)
+                             .transform_values { |v| v.to_f.round(1) }
+    @avg_ratings    = @rating_averages
+    @rating_counts  = Rating.where(puzzle_id: puzzle_ids).group(:puzzle_id).count
+
+    case @sort
+    when "popular"
+      @puzzles = @puzzles.sort_by { |p| -(@play_counts[p.id] || 0) }
+    when "top_rated"
+      @puzzles = @puzzles.sort_by { |p| [-(@rating_averages[p.id] || 0), -p.id] }
+    when "lowest_rated"
+      @puzzles = @puzzles.sort_by { |p| [(@rating_averages[p.id] ? @rating_averages[p.id] : Float::INFINITY), -p.id] }
+    end
   end
 
   def archive
-    @puzzles = Puzzle.published.daily.where("scheduled_date <= ?", Date.today).order(scheduled_date: :desc).to_a
-    total = @puzzles.size
+    scope = Puzzle.published.daily
+    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    @puzzles = scope.order(scheduled_date: :desc).to_a
+
+    past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
     @day_numbers = {}
-    @puzzles.each_with_index { |p, i| @day_numbers[p.id] = total - i }
-    puzzle_ids = @puzzles.map(&:id)
-    played_ids = if user_signed_in?
-      current_user.game_sessions.where(puzzle_id: puzzle_ids).pluck(:puzzle_id)
+    past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
+
+    if user_signed_in?
+      game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.map(&:id))
+      @played_ids = game_sessions.pluck(:puzzle_id).to_set
+      @game_sessions_by_puzzle_id = game_sessions.index_by(&:puzzle_id)
     else
-      (session["guest_game_sessions"] || {}).keys.map(&:to_i)
+      guest_sessions = (session["guest_game_sessions"] || {}).select { |_, d| d["completed"] }
+      @played_ids = guest_sessions.keys.map(&:to_i).to_set
+      @game_sessions_by_puzzle_id = {}
+      @played_ids.each do |pid|
+        @game_sessions_by_puzzle_id[pid] = GuestGameSession.find_or_create(session, pid)
+      end
     end
-    @played_ids = played_ids.to_set
   end
 
   def show
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+  end
+
+  def show_by_daily_number
+    number = params[:number].to_i
+    @puzzle = Puzzle.published.daily.order(:scheduled_date).offset(number - 1).limit(1).first
+    if @puzzle.nil?
+      redirect_to archive_path, alert: "Daily ##{number} not found." and return
+    end
+    unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
+      redirect_to archive_path, alert: "That puzzle isn't available yet." and return
+    end
+    @game_session = find_or_build_game_session(@puzzle)
+    @attempts = load_attempts(@puzzle)
+    render :show
   end
 
   def new
@@ -164,6 +194,46 @@ class PuzzlesController < ApplicationController
     render json: { error: "Something went wrong: #{e.message}" }, status: :internal_server_error
   end
 
+  def hint
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+    revealed_count = params[:revealed_count].to_i
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    official_label = @puzzle.send("label_#{label}").to_s
+    return render json: { done: true } if revealed_count >= official_label.length
+
+    game_session = find_or_build_game_session(@puzzle)
+    game_session.update!("hint_used_#{label}" => true) unless game_session.send("hint_used_#{label}?")
+    game_session.increment!("hints_#{label}")
+
+    render json: {
+      letter: official_label[revealed_count],
+      total_length: official_label.length,
+      position: revealed_count
+    }
+  end
+
+  def give_up
+    @puzzle = Puzzle.find(params[:id])
+    label = params[:label].to_s.downcase
+
+    return render json: { error: "Invalid label" }, status: :bad_request unless %w[a b c].include?(label)
+
+    game_session = find_or_build_game_session(@puzzle)
+    return render json: { already_solved: true } if game_session.send("solved_#{label}?")
+
+    game_session.update!("solved_#{label}" => true, "gave_up_#{label}" => true)
+    game_session.reload
+    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+
+    render json: {
+      official_label: @puzzle.send("label_#{label}"),
+      completed: game_session.completed?
+    }
+  end
+
   private
 
   def require_login_to_create
@@ -226,17 +296,22 @@ class PuzzlesController < ApplicationController
   def build_share_string(game_session, puzzle)
     lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
-      solved = game_session.send("solved_#{label}?")
-      wrong = [attempts_count - (solved ? 1 : 0), 0].max
-      emojis = ("❌" * wrong) + (solved ? "✅" : "")
-      "#{label.upcase} #{emojis}"
+      solved   = game_session.send("solved_#{label}?")
+      gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
+      hints    = game_session.respond_to?("hints_#{label}") ? game_session.send("hints_#{label}").to_i : 0
+      wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
+      result   = gave_up ? "🏳️" : (solved ? "✅" : "")
+      hint_str = hints > 0 ? ("💡" * hints) : ""
+      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
     end
-    if puzzle.puzzle_type == "daily"
-      url = "#{request.base_url}/daily/#{puzzle.day_number}"
+    if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
+      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
+      url   = "venndle.app/daily#{day_num}"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
-      url = "#{request.base_url}/puzzles/#{puzzle.id}"
+      url   = "venndle.app/#{puzzle.id}"
+      title = puzzle.title.presence || "Venndle ##{puzzle.id}"
     end
-    title = puzzle.title.present? ? puzzle.title : "Venndle ##{puzzle.id}"
     "#{title}\n#{lines.join("\n")}\n#{url}"
   end
 end
