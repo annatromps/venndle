@@ -12,14 +12,9 @@
            upcoming = puzzle.scheduled_date > Date.today
            today    = puzzle.scheduled_date == Date.today
            gs       = @game_sessions_by_puzzle_id[puzzle.id]
-           border   = if upcoming then '#e0d9fc'
-                       elsif today then '#2BAB65'
-                       elsif played then 'rgba(0,0,0,0.06)'
-                       else 'rgba(0,0,0,0.1)'
-                       end
-           bg       = today ? '#f0fdf4' : 'white'
-           opacity  = (played && !today) ? '0.65' : '1' %>
-        <div style="display:flex;align-items:center;gap:12px;background:<%= bg %>;border:1.5px solid <%= border %>;border-radius:12px;padding:12px 16px;opacity:<%= opacity %>;">
+           border   = upcoming ? '#e0d9fc' : (today ? '#2BAB65' : 'rgba(0,0,0,0.1)')
+           bg       = today ? '#f0fdf4' : 'white' %>
+        <div style="display:flex;align-items:center;gap:12px;background:<%= bg %>;border:1.5px solid <%= border %>;border-radius:12px;padding:12px 16px;">
           <div style="flex:1;min-width:0;">
             <div style="font-size:11px;font-weight:600;color:#aaa;letter-spacing:0.05em;text-transform:uppercase;font-family:'Inter',system-ui,sans-serif;margin-bottom:2px;">
               <%= puzzle.scheduled_date.strftime("%-d %B %Y") %>
@@ -32,7 +27,7 @@
                 <span style="margin-left:6px;background:#ede9fe;color:#5B53D6;border-radius:999px;padding:1px 7px;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;">Upcoming</span>
               <% end %>
             </div>
-            <div style="font-size:14px;font-weight:600;color:<%= (played && !today) ? '#888' : '#1a1a2e' %>;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            <div style="font-size:14px;font-weight:600;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               <%= puzzle.title.presence || "Puzzle ##{puzzle.id}" %>
             </div>
           </div>
