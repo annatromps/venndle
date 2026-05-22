@@ -157,10 +157,6 @@
              style="background:#E8631A;color:white;font-size:12px;font-weight:700;text-decoration:none;border-radius:7px;padding:5px 12px;font-family:'Inter',system-ui,sans-serif;">
             + Create
           </a>
-          <button onclick="showInstructions()"
-                  style="width:30px;height:30px;border-radius:50%;background:transparent;border:1.5px solid #e0e0e0;color:#bbb;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
-                  title="How to play">?</button>
-
           <% if user_signed_in? %>
             <%
               _avatar_colors = %w[#5B53D6 #2BAB65 #E8631A #3B82F6 #EC4899 #8B5CF6]
@@ -181,6 +177,7 @@
                   <a href="/admin/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">Admin panel</a>
                   <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
                 <% end %>
+                <button onclick="document.getElementById('user-menu').style.display='none';showInstructions();" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:'Inter',system-ui,sans-serif;width:100%;text-align:left;">How to play</button>
                 <a href="/puzzles" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My puzzles</a>
                 <a href="/my/stats" style="display:flex;align-items:center;gap:8px;padding:8px 12px;font-size:13px;font-weight:500;color:#1a1a2e;text-decoration:none;border-radius:8px;font-family:'Inter',system-ui,sans-serif;">My stats</a>
                 <div style="border-top:1px solid rgba(0,0,0,0.07);margin:4px 0;"></div>
