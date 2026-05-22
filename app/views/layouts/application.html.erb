@@ -262,10 +262,10 @@
 
     <%# ===== HOW TO PLAY MODAL ===== %>
     <div id="instructions-modal" onclick="hideInstructions()" style="display:none;position:fixed;inset:0;background:rgba(15,15,35,0.55);z-index:2000;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">
-      <div id="instructions-panel" onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#ede8fb 0%,#fae3d5 100%);border-radius:24px;max-width:460px;width:100%;max-height:88vh;overflow-y:auto;padding:32px 28px;box-sizing:border-box;">
+      <div id="instructions-panel" onclick="event.stopPropagation()" style="background:linear-gradient(145deg,#ede8fb 0%,#fae3d5 100%);border-radius:24px;max-width:460px;width:100%;overflow-y:auto;max-height:calc(100dvh - 40px);padding:24px 22px;box-sizing:border-box;">
 
         <%# Wordmark %>
-        <div style="text-align:center;margin-bottom:18px;">
+        <div style="text-align:center;margin-bottom:10px;">
           <div style="display:inline-flex;align-items:center;gap:8px;">
             <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="2.5"/>
@@ -277,30 +277,50 @@
         </div>
 
         <%# Heading %>
-        <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;text-align:center;margin:0 0 8px;line-height:1.1;">How to play</h2>
-        <p style="font-size:14px;color:#666;text-align:center;margin:0 0 20px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Three circles. Seven clues.<br>Can you figure out what connects each one?</p>
+        <h2 style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#1a1a2e;text-align:center;margin:0 0 4px;line-height:1.1;">How to play</h2>
+        <p style="font-size:13px;color:#666;text-align:center;margin:0 0 14px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;">Three circles. Seven clues.<br>Can you figure out what connects each one?</p>
 
         <%# Mini Venn diagram with example words %>
-        <div style="background:rgba(255,255,255,0.6);border-radius:16px;padding:8px 12px 4px;margin-bottom:20px;">
-          <svg viewBox="0 0 280 210" style="width:100%;display:block;" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="140" cy="76"  r="60" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="1.5"/>
-            <circle cx="97"  cy="148" r="60" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="1.5"/>
-            <circle cx="183" cy="148" r="60" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="1.5"/>
-            <text x="140" y="30"  text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#3730a3">arctic</text>
-            <text x="140" y="44"  text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#3730a3">frigid</text>
-            <text x="53"  y="175" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#166534">ivory</text>
-            <text x="53"  y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#166534">pale</text>
-            <text x="227" y="175" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#92400e">fluffy</text>
-            <text x="227" y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#92400e">soft</text>
-            <text x="106" y="104" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">snow</text>
-            <text x="174" y="104" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">frost</text>
-            <text x="140" y="188" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#374151">cloud</text>
-            <text x="140" y="136" text-anchor="middle" font-size="11" font-weight="bold" font-family="system-ui,sans-serif" fill="#1a1a2e">winter</text>
+        <div style="background:rgba(255,255,255,0.6);border-radius:16px;padding:8px 12px 4px;margin-bottom:16px;">
+          <svg viewBox="0 0 280 216" style="width:100%;max-width:240px;display:block;margin:0 auto;" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="140" cy="76"  r="60" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="1.5"/>
+            <circle cx="98"  cy="148" r="60" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="1.5"/>
+            <circle cx="182" cy="148" r="60" fill="#F5C4A0" fill-opacity="0.45" stroke="#E8631A" stroke-width="1.5"/>
+            <!-- A label -->
+            <rect x="131" y="24" width="18" height="18" rx="9" fill="#5B53D6"/>
+            <text x="140" y="37" text-anchor="middle" font-size="10" font-weight="700" font-family="system-ui,sans-serif" fill="white">A</text>
+            <!-- Only A word -->
+            <rect x="119" y="45" width="42" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="140" y="58" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">yuzu</text>
+            <!-- B label -->
+            <rect x="43" y="156" width="18" height="18" rx="9" fill="#2BAB65"/>
+            <text x="52" y="169" text-anchor="middle" font-size="10" font-weight="700" font-family="system-ui,sans-serif" fill="white">B</text>
+            <!-- Only B word -->
+            <rect x="31" y="176" width="42" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="52" y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">gold</text>
+            <!-- C label -->
+            <rect x="219" y="156" width="18" height="18" rx="9" fill="#E8631A"/>
+            <text x="228" y="169" text-anchor="middle" font-size="10" font-weight="700" font-family="system-ui,sans-serif" fill="white">C</text>
+            <!-- Only C word -->
+            <rect x="201" y="176" width="55" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="228" y="189" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">pickle</text>
+            <!-- AB word -->
+            <rect x="81" y="99" width="55" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="108" y="112" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">orange</text>
+            <!-- AC word -->
+            <rect x="152" y="99" width="42" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="173" y="112" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">lime</text>
+            <!-- ABC word -->
+            <rect x="116" y="121" width="49" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="140" y="134" text-anchor="middle" font-size="10" font-weight="600" font-family="system-ui,sans-serif" fill="#1a1a2e">lemon</text>
+            <!-- BC word -->
+            <rect x="109" y="163" width="62" height="18" rx="9" fill="white" fill-opacity="0.9" stroke="#e5e7eb" stroke-width="0.5"/>
+            <text x="140" y="176" text-anchor="middle" font-size="10" font-family="system-ui,sans-serif" fill="#1a1a2e">mustard</text>
           </svg>
         </div>
 
         <%# Bullet points %>
-        <ul style="margin:0 0 24px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-family:'Inter',system-ui,sans-serif;">
+        <ul style="margin:0 0 18px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-family:'Inter',system-ui,sans-serif;">
           <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#333;line-height:1.4;">
             <span style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-top:1px;">A</span>
             Each circle has a secret category label
