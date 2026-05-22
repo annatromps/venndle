@@ -66,6 +66,10 @@ class PuzzlesController < ApplicationController
     @day_numbers = {}
     past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
 
+    if user_signed_in? && current_user.admin?
+      @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    end
+
     if user_signed_in?
       game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.map(&:id))
       @played_ids = game_sessions.pluck(:puzzle_id).to_set
@@ -84,6 +88,7 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if user_signed_in? && current_user.admin?
   end
 
   def show_by_daily_number
@@ -97,6 +102,7 @@ class PuzzlesController < ApplicationController
     end
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if user_signed_in? && current_user.admin?
     render :show
   end
 

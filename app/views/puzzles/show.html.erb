@@ -63,6 +63,9 @@
         <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
           BY <%= @puzzle.user.username.upcase %>
         </span>
+        <% if @play_count %>
+          <span style="margin-left:4px;font-size:10px;font-weight:500;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= @play_count %> plays</span>
+        <% end %>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;">
