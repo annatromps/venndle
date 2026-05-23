@@ -21,8 +21,9 @@ namespace :puzzles do
 
     puzzles.each do |puzzle|
       puts "  Puzzle ##{puzzle.id} — #{puzzle.title.presence || '(no title)'}"
+      all_puzzle_words = puzzle.all_words.map { |w| w.to_s.downcase.strip }
       %w[a b c].each do |lbl|
-        answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
+        answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl), all_puzzle_words)
         puzzle.update_column("accepted_answers_#{lbl}", answers)
         puts "    Circle #{lbl.upcase} (#{puzzle.send("label_#{lbl}")}): #{answers.count} answers — #{answers.first(5).join(', ')}..."
         sleep 1

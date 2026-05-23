@@ -5,15 +5,17 @@ require "json"
 class AcceptedAnswersService
   MODEL = "gemini-flash-lite-latest"
 
-  def self.call(label, words)
+  def self.call(label, words, all_puzzle_words = [])
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
+
+    puzzle_words_clause = all_puzzle_words.any? ? "\n      ABSOLUTE RULE — NEVER INCLUDE PUZZLE WORDS: The following words are the actual puzzle words. NEVER include any of them (or their inflections) as an accepted answer, no matter how related they seem: #{all_puzzle_words.join(", ")}." : ""
 
     prompt = <<~PROMPT
       You are generating accepted answers for a Venn diagram word puzzle.
 
       The circle label (correct answer) is: "#{label}"
       The words inside this circle are: #{words.join(", ")}
-
+      #{puzzle_words_clause}
       Generate every reasonable way a player might type this answer. Include:
       - The exact label itself
       - Synonyms and near-synonyms of the label
@@ -37,7 +39,9 @@ class AcceptedAnswersService
 
     text = gemini_request(prompt, max_tokens: 600)
     text = text.gsub(/\A```(?:json)?\n?/, "").gsub(/\n?```\z/, "").strip
+    blocked = all_puzzle_words.map(&:downcase)
     answers = JSON.parse(text).map { |s| s.to_s.downcase.strip }.reject(&:blank?).uniq
+    answers = answers.reject { |a| blocked.include?(a) }
 
     Rails.logger.info "AcceptedAnswersService [#{label}]: #{answers.count} answers — #{answers.first(6).join(', ')}..."
     answers

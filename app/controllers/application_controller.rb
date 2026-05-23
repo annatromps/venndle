@@ -27,8 +27,9 @@ class ApplicationController < ActionController::Base
 
   def generate_accepted_answers_for(puzzle)
     return if ENV["GEMINI_API_KEY"].blank?
+    all_puzzle_words = puzzle.all_words.map { |w| w.to_s.downcase.strip }
     %w[a b c].each do |lbl|
-      answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl))
+      answers = AcceptedAnswersService.call(puzzle.send("label_#{lbl}"), puzzle.all_circle_words_for(lbl), all_puzzle_words)
       puzzle.update_column("accepted_answers_#{lbl}", answers)
       Rails.logger.info "Puzzle ##{puzzle.id} [#{lbl}=#{puzzle.send("label_#{lbl}")}]: stored #{answers.count} accepted answers"
     end

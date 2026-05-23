@@ -5,10 +5,12 @@ require "json"
 class AnthropicJudgeService
   MODEL = "gemini-flash-lite-latest"
 
-  def self.call(guess, correct_label, circle_words)
+  def self.call(guess, correct_label, circle_words, all_puzzle_words = [])
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
 
-    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nBefore deciding, mentally test the guess against EVERY circle word individually. The guess is only acceptable if it accurately describes or applies to EACH AND EVERY word. If even one word does not fit, answer NO.\n\nExample: label = \"white\", circle = ghost, snow, coffee, paper, bed linen. Guess = \"pale\". Pale ghost ✓, pale snow ✓, pale coffee ✗ — coffee is not pale. Answer: NO.\n\nThe guess may be accepted if it is a synonym, word form, alternate spelling, or primary noun of a compound label (e.g. \"music\" for \"music genres\") — but ONLY after passing the per-word test above.\n\nRespond with only YES or NO."
+    puzzle_words_rule = all_puzzle_words.any? ? " IMPORTANT: The actual puzzle words are: #{all_puzzle_words.join(", ")}. If the guess exactly matches any of these puzzle words, answer NO — puzzle words are never valid category answers." : ""
+
+    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nBefore deciding, mentally test the guess against EVERY circle word individually. The guess is only acceptable if it accurately describes or applies to EACH AND EVERY word. If even one word does not fit, answer NO.\n\nExample: label = \"white\", circle = ghost, snow, coffee, paper, bed linen. Guess = \"pale\". Pale ghost ✓, pale snow ✓, pale coffee ✗ — coffee is not pale. Answer: NO.\n\nThe guess may be accepted if it is a synonym, word form, alternate spelling, or primary noun of a compound label (e.g. \"music\" for \"music genres\") — but ONLY after passing the per-word test above.#{puzzle_words_rule}\n\nRespond with only YES or NO."
 
     text = gemini_request(prompt, max_tokens: 10, retries: 2)
     text.strip.upcase.start_with?("YES")
