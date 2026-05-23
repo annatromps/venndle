@@ -657,6 +657,9 @@
           const state = hintState[label];
           const btn = row.querySelector('.hint-btn');
 
+          if (btn && btn.disabled) return;
+          if (btn) btn.disabled = true;
+
           try {
             const resp = await fetch('/puzzles/' + puzzleId + '/hint', {
               method: 'POST',
@@ -684,9 +687,12 @@
 
             if (state.revealed.length >= data.total_length) {
               if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
+            } else {
+              if (btn) btn.disabled = false;
             }
           } catch(err) {
             console.error('Hint fetch failed:', err);
+            if (btn) btn.disabled = false;
           }
         }
 
