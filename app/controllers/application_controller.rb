@@ -5,9 +5,13 @@ class ApplicationController < ActionController::Base
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :detect_social_crawler
 
-  helper_method :admin_view?
+  helper_method :admin_view?, :tester_view?
   def admin_view?
     user_signed_in? && current_user.admin? && session.fetch(:admin_view, true)
+  end
+
+  def tester_view?
+    user_signed_in? && current_user.tester?
   end
 
   def toggle_admin_view
