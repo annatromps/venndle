@@ -21,9 +21,16 @@ class AcceptedAnswersService
       - Common alternate spellings or misspellings
       - If the label is a compound phrase (e.g. "music genres", "animal types", "colour names"), also include the primary noun alone (e.g. "music", "animals", "colours") — but only if that word genuinely and accurately describes ALL the circle words
 
-      CRITICAL RULE: Every entry you include MUST genuinely and accurately describe ALL of the circle words listed above — not just some of them. If a word or phrase only loosely applies, or applies to the concept in general but not specifically to these words, do NOT include it.
+      CRITICAL RULE — ALL WORDS MUST PASS: Before including any variation, mentally test it against EVERY circle word individually. A variation is only acceptable if it accurately describes or applies to EACH AND EVERY word in the circle. If even one word does not fit, exclude the variation entirely.
 
-      Example of what NOT to do: if the label is "Big" and the circle contains "Elephant, Mountain, Ocean", do NOT include phrases like "the whole world" or "everything" — those don't specifically describe those words. DO include: big, large, huge, enormous, massive, giant, gigantic, colossal, vast, immense, great, sizable.
+      WORKED EXAMPLE OF THIS RULE:
+      Label = "white", circle words = ghost, snow, coffee, paper, bed linen
+      - "pale" → REJECT. Pale ghost ✓, pale snow ✓, but pale coffee ✗ (coffee is not pale), pale paper ✗ (paper is not pale). Fails on 2 words — exclude.
+      - "light-coloured" → REJECT. Same problem — coffee and paper are not light-coloured in the way "white" means here.
+      - "ivory" → REJECT. Ghost is not ivory; snow is not ivory.
+      - "white" ✓, "whites" ✓, "whitish" ✓ — these describe all five words accurately.
+
+      Apply this same per-word test to every candidate before including it.
 
       Return ONLY a valid JSON array of lowercase strings. No markdown, no explanation, no code fences.
     PROMPT
