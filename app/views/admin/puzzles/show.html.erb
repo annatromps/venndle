@@ -1,5 +1,5 @@
 <div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:20px 24px 40px;">
-  <div style="max-width:680px;margin:0 auto;">
+  <div style="max-width:760px;margin:0 auto;">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
       <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">
@@ -11,7 +11,8 @@
       </div>
     </div>
 
-    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);font-family:'Inter',system-ui,sans-serif;">
+    <%# Puzzle details %>
+    <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);font-family:'Inter',system-ui,sans-serif;margin-bottom:24px;">
       <dl style="display:grid;grid-template-columns:140px 1fr;gap:10px 0;font-size:13px;">
         <dt style="font-weight:600;color:#888;padding:4px 0;">Type</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.puzzle_type %></dd>
         <dt style="font-weight:600;color:#888;padding:4px 0;">Scheduled</dt><dd style="color:#1a1a2e;padding:4px 0;"><%= @puzzle.scheduled_date&.strftime("%Y-%m-%d") || "—" %></dd>
@@ -26,5 +27,101 @@
         <% end %>
       </dl>
     </div>
+
+    <%# Play sessions %>
+    <h2 style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin:0 0 12px;font-family:'Inter',system-ui,sans-serif;">
+      Play sessions (<%= @game_sessions.size %>)
+    </h2>
+
+    <% if @game_sessions.empty? %>
+      <div style="background:white;border-radius:16px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,0.06);text-align:center;color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;">
+        No one has played this puzzle yet.
+      </div>
+    <% else %>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <% @game_sessions.each_with_index do |gs, idx| %>
+          <%
+            user_attempts = (@attempts_by_user[gs.user_id] || [])
+            circle_data = %w[a b c].map do |lbl|
+              lab_attempts = user_attempts.select { |a| a.label == lbl }
+              solved  = gs.send("solved_#{lbl}?")
+              gave_up = gs.respond_to?("gave_up_#{lbl}?") && gs.send("gave_up_#{lbl}?")
+              hints   = gs.respond_to?("hints_#{lbl}") ? gs.send("hints_#{lbl}").to_i : 0
+              wrong   = gave_up ? gs.send("attempts_#{lbl}") : [gs.send("attempts_#{lbl}") - (solved ? 1 : 0), 0].max
+              { lbl: lbl, solved: solved, gave_up: gave_up, hints: hints, wrong: wrong, attempts: lab_attempts }
+            end
+            circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }
+          %>
+          <div style="background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;font-family:'Inter',system-ui,sans-serif;">
+
+            <%# Summary row %>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;" onclick="toggleSession(<%= idx %>)">
+              <div style="flex:1;min-width:0;">
+                <span style="font-size:13px;font-weight:700;color:#1a1a2e;"><%= gs.user.username %></span>
+                <span style="font-size:12px;color:#aaa;margin-left:8px;"><%= gs.created_at.strftime("%-d %b %Y") %></span>
+                <% if gs.completed? %>
+                  <span style="margin-left:6px;background:#dcfce7;color:#16a34a;font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;text-transform:uppercase;letter-spacing:0.06em;">Completed</span>
+                <% end %>
+              </div>
+
+              <%# Per-circle summary %>
+              <div style="display:flex;gap:10px;align-items:center;flex-shrink:0;">
+                <% circle_data.each do |c| %>
+                  <div style="display:flex;align-items:center;gap:4px;">
+                    <span style="width:18px;height:18px;border-radius:50%;background:<%= circle_colors[c[:lbl]] %>;color:white;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><%= c[:lbl].upcase %></span>
+                    <span style="font-size:13px;">
+                      <%= c[:gave_up] ? "🏳️" : (c[:solved] ? "✅" : "—") %>
+                    </span>
+                    <% if c[:wrong] > 0 %>
+                      <span style="font-size:11px;color:#e53e3e;font-weight:600;"><%= c[:wrong] %>✗</span>
+                    <% end %>
+                    <% if c[:hints] > 0 %>
+                      <span style="font-size:11px;color:#d97706;font-weight:600;">💡<%= c[:hints] %></span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+
+              <svg id="chevron-<%= idx %>" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;transition:transform 0.15s;">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+
+            <%# Expanded guesses %>
+            <div id="session-<%= idx %>" style="display:none;border-top:1px solid #f0f0f0;padding:14px 16px;">
+              <% circle_data.each do |c| %>
+                <% if c[:attempts].any? %>
+                  <div style="margin-bottom:12px;">
+                    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:<%= circle_colors[c[:lbl]] %>;font-family:'Inter',system-ui,sans-serif;">Circle <%= c[:lbl].upcase %></span>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                      <% c[:attempts].each do |attempt| %>
+                        <span style="display:inline-flex;align-items:center;gap:4px;background:<%= attempt.correct? ? '#dcfce7' : '#fef2f2' %>;color:<%= attempt.correct? ? '#15803d' : '#b91c1c' %>;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;font-family:'Inter',system-ui,sans-serif;">
+                          <%= attempt.correct? ? "✓" : "✗" %> <%= attempt.guess %>
+                        </span>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+              <% if circle_data.all? { |c| c[:attempts].empty? } %>
+                <p style="font-size:13px;color:#aaa;margin:0;">No recorded guesses.</p>
+              <% end %>
+            </div>
+
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
   </div>
 </div>
+
+<script>
+  function toggleSession(idx) {
+    var panel = document.getElementById('session-' + idx);
+    var chevron = document.getElementById('chevron-' + idx);
+    var open = panel.style.display !== 'none';
+    panel.style.display = open ? 'none' : 'block';
+    chevron.style.transform = open ? '' : 'rotate(180deg)';
+  }
+</script>
