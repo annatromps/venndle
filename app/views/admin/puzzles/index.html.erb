@@ -406,36 +406,59 @@
         tester_feedbacks = PuzzleFeedback.includes(:puzzle, :user)
                              .joins(:user).where(users: { tester: true })
                              .order(updated_at: :desc)
+        fb_game_sessions = GameSession.where(
+                             puzzle_id: tester_feedbacks.map(&:puzzle_id),
+                             user_id:   tester_feedbacks.map(&:user_id)
+                           ).index_by { |gs| [gs.puzzle_id, gs.user_id] }
       %>
       <% if tester_feedbacks.any? %>
-        <div class="tbl-scroll">
-          <table class="admin-tbl">
-            <thead>
-              <tr>
-                <th class="c-date" style="width:130px;">Date</th>
-                <th class="c-title">Puzzle</th>
-                <th style="min-width:300px;">Feedback</th>
-                <th style="width:90px;">Tester</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% tester_feedbacks.each do |fb| %>
-                <tr>
-                  <td class="c-date" style="color:#aaa;white-space:nowrap;">
-                    <%= fb.puzzle.scheduled_date&.strftime("%-d %b %Y") || fb.updated_at.strftime("%-d %b %Y") %>
-                  </td>
-                  <td class="c-title">
-                    <a href="/daily<%= fb.puzzle.day_number %>" target="_blank" style="color:#5B53D6;font-weight:600;text-decoration:none;font-family:'Inter',system-ui,sans-serif;font-size:13px;">
-                      <span class="c-title-inner" title="<%= fb.puzzle.title %>"><%= fb.puzzle.title.presence || "Daily ##{fb.puzzle.day_number}" %></span>
-                    </a>
-                  </td>
-                  <td style="font-size:13px;color:#1a1a2e;line-height:1.5;white-space:pre-wrap;word-break:break-word;"><%= fb.body %></td>
-                  <td style="font-size:12px;color:#888;"><%= fb.user.username %></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
+        <% tester_feedbacks.each do |fb| %>
+          <%
+            gs = fb_game_sessions[[fb.puzzle_id, fb.user_id]]
+            circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }
+          %>
+          <div style="padding:16px 20px;border-bottom:1px solid #f0f0f0;font-family:'Inter',system-ui,sans-serif;">
+            <%# Top row: puzzle + date + tester %>
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+              <a href="/daily<%= fb.puzzle.day_number %>" target="_blank"
+                 style="font-size:14px;font-weight:700;color:#5B53D6;text-decoration:none;">
+                <%= fb.puzzle.title.presence || "Daily ##{fb.puzzle.day_number}" %>
+              </a>
+              <span style="font-size:12px;color:#bbb;">
+                <%= fb.puzzle.scheduled_date&.strftime("%-d %b %Y") %>
+              </span>
+              <span style="font-size:12px;color:#bbb;margin-left:auto;">
+                <%= fb.user.username %> &middot; updated <%= fb.updated_at.strftime("%-d %b") %>
+              </span>
+            </div>
+
+            <%# Circle results %>
+            <% if gs %>
+              <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+                <% %w[a b c].each do |lbl| %>
+                  <%
+                    solved  = gs.send("solved_#{lbl}?")
+                    gave_up = gs.send("gave_up_#{lbl}?")
+                    hints   = gs.send("hints_#{lbl}").to_i
+                    wrong   = gave_up ? gs.send("attempts_#{lbl}") : [gs.send("attempts_#{lbl}") - (solved ? 1 : 0), 0].max
+                    official = fb.puzzle.send("label_#{lbl}")
+                  %>
+                  <div style="display:inline-flex;align-items:center;gap:5px;background:#f8f8f8;border-radius:8px;padding:5px 10px;">
+                    <span style="width:16px;height:16px;border-radius:50%;background:<%= circle_colors[lbl] %>;color:white;font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><%= lbl.upcase %></span>
+                    <span style="font-size:12px;font-weight:600;color:#555;"><%= official %></span>
+                    <span style="font-size:13px;"><%= gave_up ? "🏳️" : (solved ? "✅" : "—") %></span>
+                    <% if wrong > 0 %><span style="font-size:11px;color:#e53e3e;font-weight:600;"><%= wrong %>✗</span><% end %>
+                    <% if hints > 0 %><span style="font-size:11px;color:#d97706;">💡<%= hints %></span><% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+
+            <%# Feedback text %>
+            <p style="font-size:13px;color:#1a1a2e;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-word;"><%= fb.body %></p>
+          </div>
+        <% end %>
+        <style>.admin-card > div:last-child { border-bottom: none; }</style>
       <% else %>
         <div class="empty-state">No tester feedback yet.</div>
       <% end %>
