@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="manifest" href="/manifest.json">
+    <%= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
     <% unless user_signed_in? && current_user.admin? %>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-36PSLS37NN"></script>
@@ -424,7 +424,7 @@
     <script>
       // ── PWA: Service Worker registration ──────────────────────────────────
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js').catch(function() {});
+        navigator.serviceWorker.register('<%= pwa_service_worker_path %>').catch(function() {});
       }
 
       // ── PWA: Install prompt ───────────────────────────────────────────────
