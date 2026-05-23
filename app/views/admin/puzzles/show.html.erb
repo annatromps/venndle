@@ -26,5 +26,90 @@
         <% end %>
       </dl>
     </div>
+
+    <%# ── Play sessions ── %>
+    <div style="margin-top:24px;">
+      <h2 style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:#1a1a2e;margin:0 0 12px;">
+        Play sessions (<%= @game_sessions.size %>)
+      </h2>
+
+      <% if @game_sessions.empty? %>
+        <p style="font-size:13px;color:#aaa;font-family:'Inter',system-ui,sans-serif;">No one has played this puzzle yet.</p>
+      <% else %>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <% @game_sessions.each do |gs| %>
+            <%
+              label_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }
+              user_attempts = @attempts_by_user[gs.user_id] || []
+            %>
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06);overflow:hidden;font-family:'Inter',system-ui,sans-serif;">
+
+              <%# Summary row %>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:120px;">
+                  <div style="font-size:13px;font-weight:700;color:#1a1a2e;"><%= gs.user.username %></div>
+                  <div style="font-size:11px;color:#aaa;margin-top:1px;"><%= gs.updated_at.strftime("%-d %b %Y, %H:%M") %></div>
+                </div>
+
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <% %w[a b c].each do |lbl| %>
+                    <% solved   = gs.send("solved_#{lbl}?")
+                       gave_up  = gs.send("gave_up_#{lbl}?")
+                       total    = gs.send("attempts_#{lbl}").to_i
+                       wrong    = [total - (solved && !gave_up ? 1 : 0), 0].max
+                       hints    = gs.respond_to?("hints_#{lbl}") ? gs.send("hints_#{lbl}").to_i : 0
+                       result   = gave_up ? "🏳️" : (solved ? "✅" : "—")
+                       color    = label_colors[lbl] %>
+                    <div style="background:#f7f7f7;border-radius:8px;padding:5px 10px;font-size:12px;min-width:56px;text-align:center;">
+                      <div style="font-weight:700;color:<%= color %>;font-size:11px;letter-spacing:0.05em;"><%= lbl.upcase %></div>
+                      <div style="margin-top:2px;"><%= result %></div>
+                      <div style="color:#aaa;font-size:10px;margin-top:1px;">
+                        <%= wrong > 0 ? "#{wrong}✗" : "" %><%= (wrong > 0 && hints > 0) ? " " : "" %><%= hints > 0 ? "#{hints}💡" : "" %><%= (wrong == 0 && hints == 0) ? "—" : "" %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+
+                <button onclick="toggleSession(<%= gs.id %>)"
+                        style="flex-shrink:0;background:transparent;border:1.5px solid #ddd;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:#555;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+                  View
+                </button>
+              </div>
+
+              <%# Expandable detail %>
+              <div id="session-<%= gs.id %>" style="display:none;border-top:1px solid #f0f0f0;padding:12px 16px;background:#fafafa;">
+                <% %w[a b c].each do |lbl| %>
+                  <% lbl_attempts = user_attempts.select { |a| a.label == lbl }
+                     color = label_colors[lbl] %>
+                  <div style="margin-bottom:10px;">
+                    <div style="font-size:11px;font-weight:700;color:<%= color %>;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px;"><%= lbl.upcase %> — <%= @puzzle.send("label_#{lbl}") %></div>
+                    <% if lbl_attempts.empty? %>
+                      <span style="font-size:12px;color:#bbb;font-style:italic;">No guesses recorded</span>
+                    <% else %>
+                      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                        <% lbl_attempts.each do |attempt| %>
+                          <span style="font-size:12px;padding:3px 9px;border-radius:999px;background:<%= attempt.correct? ? '#dcfce7' : '#fee2e2' %>;color:<%= attempt.correct? ? '#16a34a' : '#dc2626' %>;font-weight:500;">
+                            <%= attempt.correct? ? "✓" : "✗" %> <%= attempt.guess %>
+                          </span>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
   </div>
 </div>
+
+<script>
+  function toggleSession(id) {
+    var el = document.getElementById('session-' + id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+</script>
