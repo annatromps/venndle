@@ -430,28 +430,37 @@
         navigator.serviceWorker.register('/sw.js').catch(function() {});
       }
 
-      // ── PWA: Install prompt — second unique calendar day logic ────────────
+      // ── PWA: Install prompt ───────────────────────────────────────────────
+      // localStorage keys:
+      //   venndle_install_first_visit  — Unix ms timestamp of first ever page load (written once)
+      //   venndle_install_visits       — running count of page loads, incremented each DOMContentLoaded
+      //   venndle_install_snooze_until — visit count at which the banner may next appear;
+      //                                  set to (visits + 5) each time the user dismisses
+      //   venndle_install_done         — '1' only after browser confirms the app was installed;
+      //                                  the sole permanent suppression flag
       var _deferredInstallPrompt = null;
 
-      // Capture the browser's install prompt and hold it for later.
+      // Capture and hold the browser's install eligibility signal.
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
         _deferredInstallPrompt = e;
         _maybeShowInstallBanner();
       });
 
-      // Show the banner only if: prompt is available, user hasn't dismissed it,
-      // and this is their second (or later) unique calendar day on the site.
       function _maybeShowInstallBanner() {
         if (!_deferredInstallPrompt) return;
-        if (localStorage.getItem('venndle_install_dismissed')) return;
+        if (localStorage.getItem('venndle_install_done')) return;
 
+        // Gate 1: must be a returning visitor from a different calendar day.
         var raw = localStorage.getItem('venndle_install_first_visit');
-        if (!raw) return; // still on their first visit
-
+        if (!raw) return;
         var firstDate = new Date(parseInt(raw, 10)).toDateString();
-        var today     = new Date().toDateString();
-        if (firstDate === today) return; // same calendar day — not yet
+        if (firstDate === new Date().toDateString()) return;
+
+        // Gate 2: must not be within a snooze window.
+        var visits      = parseInt(localStorage.getItem('venndle_install_visits') || '0', 10);
+        var snoozeUntil = parseInt(localStorage.getItem('venndle_install_snooze_until') || '0', 10);
+        if (visits < snoozeUntil) return;
 
         var banner = document.getElementById('install-banner');
         if (banner) banner.style.display = 'flex';
@@ -460,26 +469,42 @@
       function installApp() {
         if (!_deferredInstallPrompt) return;
         _deferredInstallPrompt.prompt();
-        _deferredInstallPrompt.userChoice.then(function() {
+        _deferredInstallPrompt.userChoice.then(function(result) {
           _deferredInstallPrompt = null;
           var banner = document.getElementById('install-banner');
           if (banner) banner.style.display = 'none';
+          if (result.outcome === 'accepted') {
+            // User confirmed installation — suppress the banner permanently.
+            localStorage.setItem('venndle_install_done', '1');
+          } else {
+            // User closed the native dialog without installing — snooze.
+            _snoozeInstallBanner();
+          }
         });
       }
 
       function dismissInstallBanner() {
-        localStorage.setItem('venndle_install_dismissed', '1');
+        _snoozeInstallBanner();
         var banner = document.getElementById('install-banner');
         if (banner) banner.style.display = 'none';
       }
 
-      // On first ever visit: stamp the timestamp. On return visits, check eligibility.
+      // Record the current visit count as the snooze baseline; banner resurfaces
+      // after 5 more page loads.
+      function _snoozeInstallBanner() {
+        var visits = parseInt(localStorage.getItem('venndle_install_visits') || '0', 10);
+        localStorage.setItem('venndle_install_snooze_until', (visits + 5).toString());
+      }
+
+      // On every page load: stamp first-visit timestamp (once), increment the
+      // visit counter, then attempt to show the banner in case beforeinstallprompt
+      // already fired before DOMContentLoaded on fast connections.
       document.addEventListener('DOMContentLoaded', function() {
         if (!localStorage.getItem('venndle_install_first_visit')) {
           localStorage.setItem('venndle_install_first_visit', Date.now().toString());
         }
-        // beforeinstallprompt may have already fired before DOMContentLoaded on
-        // fast loads — try showing the banner now in case we missed the event.
+        var visits = parseInt(localStorage.getItem('venndle_install_visits') || '0', 10);
+        localStorage.setItem('venndle_install_visits', (visits + 1).toString());
         _maybeShowInstallBanner();
       });
     </script>
