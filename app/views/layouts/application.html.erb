@@ -9,6 +9,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -163,6 +164,23 @@
       </div>
     </nav>
 
+    <%# PWA install banner — shown on second unique calendar day if browser supports install %>
+    <div id="install-banner" style="display:none;flex-shrink:0;align-items:center;gap:12px;background:white;border-bottom:1px solid rgba(0,0,0,0.08);padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);z-index:50;">
+      <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+        <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.85" stroke="#5B53D6" stroke-width="2.5"/>
+        <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.85" stroke="#2BAB65" stroke-width="2.5"/>
+        <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.85" stroke="#E8631A" stroke-width="2.5"/>
+      </svg>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;">Add Venndle to your home screen</div>
+        <div style="font-size:12px;color:#888;font-family:'Inter',system-ui,sans-serif;">Play instantly, like an app</div>
+      </div>
+      <button onclick="installApp()" style="flex-shrink:0;background:#5B53D6;color:white;font-size:13px;font-weight:700;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Add to home screen</button>
+      <button onclick="dismissInstallBanner()" style="flex-shrink:0;background:none;border:none;cursor:pointer;color:#aaa;padding:4px;display:flex;align-items:center;justify-content:center;" title="Dismiss">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
     <%# Mobile dropdown menu %>
     <div id="mobile-menu" style="display:none;position:fixed;top:60px;left:0;right:0;background:white;border-bottom:1px solid rgba(0,0,0,0.08);box-shadow:0 4px 16px rgba(0,0,0,0.1);z-index:400;">
       <a href="/"        style="<%= _ml_link_style.(_daily_active) %>">Today</a>
@@ -310,6 +328,66 @@
         if (!localStorage.getItem('venndle_seen_instructions')) {
           showInstructions();
         }
+      });
+    </script>
+
+    <script>
+      // ── PWA: Service Worker registration ──────────────────────────────────
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(function() {});
+      }
+
+      // ── PWA: Install prompt — second unique calendar day logic ────────────
+      var _deferredInstallPrompt = null;
+
+      // Capture the browser's install prompt and hold it for later.
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        _deferredInstallPrompt = e;
+        _maybeShowInstallBanner();
+      });
+
+      // Show the banner only if: prompt is available, user hasn't dismissed it,
+      // and this is their second (or later) unique calendar day on the site.
+      function _maybeShowInstallBanner() {
+        if (!_deferredInstallPrompt) return;
+        if (localStorage.getItem('venndle_install_dismissed')) return;
+
+        var raw = localStorage.getItem('venndle_install_first_visit');
+        if (!raw) return; // still on their first visit
+
+        var firstDate = new Date(parseInt(raw, 10)).toDateString();
+        var today     = new Date().toDateString();
+        if (firstDate === today) return; // same calendar day — not yet
+
+        var banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'flex';
+      }
+
+      function installApp() {
+        if (!_deferredInstallPrompt) return;
+        _deferredInstallPrompt.prompt();
+        _deferredInstallPrompt.userChoice.then(function() {
+          _deferredInstallPrompt = null;
+          var banner = document.getElementById('install-banner');
+          if (banner) banner.style.display = 'none';
+        });
+      }
+
+      function dismissInstallBanner() {
+        localStorage.setItem('venndle_install_dismissed', '1');
+        var banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'none';
+      }
+
+      // On first ever visit: stamp the timestamp. On return visits, check eligibility.
+      document.addEventListener('DOMContentLoaded', function() {
+        if (!localStorage.getItem('venndle_install_first_visit')) {
+          localStorage.setItem('venndle_install_first_visit', Date.now().toString());
+        }
+        // beforeinstallprompt may have already fired before DOMContentLoaded on
+        // fast loads — try showing the banner now in case we missed the event.
+        _maybeShowInstallBanner();
       });
     </script>
 
