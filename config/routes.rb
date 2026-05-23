@@ -7,9 +7,10 @@ Rails.application.routes.draw do
   get "/archive", to: "puzzles#archive", as: :archive
 
   resources :puzzles, only: [:index, :show, :new, :create]
-  post   "/puzzles/:id/guess",         to: "puzzles#guess",     as: :puzzle_guess
-  post   "/puzzles/:id/hint",          to: "puzzles#hint",      as: :puzzle_hint
-  post   "/puzzles/:id/give_up",       to: "puzzles#give_up",   as: :puzzle_give_up
+  post   "/puzzles/:id/guess",         to: "puzzles#guess",        as: :puzzle_guess
+  post   "/puzzles/:id/hint",          to: "puzzles#hint",         as: :puzzle_hint
+  post   "/puzzles/:id/give_up",       to: "puzzles#give_up",      as: :puzzle_give_up
+  post   "/puzzles/:puzzle_id/feedback", to: "puzzle_feedbacks#create", as: :puzzle_feedback
   post   "/puzzles/:id/favourite",     to: "favourites#create", as: :puzzle_favourite
   delete "/puzzles/:id/favourite",     to: "favourites#destroy"
   post   "/puzzles/:puzzle_id/rating", to: "ratings#create",    as: :puzzle_rating

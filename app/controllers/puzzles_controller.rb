@@ -59,7 +59,7 @@ class PuzzlesController < ApplicationController
 
   def archive
     scope = Puzzle.published.daily
-    scope = admin_view? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    scope = (admin_view? || tester_view?) ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc).to_a
 
     past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
@@ -97,7 +97,7 @@ class PuzzlesController < ApplicationController
     if @puzzle.nil?
       redirect_to archive_path, alert: "Daily ##{number} not found." and return
     end
-    unless @puzzle.scheduled_date <= Date.today || admin_view?
+    unless @puzzle.scheduled_date <= Date.today || admin_view? || tester_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
     @daily_number = number
