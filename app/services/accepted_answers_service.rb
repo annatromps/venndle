@@ -19,6 +19,7 @@ class AcceptedAnswersService
       - Synonyms and near-synonyms of the label
       - All word forms: singular, plural, adjective, noun, adverb forms of the same root word
       - Common alternate spellings or misspellings
+      - If the label is a compound phrase (e.g. "music genres", "animal types", "colour names"), also include the primary noun alone (e.g. "music", "animals", "colours") — but only if that word genuinely and accurately describes ALL the circle words
 
       CRITICAL RULE: Every entry you include MUST genuinely and accurately describe ALL of the circle words listed above — not just some of them. If a word or phrase only loosely applies, or applies to the concept in general but not specifically to these words, do NOT include it.
 
