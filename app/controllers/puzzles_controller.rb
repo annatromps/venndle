@@ -100,6 +100,9 @@ class PuzzlesController < ApplicationController
     unless @puzzle.scheduled_date <= Date.today || admin_view? || tester_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
+    if @puzzle.scheduled_date < Date.today && !user_signed_in? && !admin_view? && !tester_view?
+      redirect_to new_user_session_path, alert: "Sign in to play past puzzles." and return
+    end
     @daily_number = number
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)

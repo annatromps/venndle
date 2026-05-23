@@ -13,6 +13,10 @@ class Admin::PuzzlesController < ApplicationController
   end
 
   def show
+    @game_sessions = @puzzle.game_sessions.includes(:user).order(updated_at: :desc)
+    user_ids = @game_sessions.map(&:user_id)
+    attempts = Attempt.where(puzzle: @puzzle, user_id: user_ids).order(:created_at)
+    @attempts_by_user = attempts.group_by(&:user_id)
   end
 
   def new
