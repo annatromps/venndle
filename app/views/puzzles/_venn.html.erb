@@ -194,6 +194,7 @@
     </div>
 
     <script>
+      var gameId = "<%= game_id_for(puzzle) %>";
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
         gtag('event', 'share_score', { 'game_id': gameId });
