@@ -62,9 +62,9 @@ class PuzzlesController < ApplicationController
     scope = (admin_view? || tester_view?) ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc).to_a
 
-    past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
+    sorted_all = @puzzles.sort_by(&:scheduled_date)
     @day_numbers = {}
-    past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
+    sorted_all.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
 
     if admin_view?
       @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
