@@ -137,6 +137,20 @@
       : 'Only accessible via direct link — won\'t appear in the community list.';
   }
 
+  (function() {
+    var titleInput = document.getElementById('puzzle_title');
+    var abcInput   = document.querySelector('[name="puzzle[words_abc][]"]');
+    if (!titleInput || !abcInput) return;
+    var lastAuto = '';
+    abcInput.addEventListener('input', function() {
+      var first = abcInput.value.split(',')[0].trim();
+      if (titleInput.value === '' || titleInput.value === lastAuto) {
+        titleInput.value = first;
+        lastAuto = first;
+      }
+    });
+  })();
+
   document.getElementById('puzzle-form').addEventListener('submit', function() {
     ['puzzle[words_a][]','puzzle[words_b][]','puzzle[words_c][]',
      'puzzle[words_ab][]','puzzle[words_ac][]','puzzle[words_bc][]','puzzle[words_abc][]'].forEach(function(name) {

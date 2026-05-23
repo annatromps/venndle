@@ -8,9 +8,9 @@ class AnthropicJudgeService
   def self.call(guess, correct_label, circle_words)
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
 
-    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nAccept the guess ONLY if both conditions are true:\n1. It is a synonym, word form (adjective/noun/adverb of the same root), or alternate spelling of the correct label.\n2. It genuinely and accurately describes ALL of the circle words listed — not just some of them.\n\nAccept: synonyms, plural/singular forms, adjective/noun/adverb variants of the same root word, common alternate spellings.\nReject: phrases that are only loosely related, overly broad statements, things that describe the concept in general but don't specifically fit all the circle words.\n\nRespond with only YES or NO."
+    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nAccept the guess if ANY of these conditions are true:\n1. It is a synonym, word form (adjective/noun/adverb of the same root), or alternate spelling of the correct label.\n2. It is the primary noun of a compound label and clearly conveys the same meaning (e.g. \"music\" for \"music genres\", \"animal\" for \"animal types\", \"colour\" for \"colour names\").\n3. It is a common shorthand or informal name for the exact same concept.\n\nIn all cases, the guess must also genuinely and accurately describe ALL of the circle words listed — not just some of them.\n\nAccept: synonyms, plural/singular forms, adjective/noun/adverb variants, common alternate spellings, primary nouns of compound labels.\nReject: phrases that are only loosely related, overly broad statements that go beyond the label's meaning, things that describe the concept in general but don't specifically fit all the circle words.\n\nRespond with only YES or NO."
 
-    text = gemini_request(prompt, max_tokens: 10)
+    text = gemini_request(prompt, max_tokens: 10, retries: 2)
     text.strip.upcase.start_with?("YES")
   rescue => e
     Rails.logger.error "AnthropicJudgeService error: #{e.class}: #{e.message}"
@@ -21,7 +21,7 @@ class AnthropicJudgeService
     uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{ENV['GEMINI_API_KEY']}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
-    http.read_timeout = 30
+    http.read_timeout = 8
 
     req = Net::HTTP::Post.new(uri)
     req["Content-Type"] = "application/json"
