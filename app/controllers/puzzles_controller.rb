@@ -158,11 +158,15 @@ class PuzzlesController < ApplicationController
     Rails.logger.info "Accepted answers (#{accepted.size}): #{accepted.first(6).inspect}"
     Rails.logger.info "Match result: #{accepted.include?(normalized_guess)}"
 
-    if accepted.include?(normalized_guess)
+    all_puzzle_words = @puzzle.all_words.map { |w| w.to_s.downcase.strip }
+
+    if all_puzzle_words.include?(normalized_guess)
+      correct = false
+    elsif accepted.include?(normalized_guess)
       correct = true
     else
       circle_words = @puzzle.all_circle_words_for(label)
-      correct = AnthropicJudgeService.call(guess, correct_label, circle_words)
+      correct = AnthropicJudgeService.call(guess, correct_label, circle_words, all_puzzle_words)
       if correct
         @puzzle.update_column("accepted_answers_#{label}", (accepted + [normalized_guess]).uniq)
       end
