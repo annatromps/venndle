@@ -4,21 +4,86 @@
 
     <%# Header — compact, fixed height %>
     <div style="flex-shrink:0;margin-bottom:6px;">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-        <span style="width:7px;height:7px;border-radius:50%;background:#F59E0B;display:inline-block;flex-shrink:0;"></span>
-        <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
-          Daily &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %>
-        </span>
+      <div style="margin-bottom:4px;">
+        <span style="display:inline-flex;align-items:center;background:#F59E0B;color:white;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:999px;font-family:'Inter',system-ui,sans-serif;">Daily</span>
       </div>
-      <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.1;">
-        #<%= @daily_number %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
-      </h1>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.15;min-width:0;">
+          #<%= @daily_number %> &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
+        </h1>
+        <button onclick="document.getElementById('how-to-play-modal').style.display='flex'"
+                style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
+                title="How to play">i</button>
+      </div>
+    </div>
+
+    <%# How to play modal %>
+    <div id="how-to-play-modal"
+         onclick="if(event.target===this)this.style.display='none'"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+      <div style="background:white;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.18);position:relative;">
+        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+                style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:4px;">✕</button>
+        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 16px;">How to play</h2>
+        <div style="display:flex;flex-direction:column;gap:14px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#444;line-height:1.55;">
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-top:1px;">
+              <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="3"/>
+              <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="3"/>
+              <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="3"/>
+            </svg>
+            <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that can apply to all the words inside it.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;">A</div>
+            <p style="margin:0;">Type your guess into the <strong>A</strong>, <strong>B</strong>, or <strong>C</strong> box at the bottom and press the arrow to submit. The AI judges whether you're right.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;">⟲</div>
+            <p style="margin:0;">Words in the <strong>overlapping regions</strong> belong to more than one circle — use them as extra clues.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#fefce8;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">💡</div>
+            <p style="margin:0;">Press <strong>hint</strong> to reveal one letter of the answer at a time.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
+            <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+                style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+          Got it
+        </button>
+      </div>
     </div>
 
     <%# Venn content — fills remaining height %>
     <div style="flex:1;min-height:0;overflow:hidden;">
       <%= render "venn", puzzle: @puzzle, game_session: @game_session, attempts: (@attempts || []) %>
     </div>
+
+    <%# Tester feedback box %>
+    <% if user_signed_in? && current_user.tester? %>
+      <%
+        existing_feedback = @puzzle.puzzle_feedbacks.find_by(user: current_user)
+        feedback_submitted = flash[:notice]&.include?("Feedback")
+      %>
+      <div style="flex-shrink:0;margin-top:10px;padding:12px 14px;background:#fafafa;border:1.5px solid #ede9fe;border-radius:14px;font-family:'Inter',system-ui,sans-serif;">
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9B94E8;margin:0 0 8px;">Tester feedback</p>
+        <% if feedback_submitted %>
+          <p style="font-size:13px;color:#2BAB65;margin:0 0 6px;font-weight:600;">Saved!</p>
+        <% end %>
+        <%= form_with url: puzzle_feedback_path(@puzzle), method: :post, local: true do %>
+          <textarea name="body" rows="3" placeholder="What do you think of this puzzle? Any issues with the words or labels?"
+            style="width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.1);border-radius:10px;padding:8px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;resize:vertical;line-height:1.5;"><%= existing_feedback&.body %></textarea>
+          <button type="submit"
+            style="margin-top:6px;background:#5B53D6;color:white;font-weight:700;font-size:13px;border:none;border-radius:10px;padding:8px 18px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+            <%= existing_feedback ? "Update feedback" : "Submit feedback" %>
+          </button>
+        <% end %>
+      </div>
+    <% end %>
   </div>
 <% else %>
   <div style="height:100%;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">

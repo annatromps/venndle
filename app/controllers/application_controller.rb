@@ -5,6 +5,20 @@ class ApplicationController < ActionController::Base
   before_action :configure_permitted_parameters, if: :devise_controller?
   before_action :detect_social_crawler
 
+  helper_method :admin_view?, :tester_view?
+  def admin_view?
+    user_signed_in? && current_user.admin? && session.fetch(:admin_view, true)
+  end
+
+  def tester_view?
+    user_signed_in? && current_user.tester?
+  end
+
+  def toggle_admin_view
+    session[:admin_view] = !session.fetch(:admin_view, true)
+    redirect_back fallback_location: root_path
+  end
+
   def detect_social_crawler
     @suppress_og = request.user_agent.to_s.match?(/facebookexternalhit|WhatsApp/i)
   end

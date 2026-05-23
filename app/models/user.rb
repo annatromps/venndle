@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :favourites, dependent: :destroy
   has_many :favourite_puzzles, through: :favourites, source: :puzzle
   has_many :ratings, dependent: :destroy
+  has_many :puzzle_feedbacks, dependent: :destroy
 
   validates :username, presence: true, uniqueness: true
 end

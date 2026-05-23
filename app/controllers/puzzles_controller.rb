@@ -59,12 +59,16 @@ class PuzzlesController < ApplicationController
 
   def archive
     scope = Puzzle.published.daily
-    scope = user_signed_in? && current_user.admin? ? scope : scope.where("scheduled_date <= ?", Date.today)
+    scope = (admin_view? || tester_view?) ? scope : scope.where("scheduled_date <= ?", Date.today)
     @puzzles = scope.order(scheduled_date: :desc).to_a
 
-    past = @puzzles.select { |p| p.scheduled_date <= Date.today }.sort_by(&:scheduled_date)
+    sorted_all = @puzzles.sort_by(&:scheduled_date)
     @day_numbers = {}
-    past.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
+    sorted_all.each_with_index { |p, i| @day_numbers[p.id] = i + 1 }
+
+    if admin_view?
+      @play_counts = GameSession.where(puzzle_id: @puzzles.map(&:id)).group(:puzzle_id).count
+    end
 
     if user_signed_in?
       game_sessions = current_user.game_sessions.where(completed: true, puzzle_id: @puzzles.map(&:id))
@@ -84,6 +88,7 @@ class PuzzlesController < ApplicationController
     @puzzle = Puzzle.find(params[:id])
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
+    @play_count = GameSession.where(puzzle_id: @puzzle.id).count if admin_view?
   end
 
   def show_by_daily_number
@@ -92,12 +97,13 @@ class PuzzlesController < ApplicationController
     if @puzzle.nil?
       redirect_to archive_path, alert: "Daily ##{number} not found." and return
     end
-    unless @puzzle.scheduled_date <= Date.today || (user_signed_in? && current_user.admin?)
+    unless @puzzle.scheduled_date <= Date.today || admin_view? || tester_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
+    @daily_number = number
     @game_session = find_or_build_game_session(@puzzle)
     @attempts = load_attempts(@puzzle)
-    render :show
+    render :daily
   end
 
   def new
@@ -302,14 +308,14 @@ class PuzzlesController < ApplicationController
       wrong    = gave_up ? attempts_count : [attempts_count - (solved ? 1 : 0), 0].max
       result   = gave_up ? "🏳️" : (solved ? "✅" : "")
       hint_str = hints > 0 ? ("💡" * hints) : ""
-      "#{label.upcase} #{("❌" * wrong)}#{result}#{hint_str}"
+      "#{label.upcase} #{("❌" * wrong)}#{hint_str}#{result}"
     end
     if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
       day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
-      url   = "venndle.app/daily#{day_num}"
+      url   = "https://venndle.app/daily#{day_num}"
       title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
-      url   = "venndle.app/#{puzzle.id}"
+      url   = "https://venndle.app/#{puzzle.id}"
       title = puzzle.title.presence || "Venndle ##{puzzle.id}"
     end
     "#{title}\n#{lines.join("\n")}\n#{url}"

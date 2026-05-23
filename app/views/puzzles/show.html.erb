@@ -63,6 +63,9 @@
         <span style="font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#666;font-family:'Inter',system-ui,sans-serif;">
           BY <%= @puzzle.user.username.upcase %>
         </span>
+        <% if @play_count %>
+          <span style="margin-left:4px;font-size:10px;font-weight:500;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= @play_count %> plays</span>
+        <% end %>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;min-width:0;">
@@ -101,15 +104,19 @@
               <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="3"/>
               <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="3"/>
             </svg>
-            <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that connects the words inside it.</p>
+            <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that can apply to all the words inside it.</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;">A</div>
-            <p style="margin:0;">Tap a circle, type your guess for its label, and press <strong>Enter</strong>. The AI judges whether you're right.</p>
+            <p style="margin:0;">Type your guess into the <strong>A</strong>, <strong>B</strong>, or <strong>C</strong> box at the bottom and press the arrow to submit. The AI judges whether you're right.</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;">⟲</div>
             <p style="margin:0;">Words in the <strong>overlapping regions</strong> belong to more than one circle — use them as extra clues.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#fefce8;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">💡</div>
+            <p style="margin:0;">Press <strong>hint</strong> to reveal one letter of the answer at a time.</p>
           </div>
           <div style="display:flex;gap:12px;align-items:flex-start;">
             <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
@@ -136,7 +143,7 @@
       if (navigator.share) {
         navigator.share({ title: 'Can you solve this Venndle?', url: url }).catch(function(){});
       } else {
-        navigator.clipboard.writeText(url).then(function() {
+        navigator.clipboard.writeText('https://' + btn.dataset.url).then(function() {
           btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2BAB65" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
           btn.style.borderColor = '#2BAB65';
           btn.style.color = '#2BAB65';
