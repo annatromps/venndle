@@ -17,6 +17,10 @@ class Admin::PuzzlesController < ApplicationController
 
   def new
     @puzzle = Puzzle.new(puzzle_type: "admin", published: false)
+    taken = Puzzle.where(puzzle_type: "daily").where("scheduled_date >= ?", Date.today).pluck(:scheduled_date).to_set
+    candidate = Date.today
+    candidate += 1 while taken.include?(candidate)
+    @puzzle.scheduled_date = candidate
     if params[:from_import].present?
       @puzzle.title     = params[:title].presence
       @puzzle.label_a   = params[:label_a].presence
