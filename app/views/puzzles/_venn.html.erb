@@ -213,14 +213,24 @@
       <%# vennShare and vennCopyFallback live in app/javascript/venn_share.js — do not re-define here %>
 
       function showDiagramPanel() {
-        document.getElementById('score-panel').style.display = 'none';
+        var sp = document.getElementById('score-panel');
         var dp = document.getElementById('diagram-panel');
+        if (!sp || !dp) return;
+        var container = sp.parentElement;
+        sp.style.display = 'none';
         dp.style.display = 'flex';
+        if (container && container.offsetHeight) {
+          dp.style.height = container.offsetHeight + 'px';
+        }
       }
 
       function showScorePanel() {
-        document.getElementById('diagram-panel').style.display = 'none';
-        document.getElementById('score-panel').style.display = 'flex';
+        var sp = document.getElementById('score-panel');
+        var dp = document.getElementById('diagram-panel');
+        if (!sp || !dp) return;
+        dp.style.display = 'none';
+        dp.style.height = '';
+        sp.style.display = 'flex';
       }
 
       function togglePlayMoreMenu(event) {
