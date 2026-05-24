@@ -437,18 +437,18 @@
               <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
                 <% %w[a b c].each do |lbl| %>
                   <%
-                    solved  = gs.send("solved_#{lbl}?")
-                    gave_up = gs.send("gave_up_#{lbl}?")
-                    hints   = gs.send("hints_#{lbl}").to_i
-                    wrong   = gave_up ? gs.send("attempts_#{lbl}") : [gs.send("attempts_#{lbl}") - (solved ? 1 : 0), 0].max
-                    official = fb.puzzle.send("label_#{lbl}")
+                    solved    = gs.send("solved_#{lbl}?")
+                    gave_up   = gs.send("gave_up_#{lbl}?")
+                    hint_used = gs.send("hint_used_#{lbl}?")
+                    wrong     = gave_up ? gs.send("attempts_#{lbl}") : [gs.send("attempts_#{lbl}") - (solved ? 1 : 0), 0].max
+                    official  = fb.puzzle.send("label_#{lbl}")
                   %>
                   <div style="display:inline-flex;align-items:center;gap:5px;background:#f8f8f8;border-radius:8px;padding:5px 10px;">
                     <span style="width:16px;height:16px;border-radius:50%;background:<%= circle_colors[lbl] %>;color:white;font-size:8px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;"><%= lbl.upcase %></span>
                     <span style="font-size:12px;font-weight:600;color:#555;"><%= official %></span>
                     <span style="font-size:13px;"><%= gave_up ? "🏳️" : (solved ? "✅" : "—") %></span>
                     <% if wrong > 0 %><span style="font-size:11px;color:#e53e3e;font-weight:600;"><%= wrong %>✗</span><% end %>
-                    <% if hints > 0 %><span style="font-size:11px;color:#d97706;">💡<%= hints %></span><% end %>
+                    <% if hint_used %><span style="font-size:11px;color:#d97706;">💡</span><% end %>
                   </div>
                 <% end %>
               </div>
