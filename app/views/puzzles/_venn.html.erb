@@ -211,6 +211,7 @@
     </div>
 
     <script>
+      if (typeof gtag === 'undefined') { window.gtag = function() {}; }
       var gameId = "<%= game_id_for(puzzle) %>";
       function copyShare(e) {
         const text = document.getElementById('share-string').textContent.trim();
