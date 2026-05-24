@@ -518,8 +518,32 @@
         var visits = parseInt(localStorage.getItem('venndle_install_visits') || '0', 10);
         localStorage.setItem('venndle_install_visits', (visits + 1).toString());
         _maybeShowInstallBanner();
-      });
-    </script>
+});
+
+// Claude Code Fix: Handle Turbo navigation cache state
+
+  // Claude Code Fix: Handle Turbo navigation cache state
+  document.addEventListener("turbo:load", function() {
+    const mainModal = document.getElementById('instructions-modal');
+    if (mainModal) {
+      if (localStorage.getItem('venndle_seen_instructions') === '1') {
+        mainModal.style.display = 'none';
+      }
+    }
+  });
+
+  // Handle the click tracking event natively across your global layout
+  document.addEventListener("click", function(event) {
+    const targetButton = event.target.closest('button, a');
+    if (targetButton && (targetButton.textContent.includes("play") || targetButton.textContent.includes("Play"))) {
+      localStorage.setItem('venndle_seen_instructions', '1');
+      const mainModal = document.getElementById('instructions-modal');
+      if (mainModal) {
+        mainModal.style.display = 'none';
+      }
+    }
+  });
+</script>
 
   </body>
 </html>
