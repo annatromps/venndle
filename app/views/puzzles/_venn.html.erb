@@ -642,7 +642,7 @@
               return;
             }
 
-            gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId });
+            try { gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             state.revealed.push(data.letter.toUpperCase());
             state.totalLength = data.total_length;
 
@@ -682,7 +682,7 @@
 
             if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
 
-            gtag('event', 'game_give_up', { 'answer_level': label.toUpperCase(), 'game_id': gameId });
+            try { gtag('event', 'game_give_up', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             const officialLabel = data.official_label;
             row.dataset.solved = 'true';
 
