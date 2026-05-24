@@ -18,45 +18,49 @@
     </div>
 
     <%# How to play modal %>
-    <div id="how-to-play-modal"
-         onclick="if(event.target===this)this.style.display='none'"
-         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
-      <div style="background:white;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.18);position:relative;">
-<button type="button" onclick="event.preventDefault(); document.getElementById('how-to-play-modal').style.display='none'"
-                style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:4px;">✕</button>
-        <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 16px;">How to play</h2>
-        <div style="display:flex;flex-direction:column;gap:14px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#444;line-height:1.55;">
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;margin-top:1px;">
-              <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="3"/>
-              <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="3"/>
-              <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="3"/>
-            </svg>
-            <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that can apply to all the words inside it.</p>
+       <%# How to play modal %>
+    <% unless cookies[:venndle_seen_instructions] == "true" %>
+      <div id="how-to-play-modal"
+           onclick="if(event.target===this){ this.remove(); document.cookie = 'venndle_seen_instructions=true; path=/; max-age=31536000'; }"
+           style="display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+        <div style="background:white;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.18);position:relative;">
+          <button type="button" onclick="document.cookie = 'venndle_seen_instructions=true; path=/; max-age=31536000'; document.getElementById('how-to-play-modal').remove();"
+                  style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:4px;">✕</button>
+          <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 16px;">How to play</h2>
+          <div style="display:flex;flex-direction:column;gap:14px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#444;line-height:1.55;">
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <svg width="28" height="28" viewBox="0 0 100 100" xmlns="http://w3.org" style="flex-shrink:0;margin-top:1px;">
+                <circle cx="50" cy="38" r="28" fill="#C8C4F2" fill-opacity="0.8" stroke="#5B53D6" stroke-width="3"/>
+                <circle cx="34" cy="65" r="28" fill="#B8E4C8" fill-opacity="0.8" stroke="#2BAB65" stroke-width="3"/>
+                <circle cx="66" cy="65" r="28" fill="#F5C4A0" fill-opacity="0.8" stroke="#E8631A" stroke-width="3"/>
+              </svg>
+              <p style="margin:0;">Three overlapping circles, each with a <strong>secret label</strong> — a category that can apply to all the words inside it.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;">A</div>
+              <p style="margin:0;">Type your guess into the <strong>A</strong>, <strong>B</strong>, or <strong>C</strong> box at the bottom and press the arrow to submit. The AI judges whether you're right.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;">⟲</div>
+              <p style="margin:0;">Words in the <strong>overlapping regions</strong> belong to more than one circle — use them as extra clues.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;border-radius:8px;background:#fefce8;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">💡</div>
+              <p style="margin:0;">Press <strong>hint</strong> to reveal one letter of the answer at a time.</p>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start;">
+              <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
+              <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
+            </div>
           </div>
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#555;font-family:'Inter',system-ui,sans-serif;">A</div>
-            <p style="margin:0;">Type your guess into the <strong>A</strong>, <strong>B</strong>, or <strong>C</strong> box at the bottom and press the arrow to submit. The AI judges whether you're right.</p>
-          </div>
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:8px;background:#f4f4f5;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:16px;">⟲</div>
-            <p style="margin:0;">Words in the <strong>overlapping regions</strong> belong to more than one circle — use them as extra clues.</p>
-          </div>
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:8px;background:#fefce8;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">💡</div>
-            <p style="margin:0;">Press <strong>hint</strong> to reveal one letter of the answer at a time.</p>
-          </div>
-          <div style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
-            <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
-          </div>
-                <button type="button" onclick="event.preventDefault(); localStorage.setItem('venndle_seen_instructions', '1'); document.getElementById('how-to-play-modal').style.display='none'"
-                style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
-          Got it
-        </button>
-        </button>
-        <a href="/practice" style="display:block;text-align:center;margin-top:10px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Try a practice puzzle →</a>
+          <button type="button" onclick="document.cookie = 'venndle_seen_instructions=true; path=/; max-age=31536000'; document.getElementById('how-to-play-modal').remove();"
+                  style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+            Got it
+          </button>
+          <a href="/practice" style="display:block;text-align:center;margin-top:10px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Try a practice puzzle →</a>
+        </div>
       </div>
+    <% end %>
     </div>
 
     <%# Venn content — fills remaining height %>
