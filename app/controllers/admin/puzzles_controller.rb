@@ -50,7 +50,6 @@ class Admin::PuzzlesController < ApplicationController
     @puzzle = Puzzle.new(attrs)
     @puzzle.user = current_user
     if @puzzle.save
-      generate_accepted_answers_for(@puzzle)
       notice = @puzzle.puzzle_type == "daily" ? "Puzzle scheduled." : "Puzzle saved to your library."
       redirect_to admin_puzzles_path, notice: notice
     else
@@ -67,7 +66,6 @@ class Admin::PuzzlesController < ApplicationController
       attrs = attrs.merge(puzzle_type: "daily", published: true)
     end
     if @puzzle.update(attrs)
-      generate_accepted_answers_for(@puzzle)
       notice = @puzzle.puzzle_type == "daily" && @puzzle.scheduled_date? ? "Puzzle scheduled." : "Puzzle updated."
       redirect_to admin_puzzles_path, notice: notice
     else
