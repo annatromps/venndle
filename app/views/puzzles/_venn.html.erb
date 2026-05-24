@@ -456,6 +456,7 @@
         const puzzleId = "<%= puzzle.id %>";
         const gameId   = "<%= game_id_for(puzzle) %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const boardWords = new Set(<%= (puzzle.words_a + puzzle.words_b + puzzle.words_c + puzzle.words_ab + puzzle.words_ac + puzzle.words_bc + puzzle.words_abc).map(&:downcase).to_json %>);
 
         // Placeholder colours via injected style since inline ::placeholder doesn't work
         document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
@@ -503,6 +504,13 @@
           if (!input || (!input.value.trim() && !prefix)) return;
 
           const guess = prefix + input.value.trim();
+
+          if (boardWords.has(guess.toLowerCase())) {
+            showRowError(row, "Can't submit board words");
+            input.value = '';
+            return;
+          }
+
           btn.disabled = true;
           btn.innerHTML = '<span class="submit-btn-loading" style="display:inline-block;">↻</span>';
 
