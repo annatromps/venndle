@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   get "/daily", to: "puzzles#daily", as: :daily
   get "/daily:number", to: "puzzles#show_by_daily_number", constraints: { number: /\d+/ }, as: :daily_number
   get "/archive", to: "puzzles#archive", as: :archive
+  get "/practice", to: "puzzles#practice", as: :practice
 
   resources :puzzles, only: [:index, :show, :new, :create]
   post   "/puzzles/:id/guess",         to: "puzzles#guess",        as: :puzzle_guess
