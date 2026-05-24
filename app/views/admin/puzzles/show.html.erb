@@ -28,6 +28,44 @@
       </dl>
     </div>
 
+    <%# Incorrect guesses summary %>
+    <%
+      circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }
+      circle_labels = { "a" => @puzzle.label_a, "b" => @puzzle.label_b, "c" => @puzzle.label_c }
+      any_wrong = @wrong_guesses_by_circle.any? { |_, pairs| pairs.any? }
+    %>
+    <h2 style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin:0 0 12px;font-family:'Inter',system-ui,sans-serif;">
+      Incorrect guesses
+    </h2>
+
+    <% if !any_wrong %>
+      <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;margin-bottom:24px;text-align:center;">
+        No incorrect guesses recorded yet.
+      </div>
+    <% else %>
+      <div style="background:white;border-radius:16px;padding:20px 24px;box-shadow:0 2px 12px rgba(0,0,0,0.06);font-family:'Inter',system-ui,sans-serif;margin-bottom:24px;">
+        <% %w[a b c].each do |lbl| %>
+          <% pairs = @wrong_guesses_by_circle[lbl] %>
+          <% next if pairs.empty? %>
+          <div style="margin-bottom:16px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:<%= circle_colors[lbl] %>;margin-bottom:8px;">
+              Circle <%= lbl.upcase %> — <%= circle_labels[lbl] %>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+              <% pairs.each do |guess, count| %>
+                <span style="display:inline-flex;align-items:center;gap:5px;background:#fef2f2;color:#b91c1c;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:600;">
+                  <%= guess %>
+                  <% if count > 1 %>
+                    <span style="background:#fecaca;border-radius:999px;padding:1px 6px;font-size:10px;font-weight:700;color:#991b1b;"><%= count %>x</span>
+                  <% end %>
+                </span>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+
     <%# Play sessions %>
     <h2 style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin:0 0 12px;font-family:'Inter',system-ui,sans-serif;">
       Play sessions (<%= @game_sessions.size %>)
@@ -50,7 +88,6 @@
               wrong   = gave_up ? gs.send("attempts_#{lbl}") : [gs.send("attempts_#{lbl}") - (solved ? 1 : 0), 0].max
               { lbl: lbl, solved: solved, gave_up: gave_up, hints: hints, wrong: wrong, attempts: lab_attempts }
             end
-            circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }
           %>
           <div style="background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.05);overflow:hidden;font-family:'Inter',system-ui,sans-serif;">
 
