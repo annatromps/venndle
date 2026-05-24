@@ -91,6 +91,15 @@ class PuzzlesController < ApplicationController
     @play_count = GameSession.where(puzzle_id: @puzzle.id).count if admin_view?
   end
 
+  def practice
+    @puzzle = Puzzle.find_by(puzzle_type: "practice")
+    if @puzzle.nil?
+      redirect_to root_path, alert: "Practice puzzle not set up yet." and return
+    end
+    @game_session = find_or_build_game_session(@puzzle)
+    @attempts = load_attempts(@puzzle)
+  end
+
   def show_by_daily_number
     number = params[:number].to_i
     @puzzle = Puzzle.published.daily.order(:scheduled_date).offset(number - 1).limit(1).first
