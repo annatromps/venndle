@@ -59,6 +59,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_100002) do
     t.boolean "hint_used_a", default: false, null: false
     t.boolean "hint_used_b", default: false, null: false
     t.boolean "hint_used_c", default: false, null: false
+    t.integer "hints_a", default: 0, null: false
+    t.integer "hints_b", default: 0, null: false
+    t.integer "hints_c", default: 0, null: false
     t.bigint "puzzle_id", null: false
     t.boolean "solved_a", default: false
     t.boolean "solved_b", default: false
