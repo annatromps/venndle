@@ -723,6 +723,18 @@
             if (btn) btn.disabled = false;
           }
         }
+// Map click event listeners to the submit arrow buttons
+document.querySelectorAll('.submit-btn, .submit-arrow').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    const label = btn.dataset.label || btn.getAttribute('data-circle');
+    const inputEl = document.getElementById('guess-input-' + label) || document.querySelector('input[data-circle="' + label + '"]');
+    
+    if (inputEl && inputEl.value.trim() !== '') {
+      // Calls your existing guess logic helper or form submit
+      submitGuess(label, inputEl.value.trim()); 
+    }
+  });
+});
 
         document.querySelectorAll('.hint-btn').forEach(function(btn) {
           btn.addEventListener('click', function() { fetchHint(btn.dataset.label); });
