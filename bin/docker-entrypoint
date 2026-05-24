@@ -3,7 +3,7 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
-  ./bin/rails puzzles:generate_accepted_answers || echo "Warning: generate_accepted_answers failed, continuing startup"
+  (./bin/rails puzzles:generate_accepted_answers || echo "Warning: generate_accepted_answers failed") &
 fi
 
 exec "${@}"
