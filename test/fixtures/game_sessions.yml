@@ -1,23 +1,59 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
-
-one:
-  user: one
-  puzzle: one
-  completed: false
-  attempts_a: 1
+alice_past_completed:
+  user: alice
+  puzzle: past_daily
+  completed: true
+  attempts_a: 2
   attempts_b: 1
-  attempts_c: 1
+  attempts_c: 3
+  solved_a: true
+  solved_b: true
+  solved_c: true
+  gave_up_a: false
+  gave_up_b: false
+  gave_up_c: false
+  hint_used_a: false
+  hint_used_b: false
+  hint_used_c: false
+  hints_a: 0
+  hints_b: 0
+  hints_c: 0
+
+bob_past_in_progress:
+  user: bob
+  puzzle: past_daily
+  completed: false
+  attempts_a: 2
+  attempts_b: 0
+  attempts_c: 0
   solved_a: false
   solved_b: false
   solved_c: false
+  gave_up_a: false
+  gave_up_b: false
+  gave_up_c: false
+  hint_used_a: false
+  hint_used_b: false
+  hint_used_c: false
+  hints_a: 0
+  hints_b: 0
+  hints_c: 0
 
-two:
-  user: two
-  puzzle: two
-  completed: false
+alice_community_gave_up:
+  user: alice
+  puzzle: community_puzzle
+  completed: true
   attempts_a: 1
-  attempts_b: 1
+  attempts_b: 3
   attempts_c: 1
-  solved_a: false
-  solved_b: false
-  solved_c: false
+  solved_a: true
+  solved_b: true
+  solved_c: true
+  gave_up_a: false
+  gave_up_b: true
+  gave_up_c: false
+  hint_used_a: true
+  hint_used_b: false
+  hint_used_c: false
+  hints_a: 2
+  hints_b: 0
+  hints_c: 0

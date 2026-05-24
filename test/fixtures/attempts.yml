@@ -1,15 +1,20 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+alice_correct_a:
+  user: alice
+  puzzle: past_daily
+  label: a
+  guess: yellow
+  correct: true
 
-one:
-  user: one
-  puzzle: one
-  label: MyString
-  guess: MyString
+alice_wrong_a:
+  user: alice
+  puzzle: past_daily
+  label: a
+  guess: bright
   correct: false
 
-two:
-  user: two
-  puzzle: two
-  label: MyString
-  guess: MyString
+bob_wrong_a:
+  user: bob
+  puzzle: past_daily
+  label: a
+  guess: warm
   correct: false
