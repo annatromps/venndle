@@ -530,17 +530,20 @@
     }
   });
 
-  // Universal close handler: if anything inside the open modal is clicked, hide it cleanly
-document.addEventListener("click", function(event) {
-  const mainModal = document.getElementById('instructions-modal');
-  if (mainModal && mainModal.style.display !== 'none') {
-    if (mainModal.contains(event.target)) {
-      localStorage.setItem('venndle_seen_instructions', '1');
-      document.cookie = "venndle_seen_instructions=true; path=/; max-age=31536000";
-      mainModal.style.display = 'none';
+    // Target the panel directly to catch the click before event.stopPropagation() chokes it
+  document.addEventListener("DOMContentLoaded", function() {
+    const innerPanel = document.getElementById('instructions-panel');
+    if (innerPanel) {
+      innerPanel.addEventListener('click', function(event) {
+        if (event.target.textContent.includes("play") || event.target.textContent.includes("Play")) {
+          localStorage.setItem('venndle_seen_instructions', '1');
+          document.cookie = "venndle_seen_instructions=true; path=/; max-age=31536000";
+          const mainModal = document.getElementById('instructions-modal');
+          if (mainModal) mainModal.style.display = 'none';
+        }
+      });
     }
-  }
-});
+  });
 
 </script>
   </body>
