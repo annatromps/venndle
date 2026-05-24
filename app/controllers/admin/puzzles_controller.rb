@@ -17,6 +17,14 @@ class Admin::PuzzlesController < ApplicationController
     user_ids = @game_sessions.map(&:user_id)
     attempts = user_ids.any? ? Attempt.where(puzzle: @puzzle, user_id: user_ids).order(:created_at) : []
     @attempts_by_user = attempts.group_by(&:user_id)
+    wrong_attempts = attempts.reject(&:correct?)
+    @wrong_guesses_by_circle = %w[a b c].each_with_object({}) do |lbl, h|
+      counts = wrong_attempts.select { |a| a.label == lbl }
+                             .group_by { |a| a.guess.to_s.strip.downcase }
+                             .transform_values(&:count)
+                             .sort_by { |_, n| -n }
+      h[lbl] = counts
+    end
   end
 
   def new

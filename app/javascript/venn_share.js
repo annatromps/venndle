@@ -1,3 +1,5 @@
+if (typeof gtag === 'undefined') { window.gtag = function() {}; }
+
 window.vennShare = function(text, gameId) {
   gtag('event', 'share_score', { 'game_id': gameId });
   var btn = document.getElementById('share-score-btn');
