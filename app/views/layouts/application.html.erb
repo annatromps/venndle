@@ -520,8 +520,6 @@
         _maybeShowInstallBanner();
 });
 
-// Claude Code Fix: Handle Turbo navigation cache state
-
   // Claude Code Fix: Handle Turbo navigation cache state
   document.addEventListener("turbo:load", function() {
     const mainModal = document.getElementById('instructions-modal');
@@ -532,18 +530,18 @@
     }
   });
 
-  // Handle the click tracking event natively across your global layout
-  document.addEventListener("click", function(event) {
-    const targetButton = event.target.closest('button, a');
-    if (targetButton && (targetButton.textContent.includes("play") || targetButton.textContent.includes("Play"))) {
+  // Universal close handler: if anything inside the open modal is clicked, hide it cleanly
+document.addEventListener("click", function(event) {
+  const mainModal = document.getElementById('instructions-modal');
+  if (mainModal && mainModal.style.display !== 'none') {
+    if (mainModal.contains(event.target)) {
       localStorage.setItem('venndle_seen_instructions', '1');
-      const mainModal = document.getElementById('instructions-modal');
-      if (mainModal) {
-        mainModal.style.display = 'none';
-      }
+      document.cookie = "venndle_seen_instructions=true; path=/; max-age=31536000";
+      mainModal.style.display = 'none';
     }
-  });
-</script>
+  }
+});
 
+</script>
   </body>
 </html>
