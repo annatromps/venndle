@@ -445,7 +445,7 @@
         const puzzleId = "<%= puzzle.id %>";
         const gameId   = "<%= game_id_for(puzzle) %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        const boardWords = new Set(<%= (puzzle.words_a + puzzle.words_b + puzzle.words_c + puzzle.words_ab + puzzle.words_ac + puzzle.words_bc + puzzle.words_abc).map(&:downcase).to_json %>);
+        const boardWords = new Set(<%= (puzzle.words_a.to_a + puzzle.words_b.to_a + puzzle.words_c.to_a + puzzle.words_ab.to_a + puzzle.words_ac.to_a + puzzle.words_bc.to_a + puzzle.words_abc.to_a).map(&:downcase).to_json %>);
 
         // Placeholder colours via injected style since inline ::placeholder doesn't work
         document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
@@ -466,7 +466,7 @@
           if (!errEl) {
             errEl = document.createElement('span');
             errEl.className = 'guess-error';
-            errEl.style.cssText = 'font-size:11px;color:#e53e3e;padding-left:32px;display:block;';
+            errEl.style.cssText = 'font-size:12px;font-weight:600;color:#e53e3e;padding-left:32px;display:block;';
             row.appendChild(errEl);
           }
           errEl.textContent = msg;
@@ -495,8 +495,10 @@
           const guess = prefix + input.value.trim();
 
           if (boardWords.has(guess.toLowerCase())) {
-            showRowError(row, "Can't submit board words");
-            input.value = '';
+            row.style.transition = 'border-color 0.15s';
+            row.style.borderColor = '#e53e3e';
+            setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 600);
+            showRowError(row, "Can’t submit board words");
             return;
           }
 
