@@ -578,7 +578,7 @@
               btn.innerHTML = '&#8594;';
             }
 
-            if (data.completed) { gtag('event', 'game_complete', { 'game_id': gameId }); window.location.reload(); }
+            if (data.completed) { try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {} window.location.reload(); }
           } catch(err) {
             console.error('Guess fetch failed:', err);
             showRowError(row, 'Network error — please try again');
@@ -708,7 +708,7 @@
 
             updateSvgPill(label, officialLabel, getCircleColor(label));
 
-            if (data.completed) { gtag('event', 'game_complete', { 'game_id': gameId }); window.location.reload(); }
+            if (data.completed) { try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {} window.location.reload(); }
           } catch(err) {
             console.error('Give up fetch failed:', err);
             if (btn) btn.disabled = false;
