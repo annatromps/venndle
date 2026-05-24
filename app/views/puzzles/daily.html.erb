@@ -50,7 +50,7 @@
             <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
             <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
           </div>
-        <button type="button" onclick="event.preventDefault(); document.getElementById('how-to-play-modal').style.display='none'"
+                <button type="button" onclick="event.preventDefault(); localStorage.setItem('venndle_seen_instructions', '1'); document.getElementById('how-to-play-modal').style.display='none'"
                 style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
           Got it
         </button>
