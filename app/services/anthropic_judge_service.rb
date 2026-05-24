@@ -5,10 +5,12 @@ require "json"
 class AnthropicJudgeService
   MODEL = "gemini-flash-lite-latest"
 
-  def self.call(guess, correct_label, circle_words)
+  def self.call(guess, correct_label, circle_words, all_puzzle_words = [])
     raise ArgumentError, "GEMINI_API_KEY not configured" if ENV["GEMINI_API_KEY"].blank?
 
-    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nAccept the guess if ANY of these conditions are true:\n1. It is a synonym, word form (adjective/noun/adverb of the same root), or alternate spelling of the correct label.\n2. It is the primary noun of a compound label and clearly conveys the same meaning (e.g. \"music\" for \"music genres\", \"animal\" for \"animal types\", \"colour\" for \"colour names\").\n3. It is a common shorthand or informal name for the exact same concept.\n\nIn all cases, the guess must also genuinely and accurately describe ALL of the circle words listed — not just some of them.\n\nAccept: synonyms, plural/singular forms, adjective/noun/adverb variants, common alternate spellings, primary nouns of compound labels.\nReject: phrases that are only loosely related, overly broad statements that go beyond the label's meaning, things that describe the concept in general but don't specifically fit all the circle words.\n\nRespond with only YES or NO."
+    puzzle_words_rule = all_puzzle_words.any? ? " IMPORTANT: The actual puzzle words are: #{all_puzzle_words.join(", ")}. If the guess exactly matches any of these puzzle words, answer NO — puzzle words are never valid category answers." : ""
+
+    prompt = "The category label is: \"#{correct_label}\". The player guessed: \"#{guess}\". The words in this circle are: #{circle_words.join(", ")}.\n\nBefore deciding, mentally test the guess against EVERY circle word individually. The guess is only acceptable if it accurately describes or applies to EACH AND EVERY word. If even one word does not fit, answer NO.\n\nExample: label = \"white\", circle = ghost, snow, coffee, paper, bed linen. Guess = \"pale\". Pale ghost ✓, pale snow ✓, pale coffee ✗ — coffee is not pale. Answer: NO.\n\nThe guess may be accepted if it is a synonym, word form, alternate spelling, or primary noun of a compound label (e.g. \"music\" for \"music genres\") — but ONLY after passing the per-word test above.#{puzzle_words_rule}\n\nRespond with only YES or NO."
 
     text = gemini_request(prompt, max_tokens: 10, retries: 2)
     text.strip.upcase.start_with?("YES")
