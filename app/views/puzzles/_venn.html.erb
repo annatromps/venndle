@@ -445,7 +445,7 @@
         const puzzleId = "<%= puzzle.id %>";
         const gameId   = "<%= game_id_for(puzzle) %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-      const boardwords = new Set(<%= (puzzle.all_words || []).map(&:to_s).to_json.html_safe %>);
+      const boardWords = new Set(<%= (puzzle.all_words || []).map(&:to_s).to_json.html_safe %>);
 
         // Placeholder colours via injected style since inline ::placeholder doesn't work
         document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
