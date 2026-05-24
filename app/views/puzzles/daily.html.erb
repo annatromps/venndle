@@ -22,7 +22,7 @@
          onclick="if(event.target===this)this.style.display='none'"
          style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:600;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
       <div style="background:white;border-radius:20px;padding:28px 24px;max-width:380px;width:100%;box-shadow:0 16px 48px rgba(0,0,0,0.18);position:relative;">
-        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+<button type="button" onclick="event.preventDefault(); document.getElementById('how-to-play-modal').style.display='none'"
                 style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:#aaa;font-size:18px;line-height:1;padding:4px;">✕</button>
         <h2 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 16px;">How to play</h2>
         <div style="display:flex;flex-direction:column;gap:14px;font-family:'Inter',system-ui,sans-serif;font-size:14px;color:#444;line-height:1.55;">
@@ -50,10 +50,10 @@
             <div style="width:28px;height:28px;border-radius:8px;background:#f0fdf4;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:15px;">✓</div>
             <p style="margin:0;">Solve all three circles to win. You have <strong>unlimited guesses</strong>.</p>
           </div>
-        </div>
-        <button onclick="document.getElementById('how-to-play-modal').style.display='none'"
+        <button type="button" onclick="event.preventDefault(); document.getElementById('how-to-play-modal').style.display='none'"
                 style="margin-top:22px;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
           Got it
+        </button>
         </button>
         <a href="/practice" style="display:block;text-align:center;margin-top:10px;font-size:13px;font-weight:600;color:#5B53D6;text-decoration:none;font-family:'Inter',system-ui,sans-serif;">Try a practice puzzle →</a>
       </div>
