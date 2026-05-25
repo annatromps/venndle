@@ -28,7 +28,7 @@ All three must pass with no new failures or warnings introduced.
 - One logical change per commit; don't bundle unrelated fixes.
 
 ### Scope
-- Work in small, focused tasks. A single PR should do one thing.
+- Work in small, focused tasks.
 - Don't refactor or clean up surrounding code unless it's directly in the way of the task.
 - Don't add error handling, fallbacks, or abstraction layers for scenarios that don't exist yet.
 
@@ -43,6 +43,6 @@ All three must pass with no new failures or warnings introduced.
 - Brakeman warnings are blocking; resolve them before merging.
 
 ### Deployment
-- The app deploys automatically to Railway on push to `main`.
-- **Always open PRs to `staging`** — never push directly to `main` or `staging`. Use `gh pr create --base staging`.
-- Only `staging` → `main` promotions go directly to production.
+- The app deploys automatically to Railway on push to `staging`.
+- **Push commits directly to `staging`** — do not create feature branches or PRs. After every task: `git add → git commit → git push origin HEAD:staging`.
+- Never push directly to `main`. Only `staging` → `main` promotions go to production.
