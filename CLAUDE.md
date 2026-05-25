@@ -44,4 +44,5 @@ All three must pass with no new failures or warnings introduced.
 
 ### Deployment
 - The app deploys automatically to Railway on push to `main`.
-- Always open a PR to `main` and merge via squash — never push directly to `main`.
+- **Always open PRs to `staging`** — never push directly to `main` or `staging`. Use `gh pr create --base staging`.
+- Only `staging` → `main` promotions go directly to production.
