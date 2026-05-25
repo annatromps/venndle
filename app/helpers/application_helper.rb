@@ -12,8 +12,13 @@ module ApplicationHelper
     end
   end
 
-  def build_share_string_for(game_session, puzzle)
-    lines = %w[a b c].map do |label|
+  def circle_order_for(attempts)
+    seen = attempts.map(&:label).uniq
+    seen + (%w[a b c] - seen)
+  end
+
+  def build_share_string_for(game_session, puzzle, circle_order: %w[a b c])
+    lines = circle_order.map do |label|
       attempts_count = game_session.send("attempts_#{label}")
       solved  = game_session.send("solved_#{label}?")
       gave_up = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
