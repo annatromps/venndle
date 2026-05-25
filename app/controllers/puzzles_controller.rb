@@ -173,10 +173,10 @@ class PuzzlesController < ApplicationController
     all_puzzle_words = @puzzle.all_words.map { |w| w.to_s.downcase.strip }
     all_accepted = ([correct_label.to_s.downcase.strip] + accepted).uniq.reject(&:blank?)
 
-    if all_puzzle_words.include?(normalized_guess)
-      correct = false
-    elsif fuzzy_match?(normalized_guess, all_accepted)
+    if fuzzy_match?(normalized_guess, all_accepted)
       correct = true
+    elsif all_puzzle_words.include?(normalized_guess)
+      correct = false
     elsif @puzzle.puzzle_type == "user"
       circle_words = @puzzle.all_circle_words_for(label)
       correct = AnthropicJudgeService.call(guess, correct_label, circle_words, all_puzzle_words)
