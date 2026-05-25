@@ -2,7 +2,7 @@
 <div style="height:100%;overflow:hidden;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;padding:0 16px;">
 
   <%= form_with model: @puzzle, id: "puzzle-form",
-        style: "display:grid;grid-template-rows:auto auto auto;height:100%;overflow:hidden;gap:8px;" do |f| %>
+        style: "display:grid;grid-template-rows:auto calc(100vh - 350px) auto;height:100%;overflow:hidden;gap:8px;" do |f| %>
 
     <%# ── ROW 1: title + errors ── %>
     <div style="grid-row:1;padding-top:10px;display:flex;flex-direction:column;gap:6px;">
@@ -27,9 +27,9 @@
     </div>
 
     <%# ── ROW 2: Venn diagram — hard-capped so footer always fits on screen ── %>
-    <div style="grid-row:2;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+    <div style="grid-row:2;height:calc(100vh - 350px);max-height:calc(100vh - 350px);overflow:hidden;display:flex;align-items:center;justify-content:center;">
       <svg viewBox="0 0 560 460"
-           style="max-height:55vh;max-width:90%;width:auto;aspect-ratio:1;display:block;"
+           style="height:100%;width:auto;display:block;"
            preserveAspectRatio="xMidYMid meet"
            xmlns="http://www.w3.org/2000/svg">
 
@@ -92,7 +92,7 @@
     </div>
 
     <%# ── ROW 3 (footer): secret labels + visibility + create button — locked, never cut off ── %>
-    <div style="grid-row:3;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-bottom:16px;">
+    <div style="grid-row:3;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-bottom:16px;margin-bottom:24px !important;">
 
       <div>
         <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Secret labels — what connects the words in each circle?</div>
