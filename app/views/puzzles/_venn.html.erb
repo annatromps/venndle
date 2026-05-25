@@ -620,8 +620,9 @@
         document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
           input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
+              e.preventDefault();
               const btn = input.closest('.guess-row').querySelector('.submit-btn');
-              if (btn) submitGuess(btn.dataset.label, btn);
+              if (btn && !btn.disabled) submitGuess(btn.dataset.label, btn);
             }
           });
         });
