@@ -171,10 +171,11 @@ class PuzzlesController < ApplicationController
     Rails.logger.info "Match result: #{accepted.include?(normalized_guess)}"
 
     all_puzzle_words = @puzzle.all_words.map { |w| w.to_s.downcase.strip }
+    all_accepted = ([correct_label.to_s.downcase.strip] + accepted).uniq.reject(&:blank?)
 
     if all_puzzle_words.include?(normalized_guess)
       correct = false
-    elsif accepted.include?(normalized_guess)
+    elsif fuzzy_match?(normalized_guess, all_accepted)
       correct = true
     elsif @puzzle.puzzle_type == "user"
       circle_words = @puzzle.all_circle_words_for(label)
@@ -259,6 +260,14 @@ class PuzzlesController < ApplicationController
   end
 
   private
+
+  def fuzzy_match?(normalized_guess, accepted_answers)
+    accepted_answers.any? do |answer|
+      forms = [answer, answer.pluralize, answer.singularize].map(&:strip).uniq.reject(&:blank?)
+      next true if forms.include?(normalized_guess)
+      normalized_guess.split(/\s+/).any? { |word| forms.include?(word) }
+    end
+  end
 
   def require_login_to_create
     unless user_signed_in?
