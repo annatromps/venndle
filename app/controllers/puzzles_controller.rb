@@ -154,7 +154,7 @@ class PuzzlesController < ApplicationController
     end
 
     game_session = find_or_build_game_session(@puzzle)
-    normalized_guess = normalize_guess(guess)
+    normalized_guess = guess.downcase
 
     if duplicate_guess?(label, normalized_guess)
       render json: { duplicate: true } and return
@@ -173,13 +173,10 @@ class PuzzlesController < ApplicationController
     all_puzzle_words = @puzzle.all_words.map { |w| w.to_s.downcase.strip }
     all_accepted = ([correct_label.to_s.downcase.strip] + accepted).uniq.reject(&:blank?)
 
-    board_word_guess = false
-
     if fuzzy_match?(normalized_guess, all_accepted)
       correct = true
     elsif all_puzzle_words.include?(normalized_guess)
       correct = false
-      board_word_guess = true
     elsif @puzzle.puzzle_type == "user"
       circle_words = @puzzle.all_circle_words_for(label)
       correct = AnthropicJudgeService.call(guess, correct_label, circle_words, all_puzzle_words)
@@ -201,19 +198,10 @@ class PuzzlesController < ApplicationController
     game_session.reload
     game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
-    circle_order = if user_signed_in?
-      seen = Attempt.where(user: current_user, puzzle: @puzzle).order(:created_at).pluck(:label).uniq
-      seen + (%w[a b c] - seen)
-    else
-      seen = (session["guest_attempts_#{@puzzle.id}"] || []).map { |a| a["label"] }.uniq
-      seen + (%w[a b c] - seen)
-    end
-
-    share_string = build_share_string(game_session, @puzzle, circle_order: circle_order)
+    share_string = build_share_string(game_session, @puzzle)
 
     render json: {
       correct: correct,
-      board_word: board_word_guess || nil,
       official_label: correct_label,
       solved: {
         a: game_session.solved_a?,
@@ -273,41 +261,12 @@ class PuzzlesController < ApplicationController
 
   private
 
-  def normalize_guess(raw)
-    raw.to_s
-       .downcase
-       .gsub(/\A[[:punct:]]+/, "")
-       .gsub(/[[:punct:]]+\z/, "")
-       .gsub(/\s+/, " ")
-       .strip
-  end
-
   def fuzzy_match?(normalized_guess, accepted_answers)
-    guess_forms = word_forms(normalized_guess)
-
     accepted_answers.any? do |answer|
-      answer = answer.to_s.downcase.strip
-      next false if answer.blank?
-
-      answer_forms = word_forms(answer)
-
-      # 1. Full-phrase match (includes plural/singular of whole phrase)
-      next true if (guess_forms & answer_forms).any?
-
-      # 2. Any word in the guess matches the full answer form
-      #    e.g. "under the sea" accepted when answer is "sea"
-      next true if normalized_guess.split(/\s+/).any? { |w| answer_forms.include?(w) }
-
-      # 3. Any word in the answer matches the full guess form
-      #    e.g. "test" accepted when answer is "doing tests"
-      next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
-
-      false
+      forms = [answer, answer.pluralize, answer.singularize].map(&:strip).uniq.reject(&:blank?)
+      next true if forms.include?(normalized_guess)
+      normalized_guess.split(/\s+/).any? { |word| forms.include?(word) }
     end
-  end
-
-  def word_forms(phrase)
-    [phrase, phrase.pluralize, phrase.singularize].map(&:strip).uniq.reject(&:blank?)
   end
 
   def require_login_to_create
@@ -367,8 +326,8 @@ class PuzzlesController < ApplicationController
     permitted
   end
 
-  def build_share_string(game_session, puzzle, circle_order: %w[a b c])
-    lines = circle_order.map do |label|
+  def build_share_string(game_session, puzzle)
+    lines = %w[a b c].map do |label|
       attempts_count = game_session.send("attempts_#{label}")
       solved   = game_session.send("solved_#{label}?")
       gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
