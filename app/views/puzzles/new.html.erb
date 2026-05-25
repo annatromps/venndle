@@ -2,7 +2,7 @@
 <div style="height:100%;overflow:hidden;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;padding:0 16px;">
 
   <%= form_with model: @puzzle, id: "puzzle-form",
-        style: "display:grid;grid-template-rows:auto calc(100vh - 350px) auto;height:100%;overflow:hidden;gap:8px;" do |f| %>
+        style: "display:grid;grid-template-rows:auto calc(100vh - 460px) auto;height:100%;overflow:hidden;gap:8px;" do |f| %>
 
     <%# ── ROW 1: title + errors ── %>
     <div style="grid-row:1;padding-top:10px;display:flex;flex-direction:column;gap:6px;">
@@ -27,7 +27,7 @@
     </div>
 
     <%# ── ROW 2: Venn diagram — hard-capped so footer always fits on screen ── %>
-    <div style="grid-row:2;height:calc(100vh - 350px);max-height:calc(100vh - 350px);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+    <div style="grid-row:2;height:calc(100vh - 460px);max-height:calc(100vh - 460px);overflow:hidden;display:flex;align-items:center;justify-content:center;">
       <svg viewBox="0 0 560 460"
            style="height:100%;width:auto;display:block;"
            preserveAspectRatio="xMidYMid meet"
