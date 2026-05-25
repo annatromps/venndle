@@ -177,12 +177,14 @@ class PuzzlesController < ApplicationController
       correct = true
     elsif all_puzzle_words.include?(normalized_guess)
       correct = false
-    else
+    elsif @puzzle.puzzle_type == "user"
       circle_words = @puzzle.all_circle_words_for(label)
       correct = AnthropicJudgeService.call(guess, correct_label, circle_words, all_puzzle_words)
       if correct
         @puzzle.update_column("accepted_answers_#{label}", (accepted + [normalized_guess]).uniq)
       end
+    else
+      correct = false
     end
 
     if user_signed_in?

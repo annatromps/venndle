@@ -518,8 +518,33 @@
         var visits = parseInt(localStorage.getItem('venndle_install_visits') || '0', 10);
         localStorage.setItem('venndle_install_visits', (visits + 1).toString());
         _maybeShowInstallBanner();
-      });
-    </script>
+});
 
+  // Claude Code Fix: Handle Turbo navigation cache state
+  document.addEventListener("turbo:load", function() {
+    const mainModal = document.getElementById('instructions-modal');
+    if (mainModal) {
+      if (localStorage.getItem('venndle_seen_instructions') === '1') {
+        mainModal.style.display = 'none';
+      }
+    }
+  });
+
+    // Target the panel directly to catch the click before event.stopPropagation() chokes it
+  document.addEventListener("DOMContentLoaded", function() {
+    const innerPanel = document.getElementById('instructions-panel');
+    if (innerPanel) {
+      innerPanel.addEventListener('click', function(event) {
+        if (event.target.textContent.includes("play") || event.target.textContent.includes("Play")) {
+          localStorage.setItem('venndle_seen_instructions', '1');
+          document.cookie = "venndle_seen_instructions=true; path=/; max-age=31536000";
+          const mainModal = document.getElementById('instructions-modal');
+          if (mainModal) mainModal.style.display = 'none';
+        }
+      });
+    }
+  });
+
+</script>
   </body>
 </html>

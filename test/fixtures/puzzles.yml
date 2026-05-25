@@ -1,21 +1,84 @@
-# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+past_daily:
+  title: "Past Daily"
+  puzzle_type: daily
+  scheduled_date: 2026-01-01
+  user: alice
+  label_a: yellow
+  label_b: sharp
+  label_c: round
+  words_a: "{minion,banana,sunflower}"
+  words_b: "{wit,vinegar,needle}"
+  words_c: "{earth,balloon,bubble}"
+  words_ab: "{mustard,canary}"
+  words_ac: "{sun,buttercup}"
+  words_bc: "{urchin,porcupine}"
+  words_abc: "{lemon}"
+  accepted_answers_a: "{yellow,yellowy}"
+  accepted_answers_b: "{sharp,pointed}"
+  accepted_answers_c: "{round,circular}"
+  published: true
 
-one:
-  title: MyString
-  puzzle_type: MyString
-  scheduled_date: 2026-05-19
-  user: one
-  label_a: MyString
-  label_b: MyString
-  label_c: MyString
-  published: false
+today_daily:
+  title: "Today Daily"
+  puzzle_type: daily
+  scheduled_date: <%= Date.today.to_s %>
+  user: alice
+  label_a: colors
+  label_b: animals
+  label_c: foods
+  words_a: "{red,blue,green}"
+  words_b: "{dog,cat,fish}"
+  words_c: "{apple,bread,rice}"
+  words_ab: "{robin,flamingo}"
+  words_ac: "{cherry,tomato}"
+  words_bc: "{parrot,salmon}"
+  words_abc: "{cardinal}"
+  accepted_answers_a: "{colors,colour}"
+  accepted_answers_b: "{animals}"
+  accepted_answers_c: "{foods,food}"
+  published: true
 
-two:
-  title: MyString
-  puzzle_type: MyString
-  scheduled_date: 2026-05-19
-  user: two
-  label_a: MyString
-  label_b: MyString
-  label_c: MyString
+future_daily:
+  title: "Future Daily"
+  puzzle_type: daily
+  scheduled_date: <%= (Date.today + 7).to_s %>
+  user: admin_user
+  label_a: hot
+  label_b: cold
+  label_c: wet
+  words_a: "{fire,chili,desert}"
+  words_b: "{ice,snow,arctic}"
+  words_c: "{rain,ocean,lake}"
+  words_ab: "{sauna,volcano}"
+  words_ac: "{steam,kettle}"
+  words_bc: "{blizzard,hail}"
+  words_abc: "{weather}"
+  published: true
+
+community_puzzle:
+  title: "Community Puzzle"
+  puzzle_type: user
+  user: bob
+  label_a: transport
+  label_b: speed
+  label_c: fuel
+  words_a: "{car,train,bus}"
+  words_b: "{fast,slow,quick}"
+  words_c: "{petrol,diesel,electric}"
+  words_ab: "{rocket,motorcycle}"
+  words_ac: "{jet,turbine}"
+  words_bc: "{formula,dragracer}"
+  words_abc: "{sportscar}"
+  accepted_answers_a: "{transport,transportation}"
+  accepted_answers_b: "{speed,velocity}"
+  accepted_answers_c: "{fuel,energy}"
+  published: true
+
+unpublished_puzzle:
+  title: "Unpublished"
+  puzzle_type: user
+  user: alice
+  label_a: test_label_a
+  label_b: test_label_b
+  label_c: test_label_c
   published: false
