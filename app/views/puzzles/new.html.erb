@@ -1,10 +1,11 @@
-<%# Outer wrapper fills <main> exactly — no scroll, no overflow %>
-<div style="height:100%;overflow:hidden;display:flex;flex-direction:column;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;padding:0 16px;">
+<%# Outer wrapper: CSS Grid, 3 rows, strict no-scroll %>
+<div style="height:100%;overflow:hidden;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;padding:0 16px;">
 
-  <%= form_with model: @puzzle, id: "puzzle-form", style: "display:flex;flex-direction:column;height:100%;overflow:hidden;" do |f| %>
+  <%= form_with model: @puzzle, id: "puzzle-form",
+        style: "display:grid;grid-template-rows:auto auto auto;height:100%;overflow:hidden;gap:8px;" do |f| %>
 
-    <%# ── TOP: title input + errors ── flex-shrink:0 so it never collapses %>
-    <div style="flex-shrink:0;padding-top:10px;display:flex;flex-direction:column;gap:8px;">
+    <%# ── ROW 1: title + errors ── %>
+    <div style="grid-row:1;padding-top:10px;display:flex;flex-direction:column;gap:6px;">
 
       <div>
         <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 6px;line-height:1.1;">Create a Venndle</h1>
@@ -25,9 +26,12 @@
 
     </div>
 
-    <%# ── MIDDLE: Venn diagram — grows and shrinks to fill available space %>
-    <div style="flex:1;min-height:0;overflow:hidden;">
-      <svg viewBox="0 0 560 460" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <%# ── ROW 2: Venn diagram — hard-capped so footer always fits on screen ── %>
+    <div style="grid-row:2;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+      <svg viewBox="0 0 560 460"
+           style="max-height:30vh;max-width:100%;width:auto;aspect-ratio:1;display:block;"
+           preserveAspectRatio="xMidYMid meet"
+           xmlns="http://www.w3.org/2000/svg">
 
         <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
         <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="2"/>
@@ -87,8 +91,8 @@
       </svg>
     </div>
 
-    <%# ── BOTTOM: secret labels + visibility + submit — flex-shrink:0, never cut off %>
-    <div style="flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-bottom:16px;">
+    <%# ── ROW 3 (footer): secret labels + visibility + create button — locked, never cut off ── %>
+    <div style="grid-row:3;flex-shrink:0;display:flex;flex-direction:column;gap:8px;padding-bottom:16px;">
 
       <div>
         <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Secret labels — what connects the words in each circle?</div>
