@@ -2,6 +2,8 @@
 <% game_session ||= nil %>
 <% attempts ||= [] %>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+
 <style>
   /* Responsive guess area — row on desktop, column on mobile */
   .guess-area { display:flex; flex-shrink:0; gap:8px; flex-direction:column; }
@@ -590,7 +592,22 @@
               btn.innerHTML = '&#8594;';
             }
 
-            if (data.completed) { try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {} window.location.reload(); }
+            if (data.completed) {
+              try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
+              const wrongMarks = ['a','b','c'].reduce(function(n, lbl) {
+                const el = document.getElementById('marks-' + lbl);
+                return n + (el ? Array.from(el.children).filter(function(s){ return s.textContent === '✗'; }).length : 0);
+              }, 0);
+              if (wrongMarks === 0 && typeof confetti === 'function') {
+                const opts = { particleCount: 120, spread: 70, startVelocity: 60, decay: 0.92, ticks: 200,
+                  colors: ['#5B53D6','#2BAB65','#E8631A','#ffffff','#ffd700'] };
+                confetti(Object.assign({}, opts, { angle: 60,  origin: { x: 0, y: 1 } }));
+                confetti(Object.assign({}, opts, { angle: 120, origin: { x: 1, y: 1 } }));
+                setTimeout(function() { window.location.reload(); }, 2600);
+              } else {
+                window.location.reload();
+              }
+            }
           } catch(err) {
             console.error('Guess fetch failed:', err);
             showRowError(row, 'Network error — please try again');
