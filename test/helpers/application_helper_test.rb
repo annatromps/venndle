@@ -1,4 +1,5 @@
 require "test_helper"
+require "ostruct"
 
 class ApplicationHelperTest < ActionView::TestCase
   include ApplicationHelper
@@ -96,5 +97,43 @@ class ApplicationHelperTest < ActionView::TestCase
     puzzle = puzzles(:community_puzzle)
     result = build_share_string_for(gs, puzzle)
     assert result.start_with?("Community Puzzle")
+  end
+
+  # circle_order_for
+
+  test "circle_order_for returns labels in first-seen attempt order" do
+    attempts = [
+      OpenStruct.new(label: "c"),
+      OpenStruct.new(label: "c"),
+      OpenStruct.new(label: "a"),
+      OpenStruct.new(label: "b")
+    ]
+    assert_equal %w[c a b], circle_order_for(attempts)
+  end
+
+  test "circle_order_for fills missing labels at the end" do
+    attempts = [ OpenStruct.new(label: "b") ]
+    result = circle_order_for(attempts)
+    assert_equal "b", result.first
+    assert_includes result, "a"
+    assert_includes result, "c"
+    assert_equal 3, result.length
+  end
+
+  test "circle_order_for falls back to abc when attempts empty" do
+    assert_equal %w[a b c], circle_order_for([])
+  end
+
+  # build_share_string_for with custom circle_order
+
+  test "share string respects custom circle_order" do
+    gs = game_sessions(:alice_past_completed)
+    puzzle = puzzles(:past_daily)
+    result = build_share_string_for(gs, puzzle, circle_order: %w[c b a])
+    lines = result.lines.map(&:strip).reject { |l| l.empty? }
+    score_lines = lines[1..-2]   # strip title and URL
+    assert score_lines.first.start_with?("C "), "First score line should be C, got: #{score_lines.first}"
+    assert score_lines[1].start_with?("B ")
+    assert score_lines.last.start_with?("A ")
   end
 end
