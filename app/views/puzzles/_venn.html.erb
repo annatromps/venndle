@@ -493,14 +493,6 @@
 
           const guess = prefix + input.value.trim();
 
-          if (boardWords.has(guess.toLowerCase())) {
-            row.style.transition = 'border-color 0.15s';
-            row.style.borderColor = '#e53e3e';
-            setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 600);
-            showRowError(row, "Can’t submit board words");
-            return;
-          }
-
           btn.disabled = true;
           btn.innerHTML = '<span class="submit-btn-loading" style="display:inline-block;">↻</span>';
 
@@ -535,6 +527,16 @@
               btn.disabled = false;
               btn.innerHTML = '&#8594;';
               input.value = '';
+              return;
+            }
+
+            if (data.board_word) {
+              row.style.transition = 'border-color 0.15s';
+              row.style.borderColor = '#e53e3e';
+              setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 600);
+              showRowError(row, "Can't submit board words");
+              btn.disabled = false;
+              btn.innerHTML = '&#8594;';
               return;
             }
 
