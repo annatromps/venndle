@@ -11,6 +11,7 @@ Rails.application.routes.draw do
   post   "/puzzles/:id/guess",         to: "puzzles#guess",        as: :puzzle_guess
   post   "/puzzles/:id/hint",          to: "puzzles#hint",         as: :puzzle_hint
   post   "/puzzles/:id/give_up",       to: "puzzles#give_up",      as: :puzzle_give_up
+  delete "/puzzles/:id/reset_session", to: "puzzles#reset_session", as: :puzzle_reset_session
   post   "/puzzles/:puzzle_id/feedback", to: "puzzle_feedbacks#create", as: :puzzle_feedback
   post   "/puzzles/:id/favourite",     to: "favourites#create", as: :puzzle_favourite
   delete "/puzzles/:id/favourite",     to: "favourites#destroy"
