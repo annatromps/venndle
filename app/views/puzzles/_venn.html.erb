@@ -37,7 +37,9 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <% [["a","#5B53D6","#EDEAFC"],["b","#2BAB65","#E5F5EC"],["c","#E8631A","#FDF0E9"]].each do |lbl, color, bg| %>
+          <% circle_colors = { "a" => ["#5B53D6","#EDEAFC"], "b" => ["#2BAB65","#E5F5EC"], "c" => ["#E8631A","#FDF0E9"] } %>
+          <% circle_order_for(attempts).each do |lbl| %>
+            <% color, bg = circle_colors[lbl] %>
             <% label_text = puzzle.send("label_#{lbl}") %>
             <% cnt = game_session.send("attempts_#{lbl}") %>
             <% solved = game_session.send("solved_#{lbl}?") %>
@@ -51,7 +53,7 @@
           <% end %>
         </div>
 
-        <% _share_text = build_share_string_for(game_session, puzzle) %>
+        <% _share_text = build_share_string_for(game_session, puzzle, circle_order: circle_order_for(attempts)) %>
         <% _game_id    = game_id_for(puzzle) %>
         <button onclick="vennShare(<%= _share_text.to_json %>, <%= _game_id.to_json %>)" id="share-score-btn"
                 style="width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">

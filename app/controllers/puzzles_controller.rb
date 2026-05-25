@@ -201,7 +201,15 @@ class PuzzlesController < ApplicationController
     game_session.reload
     game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
-    share_string = build_share_string(game_session, @puzzle)
+    circle_order = if user_signed_in?
+      seen = Attempt.where(user: current_user, puzzle: @puzzle).order(:created_at).pluck(:label).uniq
+      seen + (%w[a b c] - seen)
+    else
+      seen = (session["guest_attempts_#{@puzzle.id}"] || []).map { |a| a["label"] }.uniq
+      seen + (%w[a b c] - seen)
+    end
+
+    share_string = build_share_string(game_session, @puzzle, circle_order: circle_order)
 
     render json: {
       correct: correct,
@@ -359,8 +367,8 @@ class PuzzlesController < ApplicationController
     permitted
   end
 
-  def build_share_string(game_session, puzzle)
-    lines = %w[a b c].map do |label|
+  def build_share_string(game_session, puzzle, circle_order: %w[a b c])
+    lines = circle_order.map do |label|
       attempts_count = game_session.send("attempts_#{label}")
       solved   = game_session.send("solved_#{label}?")
       gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
