@@ -82,3 +82,17 @@ unpublished_puzzle:
   label_b: test_label_b
   label_c: test_label_c
   published: false
+
+scheduled_community_puzzle:
+  title: "Scheduled Community Puzzle"
+  puzzle_type: daily
+  scheduled_date: <%= (Date.today + 14).to_s %>
+  user: bob
+  label_a: colors
+  label_b: shapes
+  label_c: textures
+  words_a: "{red,blue}"
+  words_b: "{circle,square}"
+  words_c: "{rough,smooth}"
+  words_abc: "{tile}"
+  published: true

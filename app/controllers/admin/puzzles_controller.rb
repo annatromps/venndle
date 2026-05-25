@@ -82,8 +82,13 @@ class Admin::PuzzlesController < ApplicationController
   end
 
   def unschedule
-    @puzzle.update!(puzzle_type: "user", scheduled_date: nil)
-    redirect_to admin_puzzles_path, notice: "Puzzle removed from schedule."
+    if @puzzle.user&.admin?
+      @puzzle.update!(puzzle_type: "admin", scheduled_date: nil, published: false)
+      redirect_to admin_puzzles_path, notice: "Puzzle returned to your library."
+    else
+      @puzzle.update!(puzzle_type: "user", scheduled_date: nil)
+      redirect_to puzzles_path, notice: "Puzzle returned to the community list."
+    end
   end
 
   def destroy
