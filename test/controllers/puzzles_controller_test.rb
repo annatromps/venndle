@@ -333,4 +333,46 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
     assert_not data["correct"]
     assert data["board_word"]
   end
+
+  # ── reset_session ────────────────────────────────────────────────────────────
+
+  test "admin can reset their own game session" do
+    admin = users(:admin_user)
+    puzzle = puzzles(:past_daily)
+    GameSession.create!(user: admin, puzzle: puzzle, completed: true,
+      solved_a: true, solved_b: true, solved_c: true,
+      attempts_a: 1, attempts_b: 1, attempts_c: 1)
+    Attempt.create!(user: admin, puzzle: puzzle, label: "a", guess: "yellow", correct: true)
+
+    sign_in admin
+    delete puzzle_reset_session_path(puzzle)
+
+    assert_redirected_to puzzle_path(puzzle)
+    assert_equal 0, GameSession.where(user: admin, puzzle: puzzle).count
+    assert_equal 0, Attempt.where(user: admin, puzzle: puzzle).count
+  end
+
+  test "non-admin cannot reset session" do
+    sign_in users(:alice)
+    puzzle = puzzles(:past_daily)
+    delete puzzle_reset_session_path(puzzle)
+    assert_response :forbidden
+  end
+
+  test "guest cannot reset session" do
+    puzzle = puzzles(:past_daily)
+    delete puzzle_reset_session_path(puzzle)
+    assert_response :forbidden
+  end
+
+  test "reset does not affect other users sessions" do
+    admin = users(:admin_user)
+    puzzle = puzzles(:past_daily)
+    alice_session = game_sessions(:alice_past_completed)
+
+    sign_in admin
+    delete puzzle_reset_session_path(puzzle)
+
+    assert GameSession.exists?(alice_session.id)
+  end
 end

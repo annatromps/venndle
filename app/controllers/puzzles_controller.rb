@@ -271,6 +271,16 @@ class PuzzlesController < ApplicationController
     }
   end
 
+  def reset_session
+    return head :forbidden unless user_signed_in? && current_user.admin?
+
+    puzzle = Puzzle.find(params[:id])
+    GameSession.where(user: current_user, puzzle: puzzle).destroy_all
+    Attempt.where(user: current_user, puzzle: puzzle).destroy_all
+
+    redirect_to puzzle, notice: "Session reset — puzzle ready to play again."
+  end
+
   private
 
   def normalize_guess(raw)
