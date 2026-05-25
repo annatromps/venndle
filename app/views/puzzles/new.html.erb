@@ -1,8 +1,8 @@
-<div style="height:100%;display:flex;flex-direction:column;padding:10px 16px 24px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
+<div style="padding:10px 16px 48px;box-sizing:border-box;max-width:700px;margin:0 auto;width:100%;">
 
-  <%= form_with model: @puzzle, id: "puzzle-form", style: "flex:1;display:flex;flex-direction:column;gap:8px;min-height:0;" do |f| %>
+  <%= form_with model: @puzzle, id: "puzzle-form", style: "display:flex;flex-direction:column;gap:12px;" do |f| %>
 
-    <div style="flex-shrink:0;">
+    <div>
       <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 8px;line-height:1.1;">Create a Venndle</h1>
       <%= f.text_field :title,
         style: "width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;padding:7px 12px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:rgba(255,255,255,0.6);",
@@ -10,7 +10,7 @@
     </div>
 
     <% if @puzzle.errors.any? %>
-      <div style="flex-shrink:0;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;">
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;">
         <ul style="margin:0;padding:0 0 0 14px;font-size:12px;color:#991b1b;font-family:'Inter',system-ui,sans-serif;">
           <% @puzzle.errors.full_messages.each do |msg| %>
             <li><%= msg %></li>
@@ -19,9 +19,9 @@
       </div>
     <% end %>
 
-    <%# Venn diagram — scales to fill remaining space, no card box %>
-    <div style="flex:1;min-height:0;overflow:hidden;">
-      <svg viewBox="0 0 560 460" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+    <%# Venn diagram — intrinsic aspect-ratio sizing, no fixed height required %>
+    <div>
+      <svg viewBox="0 0 560 460" style="width:100%;height:auto;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
 
         <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.45" stroke="#5B53D6" stroke-width="2"/>
         <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.45" stroke="#2BAB65" stroke-width="2"/>
@@ -81,7 +81,7 @@
       </svg>
     </div>
 
-    <div style="flex-shrink:0;">
+    <div>
       <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Secret labels — what connects the words in each circle?</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
         <div><%= f.text_field :label_a, style: "width:100%;box-sizing:border-box;border:1.5px solid #5B53D6;border-radius:10px;padding:7px 10px;font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;background:#EDEAFC;", placeholder: "A answer..." %></div>
@@ -91,7 +91,7 @@
     </div>
 
     <%# Visibility toggle %>
-    <div style="flex-shrink:0;">
+    <div>
       <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#888;margin-bottom:6px;font-family:'Inter',system-ui,sans-serif;">Visibility</div>
       <div style="display:flex;gap:8px;margin-bottom:6px;">
         <button type="button" id="toggle-public" onclick="setVisibility('public')"
@@ -108,7 +108,7 @@
     </div>
 
     <%= f.submit "Create puzzle",
-      style: "flex-shrink:0;width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
+      style: "width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;height:44px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;" %>
 
   <% end %>
 </div>
