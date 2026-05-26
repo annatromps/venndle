@@ -366,6 +366,7 @@ class PuzzlesController < ApplicationController
     attempts = (session[key] || []).dup
     attempts << { "label" => label, "guess" => guess, "correct" => correct }
     session[key] = attempts
+    Attempt.create!(puzzle: puzzle, label: label, guess: guess, correct: correct)
   end
 
   def puzzle_params
