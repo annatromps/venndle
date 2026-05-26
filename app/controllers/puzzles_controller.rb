@@ -312,6 +312,12 @@ class PuzzlesController < ApplicationController
       #    e.g. "test" accepted when answer is "doing tests"
       next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
 
+      # 4. Prefix match (min 3 chars): one starts with the other
+      #    e.g. "test" accepted when answer is "testing"; blocks single-char matches like "t"
+      if normalized_guess.length >= 3 && answer.length >= 3
+        next true if answer.start_with?(normalized_guess) || normalized_guess.start_with?(answer)
+      end
+
       false
     end
   end
