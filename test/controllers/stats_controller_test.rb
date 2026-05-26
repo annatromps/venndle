@@ -30,7 +30,8 @@ class StatsControllerTest < ActionDispatch::IntegrationTest
       attempts_c: attempts_c,
       gave_up_a:  gave_up_a,
       gave_up_b:  gave_up_b,
-      gave_up_c:  gave_up_c
+      gave_up_c:  gave_up_c,
+      created_at: date.to_time + 12.hours
     )
   end
 

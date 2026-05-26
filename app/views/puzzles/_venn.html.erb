@@ -96,7 +96,8 @@
             .where(puzzles: { puzzle_type: "daily" }, completed: true)
             .where("puzzles.scheduled_date <= ?", Date.today)
             .includes(:puzzle).to_a
-          _dates = _gs.map { |s| s.puzzle.scheduled_date }.to_set
+          _dates = _gs.select { |s| s.created_at.to_date <= s.puzzle.scheduled_date + 1 }
+                     .map { |s| s.puzzle.scheduled_date }.to_set
           _sd = _dates.include?(Date.today) ? Date.today : Date.today - 1
           _streak = 0; _d = _sd
           while _dates.include?(_d); _streak += 1; _d -= 1; end
@@ -169,7 +170,7 @@
     </div>
 
     <%# ── Diagram panel (fixed overlay, shown by "View completed puzzle") ── %>
-    <div id="diagram-panel" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:100;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;">
+    <div id="diagram-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:500;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;">
       <div style="flex:1;min-height:0;overflow:hidden;">
         <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -260,21 +261,33 @@
         var misses = <%= total_wrong %>;
         try {
           var saved = JSON.parse(localStorage.getItem('venndle_daily_stats') || '{}');
-          if (isDaily && puzzleDate && !saved[puzzleDate]) {
-            saved[puzzleDate] = { misses: misses };
-            localStorage.setItem('venndle_daily_stats', JSON.stringify(saved));
-          }
-          if (Object.keys(saved).length === 0) return;
           function ds(d) {
             return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
           }
           var now = new Date();
-          var today = ds(now), yesterday = ds(new Date(now - 86400000));
-          var start = saved[today] ? today : (saved[yesterday] ? yesterday : null);
+          var today = ds(now);
+          if (isDaily && puzzleDate && !saved[puzzleDate]) {
+            saved[puzzleDate] = { misses: misses, playedAt: today };
+            localStorage.setItem('venndle_daily_stats', JSON.stringify(saved));
+          }
+          if (Object.keys(saved).length === 0) return;
+          var yesterday = ds(new Date(now - 86400000));
+          // Only count entries played on the puzzle's date or the next day
+          function validForStreak(puzzleDate, entry) {
+            var pa = entry.playedAt;
+            if (!pa) return true; // legacy entries without playedAt: trust them
+            var diff = (new Date(pa + 'T12:00:00') - new Date(puzzleDate + 'T12:00:00')) / 86400000;
+            return diff >= 0 && diff <= 1;
+          }
+          var validDates = {};
+          Object.keys(saved).forEach(function(date) {
+            if (validForStreak(date, saved[date])) validDates[date] = true;
+          });
+          var start = validDates[today] ? today : (validDates[yesterday] ? yesterday : null);
           var streak = 0;
           if (start) {
             var d = new Date(start + 'T12:00:00');
-            while (saved[ds(d)]) { streak++; d.setDate(d.getDate() - 1); }
+            while (validDates[ds(d)]) { streak++; d.setDate(d.getDate() - 1); }
           }
           var vals = Object.values(saved).map(function(v) { return v.misses; });
           var avg = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10) / 10 : null;
