@@ -1,5 +1,5 @@
 class Attempt < ApplicationRecord
-  belongs_to :user
+  belongs_to :user, optional: true
   belongs_to :puzzle
 
   validates :label, inclusion: { in: %w[a b c] }

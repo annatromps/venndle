@@ -418,6 +418,11 @@
                 <% end %>
               <% end %>
             </span>
+            <%# Tip shown after 2+ wrong guesses %>
+            <% wrong_so_far = lbl_attempts.count { |a| !a.correct? } %>
+            <div id="guess-tip-<%= lbl %>" style="padding-left:32px;<%= wrong_so_far >= 2 && !solved ? '' : 'display:none;' %>">
+              <span style="font-size:11px;color:#92400e;background:#fef3c7;border-radius:6px;padding:3px 8px;font-family:'Inter',system-ui,sans-serif;line-height:1.4;display:inline-block;">Remember: your answer must apply to all 4 words in this circle!</span>
+            </div>
             <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
               <span id="you-said-<%= lbl %>" style="font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;">you said: <%= last_correct_attempt.guess %></span>
             <% end %>
@@ -556,6 +561,10 @@
               m.style.cssText = 'font-size:18px;color:#ef4444;font-weight:900;line-height:1;';
               m.textContent = '✗';
               marksEl.appendChild(m);
+              // Show tip after 2nd wrong guess on this circle
+              var wrongCount = Array.from(marksEl.children).filter(function(s) { return s.textContent === '✗'; }).length;
+              var tipEl = document.getElementById('guess-tip-' + label);
+              if (tipEl && wrongCount >= 2) tipEl.style.display = '';
               // Brief red-border flash on the row to signal incorrect
               row.style.transition = 'border-color 0.15s';
               row.style.borderColor = '#e53e3e';

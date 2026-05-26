@@ -2,29 +2,18 @@
 .admin-page { overflow-y: auto; height: 100%; box-sizing: border-box; }
 .admin-sticky-hdr { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #ede8fb 0%, #fae3d5 100%); padding: 20px 24px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); }
 .admin-inner { max-width: 960px; margin: 0 auto; padding: 24px 24px 48px; }
-.admin-tbl { width: 100%; border-collapse: collapse; font-family: 'Inter', system-ui, sans-serif; min-width: 620px; }
-.admin-tbl thead th { padding: 10px 14px; text-align: left; font-weight: 600; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; border-bottom: 1px solid #f0f0f0; }
-.admin-tbl td { padding: 10px 14px; font-size: 13px; color: #1a1a2e; vertical-align: middle; border-bottom: 1px solid #f8f8f8; }
-.admin-tbl tr:last-child td { border-bottom: none; }
-.circle-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; color: white; font-size: 10px; font-weight: 700; font-family: 'Inter', system-ui, sans-serif; }
-.wrong-pill { display: inline-block; background: #fef2f2; color: #b91c1c; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; font-family: 'Inter', system-ui, sans-serif; }
-.correct-ans { font-weight: 600; font-size: 12px; }
+.admin-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: clip; }
+.wg-row { padding: 12px 20px; border-bottom: 1px solid #f4f4f4; font-family: 'Inter', system-ui, sans-serif; }
+.wg-row:last-child { border-bottom: none; }
 .puzzle-link { color: #5B53D6; font-weight: 600; text-decoration: none; font-size: 13px; }
 .puzzle-link:hover { text-decoration: underline; }
-.ts { color: #aaa; font-size: 12px; white-space: nowrap; }
-.tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.admin-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: clip; }
-
-/* Mobile cards */
-.wg-cards { display: none; }
+.circle-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: white; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.wrong-pill { display: inline-block; background: #fef2f2; color: #b91c1c; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin: 2px 2px 2px 0; }
 @media (max-width: 640px) {
-  .tbl-scroll { display: none; }
-  .wg-cards { display: block; }
   .admin-sticky-hdr { padding: 14px 16px 12px; }
   .admin-inner { padding: 16px 16px 48px; }
+  .wg-row { padding: 12px 14px; }
 }
-.wg-card { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; font-family: 'Inter', system-ui, sans-serif; }
-.wg-card:last-child { border-bottom: none; }
 </style>
 
 <div class="admin-page">
@@ -41,89 +30,37 @@
 
   <div class="admin-inner">
 
-    <p style="font-size:13px;color:#888;font-family:'Inter',system-ui,sans-serif;margin:0 0 20px;">
-      Last <%= @wrong_attempts.size %> incorrect submissions across all puzzles, newest first.
-    </p>
-
-    <% if @wrong_attempts.empty? %>
+    <% if @wrong_by_puzzle.empty? %>
       <div class="admin-card" style="padding:40px;text-align:center;color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;">
         No incorrect guesses recorded yet.
       </div>
     <% else %>
-
-      <%# Desktop table %>
-      <div class="admin-card tbl-scroll">
-        <table class="admin-tbl">
-          <thead>
-            <tr>
-              <th>Puzzle</th>
-              <th>Circle</th>
-              <th>Correct answer</th>
-              <th>Wrong guess</th>
-              <th>User</th>
-              <th>When</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% @wrong_attempts.each do |attempt| %>
-              <%
-                puzzle = attempt.puzzle
-                lbl    = attempt.label
-                color  = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }[lbl]
-                correct_answer = puzzle.send("label_#{lbl}") rescue "—"
-                puzzle_title = puzzle.title.presence || "Puzzle ##{puzzle.id}"
-              %>
-              <tr>
-                <td>
-                  <a href="/admin/puzzles/<%= puzzle.id %>" class="puzzle-link"><%= puzzle_title %></a>
-                  <% if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present? %>
-                    <span style="margin-left:6px;font-size:10px;color:#5B53D6;font-weight:600;font-family:'Inter',system-ui,sans-serif;">Daily</span>
+      <div class="admin-card">
+        <% @wrong_by_puzzle.each do |entry| %>
+          <% puzzle = entry[:puzzle]
+             circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" } %>
+          <div class="wg-row">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+              <a href="/admin/puzzles/<%= puzzle.id %>" class="puzzle-link"><%= puzzle.title.presence || "Puzzle ##{puzzle.id}" %></a>
+              <% if puzzle.scheduled_date.present? %>
+                <span style="font-size:11px;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= puzzle.scheduled_date.strftime("%-d %b %Y") %></span>
+              <% end %>
+            </div>
+            <% %w[a b c].each do |lbl| %>
+              <% guesses = entry[lbl.to_sym]
+                 next if guesses.empty? %>
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+                <span class="circle-badge" style="background:<%= circle_colors[lbl] %>;margin-top:3px;"><%= lbl.upcase %></span>
+                <div style="flex:1;">
+                  <% guesses.each do |g| %>
+                    <span class="wrong-pill"><%= g %></span>
                   <% end %>
-                </td>
-                <td>
-                  <span class="circle-badge" style="background:<%= color %>;"><%= lbl.upcase %></span>
-                </td>
-                <td>
-                  <span class="correct-ans" style="color:<%= color %>;"><%= correct_answer %></span>
-                </td>
-                <td>
-                  <span class="wrong-pill"><%= attempt.guess %></span>
-                </td>
-                <td style="color:#555;"><%= attempt.user.username %></td>
-                <td class="ts"><%= attempt.created_at.strftime("%-d %b %Y") %></td>
-              </tr>
+                </div>
+              </div>
             <% end %>
-          </tbody>
-        </table>
-      </div>
-
-      <%# Mobile cards %>
-      <div class="admin-card wg-cards">
-        <% @wrong_attempts.each do |attempt| %>
-          <%
-            puzzle = attempt.puzzle
-            lbl    = attempt.label
-            color  = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" }[lbl]
-            correct_answer = puzzle.send("label_#{lbl}") rescue "—"
-            puzzle_title = puzzle.title.presence || "Puzzle ##{puzzle.id}"
-          %>
-          <div class="wg-card">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-              <span class="circle-badge" style="background:<%= color %>;flex-shrink:0;"><%= lbl.upcase %></span>
-              <a href="/admin/puzzles/<%= puzzle.id %>" class="puzzle-link" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= puzzle_title %></a>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-              <span class="wrong-pill"><%= attempt.guess %></span>
-              <span style="font-size:12px;color:#aaa;">→</span>
-              <span style="font-size:12px;font-weight:600;color:<%= color %>;"><%= correct_answer %></span>
-            </div>
-            <div style="margin-top:6px;font-size:12px;color:#aaa;font-family:'Inter',system-ui,sans-serif;">
-              <%= attempt.user.username %> · <%= attempt.created_at.strftime("%-d %b %Y") %>
-            </div>
           </div>
         <% end %>
       </div>
-
     <% end %>
   </div>
 </div>

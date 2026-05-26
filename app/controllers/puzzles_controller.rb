@@ -109,7 +109,7 @@ class PuzzlesController < ApplicationController
     unless @puzzle.scheduled_date <= Date.today || admin_view? || tester_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
-    if @puzzle.scheduled_date < Date.today && !user_signed_in? && !admin_view? && !tester_view?
+    if @puzzle.scheduled_date < Date.yesterday && !user_signed_in? && !admin_view? && !tester_view?
       redirect_to new_user_session_path, alert: "Sign in to play past puzzles." and return
     end
     @daily_number = number
@@ -312,10 +312,11 @@ class PuzzlesController < ApplicationController
       #    e.g. "test" accepted when answer is "doing tests"
       next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
 
-      # 4. Direct substring check — both directions
-      #    Direction A: answer contained in guess  e.g. guess "being competitive", answer "competitive"
-      #    Direction B: guess contained in answer  e.g. guess "test", answer "doing tests"
-      next true if normalized_guess.include?(answer) || answer.include?(normalized_guess)
+      # 4. Prefix match (min 3 chars): one starts with the other
+      #    e.g. "test" accepted when answer is "testing"; blocks single-char matches like "t"
+      if normalized_guess.length >= 3 && answer.length >= 3
+        next true if answer.start_with?(normalized_guess) || normalized_guess.start_with?(answer)
+      end
 
       false
     end
@@ -366,6 +367,7 @@ class PuzzlesController < ApplicationController
     attempts = (session[key] || []).dup
     attempts << { "label" => label, "guess" => guess, "correct" => correct }
     session[key] = attempts
+    Attempt.create!(puzzle: puzzle, label: label, guess: guess, correct: correct)
   end
 
   def puzzle_params
