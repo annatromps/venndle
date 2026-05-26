@@ -154,7 +154,7 @@ class PuzzlesController < ApplicationController
     end
 
     game_session = find_or_build_game_session(@puzzle)
-    normalized_guess = guess.downcase
+    normalized_guess = normalize_guess(guess)
 
     if duplicate_guess?(label, normalized_guess)
       render json: { duplicate: true } and return
@@ -171,11 +171,15 @@ class PuzzlesController < ApplicationController
     Rails.logger.info "Match result: #{accepted.include?(normalized_guess)}"
 
     all_puzzle_words = @puzzle.all_words.map { |w| w.to_s.downcase.strip }
+    all_accepted = ([correct_label.to_s.downcase.strip] + accepted).uniq.reject(&:blank?)
 
-    if all_puzzle_words.include?(normalized_guess)
-      correct = false
-    elsif accepted.include?(normalized_guess)
+    board_word_guess = false
+
+    if fuzzy_match?(normalized_guess, all_accepted)
       correct = true
+    elsif all_puzzle_words.include?(normalized_guess)
+      correct = false
+      board_word_guess = true
     elsif @puzzle.puzzle_type == "user"
       circle_words = @puzzle.all_circle_words_for(label)
       correct = AnthropicJudgeService.call(guess, correct_label, circle_words, all_puzzle_words)
@@ -197,10 +201,19 @@ class PuzzlesController < ApplicationController
     game_session.reload
     game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
 
-    share_string = build_share_string(game_session, @puzzle)
+    circle_order = if user_signed_in?
+      seen = Attempt.where(user: current_user, puzzle: @puzzle).order(:created_at).pluck(:label).uniq
+      seen + (%w[a b c] - seen)
+    else
+      seen = (session["guest_attempts_#{@puzzle.id}"] || []).map { |a| a["label"] }.uniq
+      seen + (%w[a b c] - seen)
+    end
+
+    share_string = build_share_string(game_session, @puzzle, circle_order: circle_order)
 
     render json: {
       correct: correct,
+      board_word: board_word_guess || nil,
       official_label: correct_label,
       solved: {
         a: game_session.solved_a?,
@@ -258,7 +271,54 @@ class PuzzlesController < ApplicationController
     }
   end
 
+  def reset_session
+    return head :forbidden unless user_signed_in? && current_user.admin?
+
+    puzzle = Puzzle.find(params[:id])
+    GameSession.where(user: current_user, puzzle: puzzle).destroy_all
+    Attempt.where(user: current_user, puzzle: puzzle).destroy_all
+
+    redirect_to puzzle, notice: "Session reset — puzzle ready to play again."
+  end
+
   private
+
+  def normalize_guess(raw)
+    raw.to_s
+       .downcase
+       .gsub(/\A[[:punct:]]+/, "")
+       .gsub(/[[:punct:]]+\z/, "")
+       .gsub(/\s+/, " ")
+       .strip
+  end
+
+  def fuzzy_match?(normalized_guess, accepted_answers)
+    guess_forms = word_forms(normalized_guess)
+
+    accepted_answers.any? do |answer|
+      answer = answer.to_s.downcase.strip
+      next false if answer.blank?
+
+      answer_forms = word_forms(answer)
+
+      # 1. Full-phrase match (includes plural/singular of whole phrase)
+      next true if (guess_forms & answer_forms).any?
+
+      # 2. Any word in the guess matches the full answer form
+      #    e.g. "under the sea" accepted when answer is "sea"
+      next true if normalized_guess.split(/\s+/).any? { |w| answer_forms.include?(w) }
+
+      # 3. Any word in the answer matches the full guess form
+      #    e.g. "test" accepted when answer is "doing tests"
+      next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
+
+      false
+    end
+  end
+
+  def word_forms(phrase)
+    [phrase, phrase.pluralize, phrase.singularize].map(&:strip).uniq.reject(&:blank?)
+  end
 
   def require_login_to_create
     unless user_signed_in?
@@ -317,8 +377,8 @@ class PuzzlesController < ApplicationController
     permitted
   end
 
-  def build_share_string(game_session, puzzle)
-    lines = %w[a b c].map do |label|
+  def build_share_string(game_session, puzzle, circle_order: %w[a b c])
+    lines = circle_order.map do |label|
       attempts_count = game_session.send("attempts_#{label}")
       solved   = game_session.send("solved_#{label}?")
       gave_up  = game_session.respond_to?("gave_up_#{label}?") && game_session.send("gave_up_#{label}?")
