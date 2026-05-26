@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_26_073631) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_26_074010) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,7 +21,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_26_073631) do
     t.string "label"
     t.bigint "puzzle_id", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id"
     t.index ["puzzle_id"], name: "index_attempts_on_puzzle_id"
     t.index ["user_id"], name: "index_attempts_on_user_id"
   end
