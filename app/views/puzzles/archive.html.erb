@@ -44,6 +44,13 @@
                 Sign in to play
               </a>
             <% elsif played && gs %>
+              <% if user_signed_in? && current_user.admin? %>
+                <form action="<%= puzzle_reset_session_path(puzzle) %>" method="post" style="display:inline;margin:0;padding:0;">
+                  <input type="hidden" name="_method" value="delete">
+                  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+                  <button type="submit" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:11px;font-weight:700;border-radius:8px;padding:6px 10px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Reset</button>
+                </form>
+              <% end %>
               <% share_str = build_share_string_for(gs, puzzle) %>
               <button onclick="archiveShare(this)"
                       data-share="<%= h(share_str) %>"
