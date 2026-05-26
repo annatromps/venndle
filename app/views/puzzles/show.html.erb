@@ -67,8 +67,11 @@
           <span style="margin-left:4px;font-size:10px;font-weight:500;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= @play_count %> plays</span>
         <% end %>
         <% if user_signed_in? && current_user.admin? %>
-          <%= button_to "Reset my session", puzzle_reset_session_path(@puzzle), method: :delete,
-                style: "margin-left:6px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1.6;" %>
+          <form action="<%= puzzle_reset_session_path(@puzzle) %>" method="post" style="display:inline;margin:0;padding:0;">
+            <input type="hidden" name="_method" value="delete">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <button type="submit" style="margin-left:6px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1.6;">Reset my session</button>
+          </form>
         <% end %>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
