@@ -312,11 +312,6 @@ class PuzzlesController < ApplicationController
       #    e.g. "test" accepted when answer is "doing tests"
       next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
 
-      # 4. Direct substring check — both directions
-      #    Direction A: answer contained in guess  e.g. guess "being competitive", answer "competitive"
-      #    Direction B: guess contained in answer  e.g. guess "test", answer "doing tests"
-      next true if normalized_guess.include?(answer) || answer.include?(normalized_guess)
-
       false
     end
   end
