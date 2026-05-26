@@ -334,6 +334,25 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
     assert data["board_word"]
   end
 
+  # ── fuzzy matching: direct substring both directions ─────────────────────────
+
+  test "direction A: answer contained within longer guess is accepted" do
+    sign_in users(:bob)
+    puzzle = puzzles(:past_daily)
+    # label_a is "yellow" — "being quite yellow" should match because "yellow" is in the guess
+    post puzzle_guess_path(puzzle), params: { label: "a", guess: "being quite yellow" }, as: :json
+    assert JSON.parse(response.body)["correct"]
+  end
+
+  test "direction B: guess contained within longer answer is accepted" do
+    sign_in users(:bob)
+    puzzle = puzzles(:past_daily)
+    # accepted_answers_b includes "pointed" — guessing "point" should match via word forms
+    # and "sharp" is the label — guessing "sharp things" should match (label in guess)
+    post puzzle_guess_path(puzzle), params: { label: "b", guess: "sharp things" }, as: :json
+    assert JSON.parse(response.body)["correct"]
+  end
+
   # ── reset_session ────────────────────────────────────────────────────────────
 
   test "admin can reset their own game session" do
