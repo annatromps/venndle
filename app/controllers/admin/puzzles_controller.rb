@@ -12,6 +12,13 @@ class Admin::PuzzlesController < ApplicationController
                            .order(created_at: :desc)
   end
 
+  def wrong_guesses
+    @wrong_attempts = Attempt.where(correct: false)
+                             .includes(:puzzle, :user)
+                             .order(created_at: :desc)
+                             .limit(1000)
+  end
+
   def show
     @game_sessions = @puzzle.game_sessions.includes(:user).order(created_at: :desc)
     user_ids = @game_sessions.map(&:user_id)
