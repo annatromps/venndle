@@ -8,10 +8,11 @@
 
     <div style="display:flex;flex-direction:column;gap:8px;">
       <% @puzzles.each do |puzzle| %>
-        <% played   = @played_ids.include?(puzzle.id)
-           upcoming = puzzle.scheduled_date > Date.today
-           today    = puzzle.scheduled_date == Date.today
-           gs       = @game_sessions_by_puzzle_id[puzzle.id]
+        <% played     = @played_ids.include?(puzzle.id)
+           upcoming   = puzzle.scheduled_date > Date.today
+           today      = puzzle.scheduled_date == Date.today
+           yesterday  = puzzle.scheduled_date == Date.yesterday
+           gs         = @game_sessions_by_puzzle_id[puzzle.id]
            border   = upcoming ? '#e0d9fc' : (today ? '#2BAB65' : 'rgba(0,0,0,0.1)')
            bg       = today ? '#f0fdf4' : 'white' %>
         <div style="display:flex;align-items:center;gap:12px;background:<%= bg %>;border:1.5px solid <%= border %>;border-radius:12px;padding:12px 16px;">
@@ -38,7 +39,7 @@
                  style="background:#ede9fe;color:#5B53D6;font-size:12px;font-weight:700;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;">
                 Preview
               </a>
-            <% elsif !user_signed_in? && !today %>
+            <% elsif !user_signed_in? && !today && !yesterday %>
               <a href="<%= new_user_session_path %>"
                  style="background:#f4f4f5;color:#888;font-size:12px;font-weight:600;text-decoration:none;border-radius:8px;padding:6px 14px;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">
                 Sign in to play
