@@ -11,7 +11,8 @@ class StatsController < ApplicationController
 
     completed = sessions.select(&:completed?)
 
-    played_dates = completed.map { |gs| gs.puzzle.scheduled_date }.to_set
+    played_dates = completed.select { |gs| gs.created_at.to_date <= gs.puzzle.scheduled_date + 1 }
+                           .map { |gs| gs.puzzle.scheduled_date }.to_set
     @current_streak = streak_from(played_dates, start: Date.today)
     @longest_streak = longest_streak(played_dates)
     @total_completed = completed.size

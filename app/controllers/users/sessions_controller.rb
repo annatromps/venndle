@@ -20,6 +20,7 @@ class Users::SessionsController < Devise::SessionsController
         user:        current_user,
         puzzle:      puzzle,
         completed:   true,
+        created_at:  puzzle.scheduled_date.to_time,
         solved_a:    data["solved_a"]    || false,
         solved_b:    data["solved_b"]    || false,
         solved_c:    data["solved_c"]    || false,
