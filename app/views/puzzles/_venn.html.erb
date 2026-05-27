@@ -140,7 +140,7 @@
 
       <%# Other CTAs %>
       <div style="display:flex;flex-direction:column;gap:8px;">
-<button onclick="showDiagramPanel()" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+<button onclick="showDiagramPanel()" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
   View completed puzzle
 </button>
         <div style="display:flex;gap:8px;">
@@ -169,66 +169,63 @@
       <% end %>
     </div>
 
-    <%# ── Diagram panel (fixed overlay, shown by "View completed puzzle") ── %>
-    <div id="diagram-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:500;flex-direction:column;gap:8px;padding:20px 20px max(20px,env(safe-area-inset-bottom)) 20px;box-sizing:border-box;">
-      <div style="flex:1;min-height:0;overflow:hidden;">
-        <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
-              <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
-            </filter>
-          </defs>
+    <% content_for :body_overlays do %>
+      <%# ── Diagram panel — rendered at body level to avoid iOS overflow:hidden clipping ── %>
+      <div id="diagram-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:1000;flex-direction:column;gap:8px;padding:20px 20px max(20px,env(safe-area-inset-bottom)) 20px;box-sizing:border-box;">
+        <div style="flex:1;min-height:0;overflow:hidden;">
+          <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
+                <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
+              </filter>
+            </defs>
 
-          <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
-          <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
-          <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
+            <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
+            <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
+            <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
-          <% a_pw = [puzzle.label_a.to_s.upcase.length * 8 + 24, 60].max %>
-          <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
-          <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
+            <% a_pw = [puzzle.label_a.to_s.upcase.length * 8 + 24, 60].max %>
+            <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
+            <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
 
-          <% b_pw = [puzzle.label_b.to_s.upcase.length * 8 + 24, 60].max %>
-          <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
-          <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
+            <% b_pw = [puzzle.label_b.to_s.upcase.length * 8 + 24, 60].max %>
+            <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
+            <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
 
-          <% c_pw = [puzzle.label_c.to_s.upcase.length * 8 + 24, 60].max %>
-          <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
-          <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
+            <% c_pw = [puzzle.label_c.to_s.upcase.length * 8 + 24, 60].max %>
+            <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
+            <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
 
-          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-               words_ab: [208,202,219], words_ac: [352,202,219],
-               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
-            <% word = puzzle.send(region)&.first %>
-            <% if word %>
-              <% pw = [word.length * 8 + 24, 60].max %>
-              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-d)"/>
-              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+            <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
+                 words_ab: [208,202,219], words_ac: [352,202,219],
+                 words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+              <% word = puzzle.send(region)&.first %>
+              <% if word %>
+                <% pw = [word.length * 8 + 24, 60].max %>
+                <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-d)"/>
+                <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+              <% end %>
             <% end %>
-          <% end %>
-        </svg>
+          </svg>
+        </div>
+        <button onclick="showScorePanel()"
+                style="flex-shrink:0;width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
+          ← Back to results
+        </button>
       </div>
-      <button onclick="showScorePanel()"
-              style="flex-shrink:0;width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
-        ← Back to results
-      </button>
-    </div>
+    <% end %>
 
     <script>
       <%# vennShare and vennCopyFallback live in app/javascript/venn_share.js — do not re-define here %>
 
       function showDiagramPanel() {
         var dp = document.getElementById('diagram-panel');
-        if (!dp) return;
-        // Move to document.body to escape iOS scroll-container compositing layers
-        if (dp.parentNode !== document.body) document.body.appendChild(dp);
-        document.body.style.overflow = 'hidden';
-        dp.style.display = 'flex';
+        if (dp) dp.style.display = 'flex';
       }
 
       function showScorePanel() {
         var dp = document.getElementById('diagram-panel');
         if (dp) dp.style.display = 'none';
-        document.body.style.overflow = '';
       }
 
       function togglePlayMoreMenu(event) {
@@ -441,7 +438,7 @@
             <div id="guess-tip-<%= lbl %>" style="padding-left:32px;<%= wrong_so_far >= 2 && !solved ? '' : 'display:none;' %>">
               <span style="font-size:12px;color:#6d5a2c;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:5px 10px;font-family:'Inter',system-ui,sans-serif;line-height:1.5;display:inline-flex;align-items:flex-start;gap:5px;">
                 <span style="flex-shrink:0;">💡</span>
-                <span>Your answer needs to fit <em>all</em> the words in this circle</span>
+                <span>Don't forget! Your answer needs to fit all the words in this circle 😊</span>
               </span>
             </div>
             <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
