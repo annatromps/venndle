@@ -1,6 +1,38 @@
 if (typeof gtag === 'undefined') { window.gtag = function() {}; }
 
-// Inject the copy popover once on first use
+function vennIsMobile() {
+  return navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches;
+}
+
+function vennShowToast(msg) {
+  var existing = document.getElementById('venn-toast');
+  if (existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'venn-toast';
+  toast.textContent = msg;
+  toast.style.cssText = 'position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:#1a1a2e;color:white;font-weight:600;font-size:14px;padding:10px 22px;border-radius:999px;z-index:9999;white-space:nowrap;font-family:\'Inter\',system-ui,sans-serif;pointer-events:none;opacity:0;transition:opacity 0.15s ease;';
+  document.body.appendChild(toast);
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      toast.style.opacity = '1';
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        setTimeout(function() { if (toast.parentNode) toast.remove(); }, 200);
+      }, 2000);
+    });
+  });
+}
+
+function vennCopyWithToast(text) {
+  function done() { vennShowToast('Copied to clipboard!'); }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(function() { window.vennCopyFallback(text, done); });
+  } else {
+    window.vennCopyFallback(text, done);
+  }
+}
+
+// Inject the copy popover — used by archive share and as a last-resort fallback
 function vennEnsurePopover() {
   if (document.getElementById('venn-share-popover')) return;
   var el = document.createElement('div');
@@ -25,26 +57,20 @@ function vennEnsurePopover() {
   ].join('');
   document.body.appendChild(el);
 
-  document.getElementById('venn-share-backdrop').addEventListener('click', vennClosePopover);
-  document.getElementById('venn-share-close').addEventListener('click', vennClosePopover);
+  document.getElementById('venn-share-backdrop').addEventListener('click', window.vennClosePopover);
+  document.getElementById('venn-share-close').addEventListener('click', window.vennClosePopover);
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') vennClosePopover();
+    if (e.key === 'Escape') window.vennClosePopover();
   });
   document.getElementById('venn-copy-btn').addEventListener('click', function() {
     var text = document.getElementById('venn-share-text').textContent;
     var btn = document.getElementById('venn-copy-btn');
-    navigator.clipboard.writeText(text).then(function() {
-      btn.textContent = 'Copied!';
-      setTimeout(function() { btn.textContent = 'Copy to clipboard'; }, 2000);
-    }).catch(function() {
-      var ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy to clipboard'; }, 2000); } catch(e) {}
-      document.body.removeChild(ta);
-    });
+    function markCopied() { btn.textContent = 'Copied!'; setTimeout(function() { btn.textContent = 'Copy to clipboard'; }, 2000); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(markCopied).catch(function() { window.vennCopyFallback(text, markCopied); });
+    } else {
+      window.vennCopyFallback(text, markCopied);
+    }
   });
 }
 
@@ -62,21 +88,15 @@ window.vennClosePopover = function() {
 
 window.vennShare = function(text, gameId) {
   gtag('event', 'share_score', { 'game_id': gameId });
-  var btn = document.getElementById('share-score-btn');
-  function markDone(label) {
-    if (!btn) return;
-    btn.textContent = label;
-    setTimeout(function() { btn.textContent = 'Share score'; }, 2000);
-  }
-  if (navigator.share) {
-    navigator.share({ text: text })
-      .then(function() { markDone('Shared!'); })
-      .catch(function(err) {
-        if (err && err.name === 'AbortError') return;
-        vennShowCopyPopover(text);
-      });
+  if (navigator.share && vennIsMobile()) {
+    // Mobile: native share sheet (WhatsApp, Messages, etc.)
+    navigator.share({ text: text }).catch(function(err) {
+      if (err && err.name === 'AbortError') return;
+      vennCopyWithToast(text);
+    });
   } else {
-    vennShowCopyPopover(text);
+    // Desktop/laptop: copy silently + toast
+    vennCopyWithToast(text);
   }
 };
 
@@ -86,6 +106,6 @@ window.vennCopyFallback = function(text, onDone) {
   ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none;';
   document.body.appendChild(ta);
   ta.select();
-  try { document.execCommand('copy'); onDone('Copied!'); } catch(e) {}
+  try { document.execCommand('copy'); if (onDone) onDone(); } catch(e) {}
   document.body.removeChild(ta);
 };
