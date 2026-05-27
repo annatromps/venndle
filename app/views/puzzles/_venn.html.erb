@@ -771,15 +771,13 @@
         });
 
         // Track this puzzle as a game seen (for tip suppression)
-        (function() {
-          var pid = String(<%= puzzle.id %>);
-          var lastSeen = localStorage.getItem('venndleTipLastPuzzle');
-          if (lastSeen !== pid) {
-            localStorage.setItem('venndleTipLastPuzzle', pid);
-            var n = parseInt(localStorage.getItem('venndleTipGamesPlayed') || '0');
-            localStorage.setItem('venndleTipGamesPlayed', n + 1);
+        try {
+          var _pid = String(<%= puzzle.id %>);
+          if (localStorage.getItem('venndleTipLastPuzzle') !== _pid) {
+            localStorage.setItem('venndleTipLastPuzzle', _pid);
+            localStorage.setItem('venndleTipGamesPlayed', parseInt(localStorage.getItem('venndleTipGamesPlayed') || '0') + 1);
           }
-        })();
+        } catch(e) {}
       })();
 
       function venndleShowGuessTip() {
@@ -788,7 +786,7 @@
         if (gamesPlayed < suppressUntil) return;
 
         // Mark shown — suppress for the next 5 games
-        localStorage.setItem('venndleTipSuppressUntil', gamesPlayed + 5);
+        try { localStorage.setItem('venndleTipSuppressUntil', gamesPlayed + 5); } catch(e) {}
 
         var existing = document.getElementById('venndle-guess-tip-popup');
         if (existing) return;
