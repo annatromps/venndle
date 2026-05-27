@@ -430,8 +430,9 @@
               <span style="font-size:12px;color:#bbb;">
                 <%= fb.puzzle.scheduled_date&.strftime("%-d %b %Y") %>
               </span>
-              <span style="font-size:12px;color:#bbb;margin-left:auto;">
-                <%= fb.user.username %> &middot; updated <%= fb.updated_at.strftime("%-d %b") %>
+              <span style="font-size:12px;color:#bbb;margin-left:auto;display:flex;align-items:center;gap:10px;">
+                <span><%= fb.user.username %> &middot; updated <%= fb.updated_at.strftime("%-d %b") %></span>
+                <a href="<%= edit_admin_puzzle_path(fb.puzzle) %>" class="btn-edit" style="font-size:12px;white-space:nowrap;">Edit puzzle →</a>
               </span>
             </div>
 
