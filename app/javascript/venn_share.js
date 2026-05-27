@@ -1,10 +1,10 @@
 if (typeof gtag === 'undefined') { window.gtag = function() {}; }
 
-function vennIsMobile() {
+window.vennIsMobile = function vennIsMobile() {
   return navigator.maxTouchPoints > 0 && window.matchMedia('(pointer: coarse)').matches;
 }
 
-function vennShowToast(msg) {
+window.vennShowToast = function vennShowToast(msg) {
   var existing = document.getElementById('venn-toast');
   if (existing) existing.remove();
   var toast = document.createElement('div');
@@ -23,7 +23,7 @@ function vennShowToast(msg) {
   });
 }
 
-function vennCopyWithToast(text) {
+window.vennCopyWithToast = function vennCopyWithToast(text) {
   function done() { vennShowToast('Copied to clipboard!'); }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(done).catch(function() { window.vennCopyFallback(text, done); });
