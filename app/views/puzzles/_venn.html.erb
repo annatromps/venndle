@@ -1,6 +1,10 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
+<% _hard_mode_access = user_signed_in? && (current_user.admin? || current_user.hard_mode_tester?) %>
+<% hard_mode = _hard_mode_access &&
+               request.query_parameters.key?('hard') &&
+               request.query_parameters['hard'] != '0' %>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
@@ -328,6 +332,19 @@
 
     <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
 
+      <%# Hard mode toggle — admin and hard mode testers only %>
+      <% if _hard_mode_access %>
+        <div style="flex-shrink:0;display:flex;justify-content:flex-end;">
+          <div onclick="(function(){var u=new URL(window.location.href);u.searchParams.set('hard','<%= hard_mode ? 0 : 1 %>');window.location.href=u.toString();})()"
+               style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;">
+            <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;color:<%= hard_mode ? '#5B53D6' : '#bbb' %>;">HARD</span>
+            <div style="position:relative;width:36px;height:20px;background:<%= hard_mode ? '#5B53D6' : '#ddd' %>;border-radius:10px;flex-shrink:0;">
+              <div style="position:absolute;top:2px;left:<%= hard_mode ? '18px' : '2px' %>;width:16px;height:16px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
       <%# SVG diagram — fills remaining space, scales to fit; sits on gradient directly %>
       <div style="flex:1;min-height:0;overflow:hidden;">
         <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
@@ -368,19 +385,56 @@
             <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
           </g>
 
-          <%# Word pills %>
-          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-               words_ab: [208,202,219], words_ac: [352,202,219],
-               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
-            <% word = puzzle.send(region)&.first %>
-            <% if word %>
-              <% pw = [word.length * 8 + 24, 60].max %>
-              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
-              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+          <%# Word pills (normal) / zone targets + pre-placed abc (hard mode) %>
+          <% if hard_mode %>
+            <%# abc word pre-placed in the centre %>
+            <% abc_word = puzzle.words_abc&.first %>
+            <% if abc_word %>
+              <% pw = [abc_word.length * 8 + 24, 60].max %>
+              <rect x="<%= 280 - pw/2 %>" y="235" width="<%= pw %>" height="26" rx="13" fill="#e8e4fb" filter="url(#pill-shadow)"/>
+              <text x="280" y="252" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= abc_word %></text>
+            <% end %>
+            <%# Dashed drop-zone rings for each placeable region %>
+            <% [
+              [:words_a,  280, 72,  'rgba(91,83,214,0.1)',  '#5B53D6'],
+              [:words_b,  112, 323, 'rgba(43,171,101,0.1)', '#2BAB65'],
+              [:words_c,  448, 323, 'rgba(232,99,26,0.1)',  '#E8631A'],
+              [:words_ab, 208, 215, 'rgba(91,83,214,0.1)',  '#5B53D6'],
+              [:words_ac, 352, 215, 'rgba(232,99,26,0.1)',  '#E8631A'],
+              [:words_bc, 280, 336, 'rgba(43,171,101,0.1)', '#2BAB65'],
+            ].each do |region, cx, cy, fill, stroke| %>
+              <% if puzzle.send(region)&.first %>
+                <circle id="zone-<%= region %>" cx="<%= cx %>" cy="<%= cy %>" r="26"
+                        fill="<%= fill %>" stroke="<%= stroke %>" stroke-width="1.5" stroke-dasharray="5 3"
+                        class="hard-zone" data-region="<%= region %>" style="cursor:pointer;"/>
+              <% end %>
+            <% end %>
+          <% else %>
+            <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
+                 words_ab: [208,202,219], words_ac: [352,202,219],
+                 words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+              <% word = puzzle.send(region)&.first %>
+              <% if word %>
+                <% pw = [word.length * 8 + 24, 60].max %>
+                <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+                <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+              <% end %>
             <% end %>
           <% end %>
         </svg>
       </div>
+
+      <%# Hard mode word bank — shuffled chips to place into the diagram %>
+      <% if hard_mode %>
+        <div id="word-bank" style="flex-shrink:0;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;-webkit-overflow-scrolling:touch;">
+          <% [:words_a,:words_b,:words_c,:words_ab,:words_ac,:words_bc].filter_map { |r| puzzle.send(r)&.first }.shuffle.each do |word| %>
+            <button class="bank-word" data-word="<%= word %>"
+                    style="flex-shrink:0;background:white;border:1.5px solid #ddd;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',system-ui,sans-serif;color:#1a1a2e;touch-action:manipulation;white-space:nowrap;">
+              <%= word %>
+            </button>
+          <% end %>
+        </div>
+      <% end %>
 
       <%# Guess cards — 3 in a row on desktop, stacked on mobile %>
       <div class="guess-area">
@@ -779,6 +833,138 @@
           }
         } catch(e) {}
       })();
+
+      <% if hard_mode %>
+      (function() {
+        var svg = document.querySelector('#venn-puzzle svg');
+        var selectedWord = null;
+        var placements = {}; // region => word currently placed there
+
+        var zonePos = {
+          'words_a':  { cx: 280, ry: 59,  ty: 76  },
+          'words_b':  { cx: 112, ry: 310, ty: 327 },
+          'words_c':  { cx: 448, ry: 310, ty: 327 },
+          'words_ab': { cx: 208, ry: 202, ty: 219 },
+          'words_ac': { cx: 352, ry: 202, ty: 219 },
+          'words_bc': { cx: 280, ry: 323, ty: 340 }
+        };
+
+        function getBankBtn(word) {
+          var btns = document.querySelectorAll('.bank-word');
+          for (var i = 0; i < btns.length; i++) {
+            if (btns[i].dataset.word === word) return btns[i];
+          }
+          return null;
+        }
+
+        function deselectAll() {
+          selectedWord = null;
+          document.querySelectorAll('.bank-word').forEach(function(b) {
+            b.style.background = 'white';
+            b.style.color = '#1a1a2e';
+            b.style.borderColor = '#ddd';
+          });
+          svg.querySelectorAll('.hard-zone').forEach(function(z) {
+            z.setAttribute('opacity', '0.7');
+            z.setAttribute('stroke-width', '1.5');
+          });
+        }
+
+        function selectWord(word, btnEl) {
+          if (selectedWord === word) { deselectAll(); return; }
+          deselectAll();
+          selectedWord = word;
+          btnEl.style.background = '#1a1a2e';
+          btnEl.style.color = 'white';
+          btnEl.style.borderColor = '#1a1a2e';
+          svg.querySelectorAll('.hard-zone').forEach(function(z) {
+            z.setAttribute('opacity', '1');
+            z.setAttribute('stroke-width', '2');
+          });
+        }
+
+        function returnToBank(region) {
+          var word = placements[region];
+          if (!word) return;
+          delete placements[region];
+          var placed = svg.querySelector('[data-hard-placed="' + region + '"]');
+          if (placed) placed.remove();
+          var zoneEl = document.getElementById('zone-' + region);
+          if (zoneEl) zoneEl.style.display = '';
+          var btn = getBankBtn(word);
+          if (btn) btn.style.visibility = 'visible';
+        }
+
+        function placeWord(region) {
+          if (!selectedWord) return;
+          if (placements[region]) returnToBank(region);
+
+          var word = selectedWord;
+          placements[region] = word;
+
+          var btn = getBankBtn(word);
+          if (btn) btn.style.visibility = 'hidden';
+
+          var pos = zonePos[region];
+          var pw = Math.max(word.length * 8 + 24, 60);
+          var ns = 'http://www.w3.org/2000/svg';
+
+          var g = document.createElementNS(ns, 'g');
+          g.setAttribute('data-hard-placed', region);
+          g.style.cursor = 'pointer';
+          g.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (selectedWord) { placeWord(region); } else { returnToBank(region); }
+          });
+
+          var rect = document.createElementNS(ns, 'rect');
+          rect.setAttribute('x', pos.cx - pw / 2);
+          rect.setAttribute('y', pos.ry);
+          rect.setAttribute('width', pw);
+          rect.setAttribute('height', 26);
+          rect.setAttribute('rx', 13);
+          rect.setAttribute('fill', '#ffffff');
+          rect.setAttribute('filter', 'url(#pill-shadow)');
+
+          var text = document.createElementNS(ns, 'text');
+          text.setAttribute('x', pos.cx);
+          text.setAttribute('y', pos.ty);
+          text.setAttribute('text-anchor', 'middle');
+          text.setAttribute('font-size', '13');
+          text.setAttribute('font-weight', '500');
+          text.setAttribute('font-family', 'system-ui,sans-serif');
+          text.setAttribute('fill', '#1a1a2e');
+          text.textContent = word;
+
+          g.appendChild(rect);
+          g.appendChild(text);
+          svg.appendChild(g);
+
+          var zoneEl = document.getElementById('zone-' + region);
+          if (zoneEl) zoneEl.style.display = 'none';
+
+          deselectAll();
+        }
+
+        document.querySelectorAll('.bank-word').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            selectWord(btn.dataset.word, btn);
+          });
+        });
+
+        svg.querySelectorAll('.hard-zone').forEach(function(zone) {
+          zone.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (selectedWord) placeWord(zone.dataset.region);
+          });
+        });
+
+        svg.addEventListener('click', function() {
+          if (selectedWord) deselectAll();
+        });
+      })();
+      <% end %>
 
       function venndleShowGuessTip() {
         var gamesPlayed = parseInt(localStorage.getItem('venndleTipGamesPlayed') || '0');
