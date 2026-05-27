@@ -196,35 +196,30 @@ class PuzzlesController < ApplicationController
       save_guest_attempt(@puzzle, label, guess, correct)
     end
 
-    game_session.increment!("attempts_#{label}")
-    game_session.update!("solved_#{label}" => true) if correct
-    game_session.reload
-    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+    # Compute post-update solved state without a reload
+    a_sol = (label == "a" && correct) || game_session.solved_a?
+    b_sol = (label == "b" && correct) || game_session.solved_b?
+    c_sol = (label == "c" && correct) || game_session.solved_c?
+    will_complete = a_sol && b_sol && c_sol
 
-    circle_order = if user_signed_in?
-      seen = Attempt.where(user: current_user, puzzle: @puzzle).order(:created_at).pluck(:label).uniq
-      seen + (%w[a b c] - seen)
-    else
-      seen = (session["guest_attempts_#{@puzzle.id}"] || []).map { |a| a["label"] }.uniq
-      seen + (%w[a b c] - seen)
+    # Persist in at most two writes: increment attempts, then one update for solved+completed
+    game_session.increment!("attempts_#{label}")
+    if correct || will_complete
+      attrs = {}
+      attrs["solved_#{label}"] = true if correct
+      attrs[:completed] = true if will_complete
+      game_session.update!(attrs)
     end
 
-    share_string = build_share_string(game_session, @puzzle, circle_order: circle_order)
+    share_str = correct ? build_share_string(game_session, @puzzle) : nil
 
     render json: {
       correct: correct,
       board_word: board_word_guess || nil,
       official_label: correct_label,
-      solved: {
-        a: game_session.solved_a?,
-        b: game_session.solved_b?,
-        c: game_session.solved_c?
-      },
-      completed: game_session.completed?,
-      share_string: share_string,
-      label_a: game_session.solved_a? ? @puzzle.label_a : nil,
-      label_b: game_session.solved_b? ? @puzzle.label_b : nil,
-      label_c: game_session.solved_c? ? @puzzle.label_c : nil
+      solved: { a: a_sol, b: b_sol, c: c_sol },
+      completed: will_complete,
+      share_string: share_str
     }
   rescue => e
     Rails.logger.error "Guess action error: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
