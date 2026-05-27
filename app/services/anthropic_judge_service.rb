@@ -23,6 +23,7 @@ class AnthropicJudgeService
     uri = URI("https://generativelanguage.googleapis.com/v1beta/models/#{MODEL}:generateContent?key=#{ENV['GEMINI_API_KEY']}")
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = true
+    http.open_timeout = 5
     http.read_timeout = 8
 
     req = Net::HTTP::Post.new(uri)
