@@ -335,13 +335,13 @@
       <%# Hard mode toggle — admin and hard mode testers only %>
       <% if _hard_mode_access %>
         <div style="flex-shrink:0;display:flex;justify-content:flex-end;">
-          <div onclick="(function(){var u=new URL(window.location.href);u.searchParams.set('hard','<%= hard_mode ? 0 : 1 %>');window.location.href=u.toString();})()"
-               style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;">
+          <button onclick="(function(){var u=new URL(window.location.href);u.searchParams.set('hard','<%= hard_mode ? 0 : 1 %>');window.location.href=u.toString();})()"
+                  style="display:inline-flex;align-items:center;gap:7px;background:none;border:none;cursor:pointer;padding:4px;touch-action:manipulation;">
             <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;color:<%= hard_mode ? '#5B53D6' : '#bbb' %>;">HARD</span>
-            <div style="position:relative;width:36px;height:20px;background:<%= hard_mode ? '#5B53D6' : '#ddd' %>;border-radius:10px;flex-shrink:0;">
+            <div style="position:relative;width:36px;height:20px;background:<%= hard_mode ? '#5B53D6' : '#ddd' %>;border-radius:10px;flex-shrink:0;pointer-events:none;">
               <div style="position:absolute;top:2px;left:<%= hard_mode ? '18px' : '2px' %>;width:16px;height:16px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>
             </div>
-          </div>
+          </button>
         </div>
       <% end %>
 
