@@ -81,12 +81,12 @@
   function archiveShare(btn) {
     var text = btn.dataset.share;
     gtag('event', 'share_score', { 'game_id': btn.dataset.gameId });
-    if (navigator.share) {
+    if (navigator.share && vennIsMobile()) {
       navigator.share({ text: text }).catch(function(err) {
-        if (err && err.name !== 'AbortError') vennShowCopyPopover(text);
+        if (err && err.name !== 'AbortError') vennCopyWithToast(text);
       });
     } else {
-      vennShowCopyPopover(text);
+      vennCopyWithToast(text);
     }
   }
 </script>
