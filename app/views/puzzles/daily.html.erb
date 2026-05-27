@@ -11,6 +11,13 @@
         <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.15;min-width:0;">
           #<%= @daily_number %> &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
         </h1>
+        <% if user_signed_in? && current_user.admin? %>
+          <form action="<%= puzzle_reset_session_path(@puzzle) %>" method="post" style="display:inline;margin:0;padding:0;flex-shrink:0;">
+            <input type="hidden" name="_method" value="delete">
+            <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+            <button type="submit" style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:10px;font-weight:700;border-radius:6px;padding:2px 8px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1.6;">Reset</button>
+          </form>
+        <% end %>
         <button onclick="document.getElementById('instructions-modal').style.display='flex'"
                 style="flex-shrink:0;width:32px;height:32px;border-radius:50%;background:transparent;border:1.5px solid #ddd;color:#aaa;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;line-height:1;"
                 title="How to play">i</button>
