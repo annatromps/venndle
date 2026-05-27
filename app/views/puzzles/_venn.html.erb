@@ -1,7 +1,13 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
-<% hard_mode = local_assigns.key?(:hard_mode) ? local_assigns[:hard_mode] : request.query_parameters['hard'].present? %>
+<% hard_mode = if local_assigns.key?(:hard_mode)
+     local_assigns[:hard_mode]
+   elsif request.query_parameters.key?('hard')
+     request.query_parameters['hard'] != '0'
+   else
+     true
+   end %>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
@@ -328,6 +334,17 @@
     <%# ===== ACTIVE GAME STATE — zero scroll, fits viewport ===== %>
 
     <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
+
+      <%# Hard mode toggle %>
+      <div style="flex-shrink:0;display:flex;justify-content:flex-end;">
+        <div onclick="(function(){var u=new URL(window.location.href);u.searchParams.set('hard','<%= hard_mode ? 0 : 1 %>');window.location.href=u.toString();})()"
+             style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;">
+          <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;color:<%= hard_mode ? '#5B53D6' : '#bbb' %>;">HARD</span>
+          <div style="position:relative;width:36px;height:20px;background:<%= hard_mode ? '#5B53D6' : '#ddd' %>;border-radius:10px;flex-shrink:0;">
+            <div style="position:absolute;top:2px;left:<%= hard_mode ? '18px' : '2px' %>;width:16px;height:16px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>
+          </div>
+        </div>
+      </div>
 
       <%# SVG diagram — fills remaining space, scales to fit; sits on gradient directly %>
       <div style="flex:1;min-height:0;overflow:hidden;">
