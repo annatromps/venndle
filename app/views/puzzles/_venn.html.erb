@@ -1,9 +1,10 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
-<% hard_mode = user_signed_in? && current_user.admin? &&
-              request.query_parameters.key?('hard') &&
-              request.query_parameters['hard'] != '0' %>
+<% _hard_mode_access = user_signed_in? && (current_user.admin? || current_user.hard_mode_tester?) %>
+<% hard_mode = _hard_mode_access &&
+               request.query_parameters.key?('hard') &&
+               request.query_parameters['hard'] != '0' %>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
@@ -331,8 +332,8 @@
 
     <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
 
-      <%# Hard mode toggle — admin only %>
-      <% if user_signed_in? && current_user.admin? %>
+      <%# Hard mode toggle — admin and hard mode testers only %>
+      <% if _hard_mode_access %>
         <div style="flex-shrink:0;display:flex;justify-content:flex-end;">
           <div onclick="(function(){var u=new URL(window.location.href);u.searchParams.set('hard','<%= hard_mode ? 0 : 1 %>');window.location.href=u.toString();})()"
                style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;">
