@@ -42,14 +42,14 @@ class ApplicationHelperTest < ActionView::TestCase
     gs = game_sessions(:alice_past_completed)
     puzzle = puzzles(:past_daily)
     result = build_share_string_for(gs, puzzle)
-    assert_match %r{venndle\.app/daily\d+}, result
+    assert_match %r{https://venndle\.app}, result
   end
 
   test "share string last line is the full URL" do
     gs = game_sessions(:alice_past_completed)
     puzzle = puzzles(:past_daily)
     result = build_share_string_for(gs, puzzle)
-    assert_match %r{venndle\.app/daily\d+}, result.lines.last.strip
+    assert_equal "https://venndle.app", result.lines.last.strip
   end
 
   test "share string contains venndle.app/ID for community puzzle" do

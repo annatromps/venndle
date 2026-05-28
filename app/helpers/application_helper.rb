@@ -29,8 +29,7 @@ module ApplicationHelper
       "#{label.upcase} #{("❌" * wrong)}#{hint_str}#{result}"
     end
     if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
-      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
-      url   = "https://venndle.app/daily#{day_num}"
+      url   = "https://venndle.app"
       title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
     else
       url   = "https://venndle.app/#{puzzle.id}"
