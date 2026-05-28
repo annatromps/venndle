@@ -1,7 +1,7 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
-<% _hard_mode_access = user_signed_in? && (current_user.admin? || current_user.hard_mode_tester?) %>
+<% _hard_mode_access = user_signed_in? && (current_user.admin? || current_user.hard_mode_tester? || current_user.tester?) %>
 <% hard_mode = _hard_mode_access &&
                request.query_parameters.key?('hard') &&
                request.query_parameters['hard'] != '0' %>
