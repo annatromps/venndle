@@ -92,6 +92,13 @@ class ApplicationHelperTest < ActionView::TestCase
     assert result.start_with?("Venndle Daily —")
   end
 
+  test "share string title includes puzzle title for daily puzzle" do
+    gs = game_sessions(:alice_past_completed)
+    puzzle = puzzles(:past_daily)
+    result = build_share_string_for(gs, puzzle)
+    assert_match(/Venndle Daily — .+ - #{Regexp.escape(puzzle.title)}/, result.lines.first.strip)
+  end
+
   test "share string title uses puzzle title for community puzzle" do
     gs = game_sessions(:alice_community_gave_up)
     puzzle = puzzles(:community_puzzle)
