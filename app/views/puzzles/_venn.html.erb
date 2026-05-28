@@ -144,7 +144,7 @@
 
       <%# Other CTAs %>
       <div style="display:flex;flex-direction:column;gap:8px;">
-<button onclick="showDiagramPanel()" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
+<button type="button" onclick="var d=document.getElementById('diagram-panel');if(d)d.style.display='flex';" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
   View completed puzzle
 </button>
         <div style="display:flex;gap:8px;">
@@ -212,7 +212,7 @@
             <% end %>
           </svg>
         </div>
-        <button onclick="showScorePanel()"
+        <button type="button" onclick="var d=document.getElementById('diagram-panel');if(d)d.style.display='none';"
                 style="flex-shrink:0;width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
           ← Back to results
         </button>
