@@ -392,7 +392,7 @@ class PuzzlesController < ApplicationController
     end
     if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
       url   = "https://venndle.app"
-      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}#{puzzle.title.present? ? " - #{puzzle.title}" : ""}"
     else
       url   = "https://venndle.app/#{puzzle.id}"
       title = puzzle.title.presence || "Venndle ##{puzzle.id}"
