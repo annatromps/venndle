@@ -67,7 +67,7 @@
         <% if @play_count %>
           <span style="margin-left:4px;font-size:10px;font-weight:500;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= @play_count %> plays</span>
         <% end %>
-        <% if user_signed_in? && current_user.admin? %>
+        <% if admin_view? %>
           <form action="<%= puzzle_reset_session_path(@puzzle) %>" method="post" style="display:inline;margin:0;padding:0;">
             <input type="hidden" name="_method" value="delete">
             <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
