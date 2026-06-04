@@ -1,22 +1,11 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
-<% _hard_mode_access = admin_view? || (user_signed_in? && (current_user.hard_mode_tester? || current_user.tester?)) %>
-<% hard_mode = _hard_mode_access &&
-               request.query_parameters.key?('hard') &&
-               request.query_parameters['hard'] != '0' %>
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
 <style>
-  /* Responsive guess area — row on desktop, column on mobile */
-  .guess-area { display:flex; flex-shrink:0; gap:8px; flex-direction:column; }
-  @media (min-width:520px) {
-    .guess-area { flex-direction:row; }
-    .guess-area .guess-row { flex:1; min-width:0; }
-  }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .submit-btn-loading { animation: spin 0.8s linear infinite; display:inline-block; }
+  @keyframes pill-ring-pulse { 0%,100%{ stroke-opacity:0.35; stroke-width:2; } 50%{ stroke-opacity:0.85; stroke-width:3.5; } }
+  .pill-unsolved .pill-ring { animation: pill-ring-pulse 2.2s ease-in-out infinite; }
 </style>
 
 <div id="venn-puzzle" data-puzzle-id="<%= puzzle.id %>" style="height:100%;position:relative;">
@@ -100,8 +89,7 @@
             .where(puzzles: { puzzle_type: "daily" }, completed: true)
             .where("puzzles.scheduled_date <= ?", Date.today)
             .includes(:puzzle).to_a
-          _dates = _gs.select { |s| s.created_at.to_date <= s.puzzle.scheduled_date + 1 }
-                     .map { |s| s.puzzle.scheduled_date }.to_set
+          _dates = _gs.map { |s| s.puzzle.scheduled_date }.to_set
           _sd = _dates.include?(Date.today) ? Date.today : Date.today - 1
           _streak = 0; _d = _sd
           while _dates.include?(_d); _streak += 1; _d -= 1; end
@@ -144,7 +132,7 @@
 
       <%# Other CTAs %>
       <div style="display:flex;flex-direction:column;gap:8px;">
-<button type="button" onclick="var d=document.getElementById('diagram-panel');if(d)d.style.display='flex';" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
+<button onclick="showDiagramPanel()" style="width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
   View completed puzzle
 </button>
         <div style="display:flex;gap:8px;">
@@ -173,51 +161,49 @@
       <% end %>
     </div>
 
-    <% content_for :body_overlays do %>
-      <%# ── Diagram panel — rendered at body level to avoid iOS overflow:hidden clipping ── %>
-      <div id="diagram-panel" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:1000;flex-direction:column;gap:8px;padding:20px 20px max(20px,env(safe-area-inset-bottom)) 20px;box-sizing:border-box;">
-        <div style="flex:1;min-height:0;overflow:hidden;">
-          <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
-                <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
-              </filter>
-            </defs>
+    <%# ── Diagram panel (fixed overlay, shown by "View completed puzzle") ── %>
+    <div id="diagram-panel" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:100;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;">
+      <div style="flex:1;min-height:0;overflow:hidden;">
+        <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
+              <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
+            </filter>
+          </defs>
 
-            <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
-            <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
-            <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
+          <circle cx="280" cy="150" r="125" fill="#C8C4F2" fill-opacity="0.5" stroke="#5B53D6" stroke-width="2"/>
+          <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
+          <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
-            <% a_pw = [puzzle.label_a.to_s.upcase.length * 8 + 24, 60].max %>
-            <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
-            <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
+          <% a_pw = [puzzle.label_a.to_s.upcase.length * 8 + 24, 60].max %>
+          <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
+          <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
 
-            <% b_pw = [puzzle.label_b.to_s.upcase.length * 8 + 24, 60].max %>
-            <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
-            <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
+          <% b_pw = [puzzle.label_b.to_s.upcase.length * 8 + 24, 60].max %>
+          <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
+          <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
 
-            <% c_pw = [puzzle.label_c.to_s.upcase.length * 8 + 24, 60].max %>
-            <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
-            <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
+          <% c_pw = [puzzle.label_c.to_s.upcase.length * 8 + 24, 60].max %>
+          <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
+          <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
 
-            <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-                 words_ab: [208,202,219], words_ac: [352,202,219],
-                 words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
-              <% word = puzzle.send(region)&.first %>
-              <% if word %>
-                <% pw = [word.length * 8 + 24, 60].max %>
-                <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-d)"/>
-                <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
-              <% end %>
+          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
+               words_ab: [208,202,219], words_ac: [352,202,219],
+               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+            <% word = puzzle.send(region)&.first %>
+            <% if word %>
+              <% pw = [word.length * 8 + 24, 60].max %>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-d)"/>
+              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
             <% end %>
-          </svg>
-        </div>
-        <button type="button" onclick="var d=document.getElementById('diagram-panel');if(d)d.style.display='none';"
-                style="flex-shrink:0;width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;touch-action:manipulation;">
-          ← Back to results
-        </button>
+          <% end %>
+        </svg>
       </div>
-    <% end %>
+      <button onclick="showScorePanel()"
+              style="flex-shrink:0;width:100%;background:transparent;border:1.5px solid rgba(0,0,0,0.15);color:#1a1a2e;font-weight:600;font-size:13px;border-radius:12px;height:40px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
+        ← Back to results
+      </button>
+    </div>
 
     <script>
       <%# vennShare and vennCopyFallback live in app/javascript/venn_share.js — do not re-define here %>
@@ -262,38 +248,26 @@
 
       <% unless user_signed_in? %>
       (function() {
-        var isDaily = <%= raw((puzzle.puzzle_type == 'daily').to_json) %>;
-        var puzzleDate = <%= raw(puzzle.scheduled_date&.to_s.to_json) %>;
+        var isDaily = <%= (puzzle.puzzle_type == 'daily').to_json %>;
+        var puzzleDate = <%= puzzle.scheduled_date&.to_s.to_json %>;
         var misses = <%= total_wrong %>;
         try {
           var saved = JSON.parse(localStorage.getItem('venndle_daily_stats') || '{}');
+          if (isDaily && puzzleDate && !saved[puzzleDate]) {
+            saved[puzzleDate] = { misses: misses };
+            localStorage.setItem('venndle_daily_stats', JSON.stringify(saved));
+          }
+          if (Object.keys(saved).length === 0) return;
           function ds(d) {
             return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
           }
           var now = new Date();
-          var today = ds(now);
-          if (isDaily && puzzleDate && !saved[puzzleDate]) {
-            saved[puzzleDate] = { misses: misses, playedAt: today };
-            localStorage.setItem('venndle_daily_stats', JSON.stringify(saved));
-          }
-          if (Object.keys(saved).length === 0) return;
-          var yesterday = ds(new Date(now - 86400000));
-          // Only count entries played on the puzzle's date or the next day
-          function validForStreak(puzzleDate, entry) {
-            var pa = entry.playedAt;
-            if (!pa) return true; // legacy entries without playedAt: trust them
-            var diff = (new Date(pa + 'T12:00:00') - new Date(puzzleDate + 'T12:00:00')) / 86400000;
-            return diff >= 0 && diff <= 1;
-          }
-          var validDates = {};
-          Object.keys(saved).forEach(function(date) {
-            if (validForStreak(date, saved[date])) validDates[date] = true;
-          });
-          var start = validDates[today] ? today : (validDates[yesterday] ? yesterday : null);
+          var today = ds(now), yesterday = ds(new Date(now - 86400000));
+          var start = saved[today] ? today : (saved[yesterday] ? yesterday : null);
           var streak = 0;
           if (start) {
             var d = new Date(start + 'T12:00:00');
-            while (validDates[ds(d)]) { streak++; d.setDate(d.getDate() - 1); }
+            while (saved[ds(d)]) { streak++; d.setDate(d.getDate() - 1); }
           }
           var vals = Object.values(saved).map(function(v) { return v.misses; });
           var avg = vals.length ? Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10) / 10 : null;
@@ -328,26 +302,24 @@
     </script>
 
   <% elsif game_session %>
-    <%# ===== ACTIVE GAME STATE — zero scroll, fits viewport ===== %>
+    <%# ===== ACTIVE GAME STATE — tap-to-guess popover ===== %>
+    <%
+      a_solved = game_session.solved_a?
+      b_solved = game_session.solved_b?
+      c_solved = game_session.solved_c?
+      a_display = a_solved ? puzzle.label_a.to_s.upcase : "A"
+      b_display = b_solved ? puzzle.label_b.to_s.upcase : "B"
+      c_display = c_solved ? puzzle.label_c.to_s.upcase : "C"
+      a_pw = [a_display.length * 8 + 24, 60].max
+      b_pw = [b_display.length * 8 + 24, 60].max
+      c_pw = [c_display.length * 8 + 24, 60].max
+    %>
 
-    <div style="height:100%;display:flex;flex-direction:column;gap:8px;">
+    <div style="height:100%;display:flex;flex-direction:column;gap:0;">
 
-      <%# Hard mode toggle — admin and hard mode testers only %>
-      <% if _hard_mode_access %>
-        <div style="flex-shrink:0;display:flex;justify-content:flex-end;">
-          <a href="?hard=<%= hard_mode ? 0 : 1 %>" data-turbo="false"
-             style="display:inline-flex;align-items:center;gap:7px;text-decoration:none;cursor:pointer;padding:4px;touch-action:manipulation;">
-            <span style="font-size:11px;font-weight:700;letter-spacing:0.06em;font-family:'Inter',system-ui,sans-serif;color:<%= hard_mode ? '#5B53D6' : '#bbb' %>;">HARD</span>
-            <div style="position:relative;width:36px;height:20px;background:<%= hard_mode ? '#5B53D6' : '#ddd' %>;border-radius:10px;flex-shrink:0;">
-              <div style="position:absolute;top:2px;left:<%= hard_mode ? '18px' : '2px' %>;width:16px;height:16px;background:white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.25);"></div>
-            </div>
-          </a>
-        </div>
-      <% end %>
-
-      <%# SVG diagram — fills remaining space, scales to fit; sits on gradient directly %>
-      <div style="flex:1;min-height:0;overflow:hidden;">
-        <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <%# SVG diagram — fills all space; position:relative hosts the popover %>
+      <div id="svg-wrapper" style="flex:1;min-height:0;overflow:hidden;position:relative;">
+        <svg id="venn-svg" viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -358,216 +330,240 @@
           <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
           <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
-          <%# A label pill — shows "A" in circle colour until solved, then real label %>
-          <% a_solved = game_session.solved_a? %>
-          <% a_display = a_solved ? puzzle.label_a.to_s.upcase : "A" %>
-          <% a_pw = [a_display.length * 8 + 24, 60].max %>
-          <g data-label-pill="a" data-cx="280" data-solved-color="#5B53D6">
+          <%# A label pill %>
+          <g id="pill-a" data-label-pill="a" data-cx="280" data-solved-color="#5B53D6"<% unless a_solved %> class="pill-unsolved" onclick="openPopover('a')" style="cursor:pointer;"<% end %>>
+            <% unless a_solved %>
+              <rect class="pill-ring" x="<%= 280 - a_pw/2 - 4 %>" y="4" width="<%= a_pw + 8 %>" height="36" rx="18" fill="none" stroke="#5B53D6" stroke-width="2"/>
+            <% end %>
             <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
             <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
           </g>
 
-          <%# B label pill — shows "B" in circle colour until solved, then real label %>
-          <% b_solved = game_session.solved_b? %>
-          <% b_display = b_solved ? puzzle.label_b.to_s.upcase : "B" %>
-          <% b_pw = [b_display.length * 8 + 24, 60].max %>
-          <g data-label-pill="b" data-cx="185" data-solved-color="#2BAB65">
+          <%# B label pill %>
+          <g id="pill-b" data-label-pill="b" data-cx="185" data-solved-color="#2BAB65"<% unless b_solved %> class="pill-unsolved" onclick="openPopover('b')" style="cursor:pointer;"<% end %>>
+            <% unless b_solved %>
+              <rect class="pill-ring" x="<%= 185 - b_pw/2 - 4 %>" y="395" width="<%= b_pw + 8 %>" height="36" rx="18" fill="none" stroke="#2BAB65" stroke-width="2"/>
+            <% end %>
             <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
             <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
           </g>
 
-          <%# C label pill — shows "C" in circle colour until solved, then real label %>
-          <% c_solved = game_session.solved_c? %>
-          <% c_display = c_solved ? puzzle.label_c.to_s.upcase : "C" %>
-          <% c_pw = [c_display.length * 8 + 24, 60].max %>
-          <g data-label-pill="c" data-cx="375" data-solved-color="#E8631A">
+          <%# C label pill %>
+          <g id="pill-c" data-label-pill="c" data-cx="375" data-solved-color="#E8631A"<% unless c_solved %> class="pill-unsolved" onclick="openPopover('c')" style="cursor:pointer;"<% end %>>
+            <% unless c_solved %>
+              <rect class="pill-ring" x="<%= 375 - c_pw/2 - 4 %>" y="395" width="<%= c_pw + 8 %>" height="36" rx="18" fill="none" stroke="#E8631A" stroke-width="2"/>
+            <% end %>
             <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
             <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
           </g>
 
-          <%# Word pills (normal) / zone targets + pre-placed abc (hard mode) %>
-          <% if hard_mode %>
-            <%# abc word pre-placed in the centre %>
-            <% abc_word = puzzle.words_abc&.first %>
-            <% if abc_word %>
-              <% pw = [abc_word.length * 8 + 24, 60].max %>
-              <rect x="<%= 280 - pw/2 %>" y="235" width="<%= pw %>" height="26" rx="13" fill="#e8e4fb" filter="url(#pill-shadow)"/>
-              <text x="280" y="252" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= abc_word %></text>
-            <% end %>
-            <%# Dashed drop-zone rings for each placeable region %>
-            <% [
-              [:words_a,  280, 72,  'rgba(91,83,214,0.1)',  '#5B53D6'],
-              [:words_b,  112, 323, 'rgba(43,171,101,0.1)', '#2BAB65'],
-              [:words_c,  448, 323, 'rgba(232,99,26,0.1)',  '#E8631A'],
-              [:words_ab, 208, 215, 'rgba(91,83,214,0.1)',  '#5B53D6'],
-              [:words_ac, 352, 215, 'rgba(232,99,26,0.1)',  '#E8631A'],
-              [:words_bc, 280, 336, 'rgba(43,171,101,0.1)', '#2BAB65'],
-            ].each do |region, cx, cy, fill, stroke| %>
-              <% if puzzle.send(region)&.first %>
-                <circle id="zone-<%= region %>" cx="<%= cx %>" cy="<%= cy %>" r="26"
-                        fill="<%= fill %>" stroke="<%= stroke %>" stroke-width="1.5" stroke-dasharray="5 3"
-                        class="hard-zone" data-region="<%= region %>" style="cursor:pointer;"/>
-              <% end %>
-            <% end %>
-          <% else %>
-            <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-                 words_ab: [208,202,219], words_ac: [352,202,219],
-                 words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
-              <% word = puzzle.send(region)&.first %>
-              <% if word %>
-                <% pw = [word.length * 8 + 24, 60].max %>
-                <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
-                <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
-              <% end %>
+          <%# Word pills %>
+          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
+               words_ab: [208,202,219], words_ac: [352,202,219],
+               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+            <% word = puzzle.send(region)&.first %>
+            <% if word %>
+              <% pw = [word.length * 8 + 24, 60].max %>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
+              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
             <% end %>
           <% end %>
         </svg>
-      </div>
 
-      <%# Hard mode word bank — shuffled chips to place into the diagram %>
-      <% if hard_mode %>
-        <div id="word-bank" style="flex-shrink:0;display:flex;gap:6px;overflow-x:auto;padding:4px 2px;-webkit-overflow-scrolling:touch;">
-          <% [:words_a,:words_b,:words_c,:words_ab,:words_ac,:words_bc].filter_map { |r| puzzle.send(r)&.first }.shuffle.each do |word| %>
-            <button class="bank-word" data-word="<%= word %>"
-                    style="flex-shrink:0;background:white;border:1.5px solid #ddd;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',system-ui,sans-serif;color:#1a1a2e;touch-action:manipulation;white-space:nowrap;">
-              <%= word %>
-            </button>
-          <% end %>
-        </div>
-      <% end %>
-
-      <%# Guess cards — 3 in a row on desktop, stacked on mobile %>
-      <div class="guess-area">
-        <% [
-          ["a", "#5B53D6", "#EDEAFC", "#9B94E8"],
-          ["b", "#2BAB65", "#E5F5EC", "#72C894"],
-          ["c", "#E8631A", "#FDF0E9", "#F0956A"]
-        ].each do |lbl, color, bg, placeholder_color| %>
-          <% solved = game_session.send("solved_#{lbl}?") %>
-          <% label_text = puzzle.send("label_#{lbl}") %>
-          <% lbl_attempts = attempts.select { |a| a.label == lbl } %>
-          <% last_correct_attempt = lbl_attempts.select(&:correct?).last %>
-
-          <div id="guess-row-<%= lbl %>" class="guess-row"
-               data-label="<%= lbl %>" data-solved="<%= solved %>"
-               style="border:1.5px solid <%= color %>;border-radius:12px;padding:8px 10px;background:<%= bg %>;display:flex;flex-direction:column;gap:4px;min-width:0;">
-
-            <div class="guess-row-main" style="display:flex;align-items:center;gap:8px;">
-              <%# Letter badge %>
-              <span style="width:24px;height:24px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">
-                <%= lbl.upcase %>
-              </span>
-
-              <% if solved %>
-                <span style="flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><%= label_text %></span>
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#16a34a;color:white;font-size:10px;font-weight:700;flex-shrink:0;">✓</span>
-              <% else %>
-                <div class="guess-input-wrap" style="flex:1;display:flex;align-items:center;min-width:0;">
-                  <span class="hint-prefix" style="font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;line-height:1;flex-shrink:0;"></span>
-                  <input type="text" name="guess"
-                         placeholder="Category <%= lbl.upcase %>..."
-                         autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-                         style="flex:1;min-width:40px;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;"
-                         data-placeholder-color="<%= placeholder_color %>" />
-                </div>
-                <button class="submit-btn" data-label="<%= lbl %>"
-                        style="flex-shrink:0;background:<%= color %>;color:white;font-weight:700;font-size:13px;border:none;border-radius:999px;height:26px;padding:0 12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;">
-                  &#8594;
-                </button>
-              <% end %>
-            </div>
-
-            <%# Attempt marks — second line %>
-            <span id="marks-<%= lbl %>" style="display:flex;align-items:center;gap:3px;padding-left:32px;min-height:20px;">
-              <% lbl_attempts.each do |attempt| %>
-                <% if attempt.correct? %>
-                  <span style="display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:<%= color %>;color:white;font-size:8px;font-weight:700;">✓</span>
-                <% else %>
-                  <span style="font-size:18px;color:#ef4444;font-weight:900;line-height:1;">✗</span>
-                <% end %>
-              <% end %>
-            </span>
-            <% if solved && last_correct_attempt && last_correct_attempt.guess.to_s.downcase.strip != label_text.to_s.downcase.strip %>
-              <span id="you-said-<%= lbl %>" style="font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;">you said: <%= last_correct_attempt.guess %></span>
-            <% end %>
-
-            <%# Hint controls — only for unsolved rows %>
-            <% unless solved %>
-              <div class="hint-ctrl" data-label="<%= lbl %>" style="padding-left:32px;display:flex;flex-direction:column;gap:2px;">
-                <div style="display:flex;gap:8px;align-items:center;">
-                  <button class="hint-btn" data-label="<%= lbl %>"
-                          style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
-                    Reveal letter
-                  </button>
-                  <span style="color:#ddd;font-size:10px;">|</span>
-                  <button class="give-up-btn" data-label="<%= lbl %>"
-                          style="font-size:11px;color:#e53e3e;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">
-                    Give up
-                  </button>
-                </div>
-              </div>
-            <% end %>
+        <%# Floating guess popover — repositioned by JS when a pill is clicked %>
+        <div id="label-popover"
+             style="display:none;position:absolute;z-index:200;width:220px;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);padding:12px;box-sizing:border-box;border-top:3px solid #5B53D6;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span id="popover-badge"
+                  style="width:22px;height:22px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">A</span>
+            <span id="popover-marks" style="flex:1;display:flex;gap:2px;flex-wrap:wrap;align-items:center;min-height:16px;"></span>
+            <button onclick="closePopover()" style="background:none;border:none;cursor:pointer;color:#bbb;font-size:15px;line-height:1;padding:0;flex-shrink:0;">✕</button>
           </div>
-        <% end %>
+          <div style="display:flex;align-items:center;gap:6px;background:#f5f5f5;border-radius:10px;padding:5px 8px;margin-bottom:8px;">
+            <span id="popover-hint-prefix" style="font-size:13px;font-weight:700;color:#bbb;letter-spacing:1px;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;line-height:1;flex-shrink:0;"></span>
+            <input id="popover-input" type="text"
+                   placeholder="Category A..."
+                   autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+                   style="flex:1;min-width:0;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;"/>
+            <button id="popover-submit"
+                    style="flex-shrink:0;background:#5B53D6;color:white;font-weight:700;font-size:13px;border:none;border-radius:999px;width:26px;height:26px;padding:0;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;display:flex;align-items:center;justify-content:center;">&#8594;</button>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button id="popover-hint-btn"
+                    style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">Reveal letter</button>
+            <span style="color:#ddd;font-size:10px;">|</span>
+            <button id="popover-give-up-btn"
+                    style="font-size:11px;color:#e53e3e;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">Give up</button>
+          </div>
+          <div id="popover-error" style="display:none;font-size:11px;font-weight:600;color:#e53e3e;margin-top:6px;"></div>
+        </div>
       </div>
+
+      <%# Instruction nudge %>
+      <div style="flex-shrink:0;padding:4px 16px 10px;text-align:center;">
+        <p style="font-size:11px;color:#bbb;margin:0;font-family:'Inter',system-ui,sans-serif;letter-spacing:0.02em;">Tap a circle label (A, B, C) to guess</p>
+      </div>
+
     </div>
 
     <script>
       (function() {
-        const puzzleId = "<%= puzzle.id %>";
-        const gameId   = "<%= game_id_for(puzzle) %>";
+        const puzzleId  = "<%= puzzle.id %>";
+        const gameId    = "<%= game_id_for(puzzle) %>";
         const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-        const boardWords = new Set(<%= (puzzle.all_words || []).map(&:to_s).to_json.html_safe %>);
 
-        // Placeholder colours via injected style since inline ::placeholder doesn't work
-        document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
-          const color = input.dataset.placeholderColor;
-          if (color) {
-            const s = document.createElement('style');
-            s.textContent = '#guess-row-' + input.closest('.guess-row').dataset.label + ' input::placeholder { color:' + color + '; opacity:1; }';
-            document.head.appendChild(s);
+        const COLORS = { a: '#5B53D6', b: '#2BAB65', c: '#E8631A' };
+
+        let activeLabel = null;
+
+        const solvedLabels = new Set(<%= [
+          (a_solved ? 'a' : nil),
+          (b_solved ? 'b' : nil),
+          (c_solved ? 'c' : nil)
+        ].compact.to_json.html_safe %>);
+
+        const hintState = {
+          a: { revealed: [], done: false },
+          b: { revealed: [], done: false },
+          c: { revealed: [], done: false }
+        };
+
+        const attemptMarks = { a: [], b: [], c: [] };
+        <% attempts.each do |att| %>
+        attemptMarks[<%= att.label.to_json %>].push({ correct: <%= att.correct?.to_json %> });
+        <% end %>
+
+        function markHtml(label, correct) {
+          const color = COLORS[label];
+          if (correct) {
+            return '<span style="display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:50%;background:' + color + ';color:white;font-size:7px;font-weight:700;">✓</span>';
           }
+          return '<span style="font-size:16px;color:#ef4444;font-weight:900;line-height:1;">✗</span>';
+        }
+
+        function renderMarks(label) {
+          return attemptMarks[label].map(function(m) { return markHtml(label, m.correct); }).join('');
+        }
+
+        window.openPopover = function(label) {
+          if (solvedLabels.has(label)) return;
+          activeLabel = label;
+          const color = COLORS[label];
+
+          document.getElementById('popover-badge').textContent = label.toUpperCase();
+          document.getElementById('popover-badge').style.background = color;
+          document.getElementById('label-popover').style.borderTopColor = color;
+          document.getElementById('popover-marks').innerHTML = renderMarks(label);
+
+          const state = hintState[label];
+          document.getElementById('popover-hint-prefix').textContent = state.revealed.join('');
+
+          const input = document.getElementById('popover-input');
+          input.value = '';
+          input.placeholder = 'Category ' + label.toUpperCase() + '...';
+
+          const submitBtn = document.getElementById('popover-submit');
+          submitBtn.style.background = color;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '&#8594;';
+
+          const hintBtn = document.getElementById('popover-hint-btn');
+          if (state.done) {
+            hintBtn.disabled = true; hintBtn.style.color = '#bbb'; hintBtn.style.textDecoration = 'none'; hintBtn.textContent = 'All revealed';
+          } else {
+            hintBtn.disabled = false; hintBtn.style.color = '#999'; hintBtn.style.textDecoration = 'underline'; hintBtn.textContent = 'Reveal letter';
+          }
+
+          const errEl = document.getElementById('popover-error');
+          errEl.style.display = 'none'; errEl.textContent = '';
+
+          positionPopover(label);
+          document.getElementById('label-popover').style.display = 'block';
+          setTimeout(function() { input.focus(); }, 50);
+        };
+
+        function positionPopover(label) {
+          const wrapper = document.getElementById('svg-wrapper');
+          const pill    = document.getElementById('pill-' + label);
+          const popover = document.getElementById('label-popover');
+          if (!wrapper || !pill) return;
+
+          const wRect = wrapper.getBoundingClientRect();
+          const pRect = pill.getBoundingClientRect();
+          const popW  = 220, popH = 130;
+
+          let left = pRect.left - wRect.left + pRect.width / 2 - popW / 2;
+          left = Math.max(8, Math.min(left, wRect.width - popW - 8));
+
+          let top;
+          if (label === 'a') {
+            top = pRect.bottom - wRect.top + 8;
+          } else {
+            top = pRect.top - wRect.top - popH - 8;
+          }
+          top = Math.max(8, Math.min(top, wRect.height - popH - 8));
+
+          popover.style.left = left + 'px';
+          popover.style.top  = top  + 'px';
+        }
+
+        window.closePopover = function() {
+          document.getElementById('label-popover').style.display = 'none';
+          activeLabel = null;
+        };
+
+        document.addEventListener('click', function(e) {
+          const popover = document.getElementById('label-popover');
+          if (!popover || popover.style.display === 'none') return;
+          if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
 
-        function getCircleColor(label) {
-          return { a: '#5B53D6', b: '#2BAB65', c: '#E8631A' }[label] || '#1a1a2e';
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closePopover();
+        });
+
+        function showPopoverError(msg) {
+          const el = document.getElementById('popover-error');
+          el.textContent = msg; el.style.display = 'block';
+          setTimeout(function() { el.style.display = 'none'; el.textContent = ''; }, 4000);
         }
 
-        function showRowError(row, msg) {
-          let errEl = row.querySelector('.guess-error');
-          if (!errEl) {
-            errEl = document.createElement('span');
-            errEl.className = 'guess-error';
-            errEl.style.cssText = 'font-size:12px;font-weight:600;color:#e53e3e;padding-left:32px;display:block;';
-            row.appendChild(errEl);
-          }
-          errEl.textContent = msg;
-          setTimeout(function() { if (errEl.parentNode) errEl.textContent = ''; }, 4000);
+        function removePillInteractivity(label) {
+          const pillEl = document.getElementById('pill-' + label);
+          if (!pillEl) return;
+          pillEl.removeAttribute('onclick');
+          pillEl.style.cursor = 'default';
+          pillEl.classList.remove('pill-unsolved');
+          const ring = pillEl.querySelector('.pill-ring');
+          if (ring) ring.remove();
         }
 
-        function showRowDuplicate(row, msg) {
-          let el = row.querySelector('.guess-duplicate');
-          if (!el) {
-            el = document.createElement('span');
-            el.className = 'guess-duplicate';
-            el.style.cssText = 'font-size:11px;color:#888;padding-left:32px;display:block;font-style:italic;';
-            row.appendChild(el);
-          }
-          el.textContent = msg;
-          setTimeout(function() { if (el.parentNode) el.textContent = ''; }, 3000);
+        function updateSvgPill(label, text, color) {
+          const g = document.getElementById('pill-' + label);
+          if (!g) return;
+          const cx = parseFloat(g.dataset.cx);
+          const filledRect = Array.from(g.querySelectorAll('rect')).find(function(r) { return !r.classList.contains('pill-ring'); });
+          const textEl = g.querySelector('text');
+          if (!filledRect || !textEl) return;
+          const display = text.toUpperCase();
+          const pw = Math.max(display.length * 8 + 24, 60);
+          filledRect.setAttribute('fill', color);
+          filledRect.setAttribute('width', pw);
+          filledRect.setAttribute('x', cx - pw / 2);
+          textEl.textContent = display;
         }
 
-        async function submitGuess(label, btn) {
-          const row = document.getElementById('guess-row-' + label);
-          const input = row.querySelector('input[name="guess"]');
-          const hintPfx = row.querySelector('.hint-prefix');
-          const prefix = hintPfx ? hintPfx.textContent : '';
-          if (!input || (!input.value.trim() && !prefix)) return;
+        async function submitGuess() {
+          const label = activeLabel;
+          if (!label) return;
+          const prefix = document.getElementById('popover-hint-prefix').textContent;
+          const input  = document.getElementById('popover-input');
+          const guess  = prefix + input.value.trim();
+          if (!guess.trim()) return;
 
-          const guess = prefix + input.value.trim();
-
-          btn.disabled = true;
-          btn.innerHTML = '<span class="submit-btn-loading" style="display:inline-block;">↻</span>';
+          const submitBtn = document.getElementById('popover-submit');
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<span style="display:inline-block;animation:spin 0.8s linear infinite;">↻</span>';
 
           try {
             const resp = await fetch('/puzzles/' + puzzleId + '/guess', {
@@ -577,157 +573,62 @@
             });
 
             let data;
-            try {
-              data = await resp.json();
-            } catch(parseErr) {
-              console.error('Server returned non-JSON (status ' + resp.status + ')');
-              showRowError(row, 'Server error — check that GEMINI_API_KEY is set');
-              btn.disabled = false;
-              btn.innerHTML = '&#8594;';
-              return;
+            try { data = await resp.json(); }
+            catch(e) {
+              showPopoverError('Server error');
+              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
             }
 
             if (!resp.ok || data.error) {
-              console.error('Guess error:', data.error || resp.status);
-              showRowError(row, data.error || 'Something went wrong');
-              btn.disabled = false;
-              btn.innerHTML = '&#8594;';
-              return;
+              showPopoverError(data.error || 'Something went wrong');
+              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
             }
 
             if (data.duplicate) {
-              showRowDuplicate(row, 'You already tried that');
-              btn.disabled = false;
-              btn.innerHTML = '&#8594;';
-              input.value = '';
-              return;
+              showPopoverError('You already tried that');
+              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;';
+              input.value = ''; return;
             }
 
             if (data.board_word) {
-              row.style.transition = 'border-color 0.15s';
-              row.style.borderColor = '#e53e3e';
-              setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 600);
-              showRowError(row, "Can't submit board words");
-              btn.disabled = false;
-              btn.innerHTML = '&#8594;';
-              return;
+              showPopoverError("Can't submit board words");
+              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
             }
 
-            // Append attempt mark
-            const marksEl = document.getElementById('marks-' + label);
-            if (data.correct) {
-              const m = document.createElement('span');
-              m.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;border-radius:50%;background:' + getCircleColor(label) + ';color:white;font-size:8px;font-weight:700;';
-              m.textContent = '✓';
-              marksEl.appendChild(m);
-            } else {
-              const m = document.createElement('span');
-              m.style.cssText = 'font-size:18px;color:#ef4444;font-weight:900;line-height:1;';
-              m.textContent = '✗';
-              marksEl.appendChild(m);
-              // Show tip after 2nd wrong guess on this circle
-              var wrongCount = Array.from(marksEl.children).filter(function(s) { return s.textContent === '✗'; }).length;
-              if (wrongCount >= 2) venndleShowGuessTip();
-              // Brief red-border flash on the row to signal incorrect
-              row.style.transition = 'border-color 0.15s';
-              row.style.borderColor = '#e53e3e';
-              setTimeout(function() { row.style.borderColor = ''; setTimeout(function() { row.style.transition = ''; }, 150); }, 500);
-            }
-
+            attemptMarks[label].push({ correct: data.correct });
+            document.getElementById('popover-marks').innerHTML = renderMarks(label);
             input.value = '';
 
-            if (data.solved[label]) {
-              row.dataset.solved = 'true';
-              const officialLabel = data.official_label;
-              const mainRow = row.querySelector('.guess-row-main');
-              const inputWrap = mainRow.querySelector('.guess-input-wrap') || mainRow.querySelector('input[name="guess"]');
-              if (inputWrap) {
-                const labelSpan = document.createElement('span');
-                labelSpan.style.cssText = "flex:1;font-weight:600;font-size:13px;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-                labelSpan.textContent = officialLabel;
-                inputWrap.replaceWith(labelSpan);
-              }
-              btn.remove();
-              const check = document.createElement('span');
-              check.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#16a34a;color:white;font-size:10px;font-weight:700;flex-shrink:0;';
-              check.textContent = '✓';
-              mainRow.appendChild(check);
-              updateSvgPill(label, officialLabel, getCircleColor(label));
-              if (guess.toLowerCase().trim() !== officialLabel.toLowerCase().trim()) {
-                const youSaid = document.createElement('span');
-                youSaid.style.cssText = "font-size:11px;color:#999;padding-left:32px;font-style:italic;font-family:'Inter',system-ui,sans-serif;";
-                youSaid.textContent = 'you said: ' + guess;
-                row.appendChild(youSaid);
-              }
-            } else {
-              btn.disabled = false;
-              btn.innerHTML = '&#8594;';
+            if (!data.correct) {
+              const pop = document.getElementById('label-popover');
+              const orig = pop.style.borderTopColor;
+              pop.style.borderTopColor = '#ef4444';
+              setTimeout(function() { pop.style.borderTopColor = orig; }, 600);
+              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
             }
+
+            updateSvgPill(label, data.official_label, COLORS[label]);
+            solvedLabels.add(label);
+            removePillInteractivity(label);
+            try { gtag('event', 'correct_guess', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
+            closePopover();
 
             if (data.completed) {
               try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
-              const wrongMarks = ['a','b','c'].reduce(function(n, lbl) {
-                const el = document.getElementById('marks-' + lbl);
-                return n + (el ? Array.from(el.children).filter(function(s){ return s.textContent === '✗'; }).length : 0);
-              }, 0);
-              if (wrongMarks === 0 && typeof confetti === 'function') {
-                const opts = { particleCount: 120, spread: 70, startVelocity: 60, decay: 0.92, ticks: 200,
-                  colors: ['#5B53D6','#2BAB65','#E8631A','#ffffff','#ffd700'] };
-                confetti(Object.assign({}, opts, { angle: 60,  origin: { x: 0, y: 1 } }));
-                confetti(Object.assign({}, opts, { angle: 120, origin: { x: 1, y: 1 } }));
-                setTimeout(function() { window.location.reload(); }, 2600);
-              } else {
-                window.location.reload();
-              }
+              window.location.reload();
             }
           } catch(err) {
             console.error('Guess fetch failed:', err);
-            showRowError(row, 'Network error — please try again');
-            btn.disabled = false;
-            btn.innerHTML = '&#8594;';
+            showPopoverError('Network error — please try again');
+            submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;';
           }
         }
 
-        function updateSvgPill(label, text, color) {
-          const svg = document.querySelector('#venn-puzzle svg');
-          if (!svg) return;
-          const g = svg.querySelector('[data-label-pill="' + label + '"]');
-          if (!g) return;
-          const rect = g.querySelector('rect');
-          const textEl = g.querySelector('text');
-          if (!rect || !textEl) return;
-          const display = text.toUpperCase();
-          const pw = Math.max(display.length * 8 + 24, 60);
-          const cx = parseFloat(g.dataset.cx);
-          rect.setAttribute('fill', color);
-          rect.setAttribute('width', pw);
-          rect.setAttribute('x', cx - pw / 2);
-          textEl.textContent = display;
-        }
-
-        document.querySelectorAll('.submit-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() { submitGuess(btn.dataset.label, btn); });
-        });
-
-        document.querySelectorAll('.guess-row input[name="guess"]').forEach(function(input) {
-          input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              const btn = input.closest('.guess-row').querySelector('.submit-btn');
-              if (btn && !btn.disabled) submitGuess(btn.dataset.label, btn);
-            }
-          });
-        });
-
-        // ── Hint state (tracks revealed letters per label, client-side only) ──
-        const hintState = { a: { revealed: [], totalLength: null }, b: { revealed: [], totalLength: null }, c: { revealed: [], totalLength: null } };
-
-        async function fetchHint(label) {
-          const row = document.getElementById('guess-row-' + label);
-          if (row.dataset.solved === 'true') return;
-          const state = hintState[label];
-          const btn = row.querySelector('.hint-btn');
-
+        async function fetchHint() {
+          const label = activeLabel;
+          if (!label || solvedLabels.has(label)) return;
+          const state  = hintState[label];
+          const btn    = document.getElementById('popover-hint-btn');
           if (btn && btn.disabled) return;
           if (btn) btn.disabled = true;
 
@@ -740,23 +641,23 @@
             const data = await resp.json();
 
             if (data.done) {
+              state.done = true;
               if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
               return;
             }
 
             try { gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             state.revealed.push(data.letter.toUpperCase());
-            state.totalLength = data.total_length;
+            document.getElementById('popover-hint-prefix').textContent = state.revealed.join('');
 
-            const hintPrefix = row.querySelector('.hint-prefix');
-            if (hintPrefix) hintPrefix.textContent = state.revealed.join('');
-            const input = row.querySelector('input[name="guess"]');
+            const input = document.getElementById('popover-input');
             if (input) {
               input.placeholder = state.revealed.length < data.total_length ? '...' : '';
               input.focus();
             }
 
             if (state.revealed.length >= data.total_length) {
+              state.done = true;
               if (btn) { btn.disabled = true; btn.style.color = '#bbb'; btn.style.textDecoration = 'none'; btn.textContent = 'All revealed'; }
             } else {
               if (btn) btn.disabled = false;
@@ -767,11 +668,11 @@
           }
         }
 
-        async function giveUp(label) {
+        async function giveUp() {
+          const label = activeLabel;
+          if (!label) return;
           if (!confirm('Give up on circle ' + label.toUpperCase() + '? This will reveal the answer.')) return;
-
-          const row = document.getElementById('guess-row-' + label);
-          const btn = row.querySelector('.give-up-btn');
+          const btn = document.getElementById('popover-give-up-btn');
           if (btn) btn.disabled = true;
 
           try {
@@ -785,218 +686,28 @@
             if (!resp.ok || data.already_solved) { if (btn) btn.disabled = false; return; }
 
             try { gtag('event', 'game_give_up', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
-            const officialLabel = data.official_label;
-            row.dataset.solved = 'true';
+            updateSvgPill(label, data.official_label, COLORS[label]);
+            solvedLabels.add(label);
+            removePillInteractivity(label);
+            closePopover();
 
-            const mainRow = row.querySelector('.guess-row-main');
-            const inputEl = mainRow.querySelector('input[name="guess"]');
-            if (inputEl) {
-              const labelSpan = document.createElement('span');
-              labelSpan.style.cssText = "flex:1;font-size:13px;color:#888;font-family:'Inter',system-ui,sans-serif;font-style:italic;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;";
-              labelSpan.textContent = officialLabel;
-              inputEl.replaceWith(labelSpan);
+            if (data.completed) {
+              try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
+              window.location.reload();
             }
-            const submitBtn = mainRow.querySelector('.submit-btn');
-            if (submitBtn) submitBtn.remove();
-
-            const indicator = document.createElement('span');
-            indicator.title = 'Gave up';
-            indicator.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#bbb;color:white;font-size:11px;flex-shrink:0;';
-            indicator.textContent = '—';
-            mainRow.appendChild(indicator);
-
-            const hintCtrl = row.querySelector('.hint-ctrl');
-            if (hintCtrl) hintCtrl.remove();
-
-            updateSvgPill(label, officialLabel, getCircleColor(label));
-
-            if (data.completed) { try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {} window.location.reload(); }
           } catch(err) {
             console.error('Give up fetch failed:', err);
             if (btn) btn.disabled = false;
           }
         }
-        document.querySelectorAll('.hint-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() { fetchHint(btn.dataset.label); });
-        });
 
-        document.querySelectorAll('.give-up-btn').forEach(function(btn) {
-          btn.addEventListener('click', function() { giveUp(btn.dataset.label); });
+        document.getElementById('popover-submit').addEventListener('click', submitGuess);
+        document.getElementById('popover-input').addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') submitGuess();
         });
-
-        // Track this puzzle as a game seen (for tip suppression)
-        try {
-          var _pid = String(<%= puzzle.id %>);
-          if (localStorage.getItem('venndleTipLastPuzzle') !== _pid) {
-            localStorage.setItem('venndleTipLastPuzzle', _pid);
-            localStorage.setItem('venndleTipGamesPlayed', parseInt(localStorage.getItem('venndleTipGamesPlayed') || '0') + 1);
-          }
-        } catch(e) {}
+        document.getElementById('popover-hint-btn').addEventListener('click', fetchHint);
+        document.getElementById('popover-give-up-btn').addEventListener('click', giveUp);
       })();
-
-      <% if hard_mode %>
-      (function() {
-        var svg = document.querySelector('#venn-puzzle svg');
-        var selectedWord = null;
-        var placements = {}; // region => word currently placed there
-
-        var zonePos = {
-          'words_a':  { cx: 280, ry: 59,  ty: 76  },
-          'words_b':  { cx: 112, ry: 310, ty: 327 },
-          'words_c':  { cx: 448, ry: 310, ty: 327 },
-          'words_ab': { cx: 208, ry: 202, ty: 219 },
-          'words_ac': { cx: 352, ry: 202, ty: 219 },
-          'words_bc': { cx: 280, ry: 323, ty: 340 }
-        };
-
-        function getBankBtn(word) {
-          var btns = document.querySelectorAll('.bank-word');
-          for (var i = 0; i < btns.length; i++) {
-            if (btns[i].dataset.word === word) return btns[i];
-          }
-          return null;
-        }
-
-        function deselectAll() {
-          selectedWord = null;
-          document.querySelectorAll('.bank-word').forEach(function(b) {
-            b.style.background = 'white';
-            b.style.color = '#1a1a2e';
-            b.style.borderColor = '#ddd';
-          });
-          svg.querySelectorAll('.hard-zone').forEach(function(z) {
-            z.setAttribute('opacity', '0.7');
-            z.setAttribute('stroke-width', '1.5');
-          });
-        }
-
-        function selectWord(word, btnEl) {
-          if (selectedWord === word) { deselectAll(); return; }
-          deselectAll();
-          selectedWord = word;
-          btnEl.style.background = '#1a1a2e';
-          btnEl.style.color = 'white';
-          btnEl.style.borderColor = '#1a1a2e';
-          svg.querySelectorAll('.hard-zone').forEach(function(z) {
-            z.setAttribute('opacity', '1');
-            z.setAttribute('stroke-width', '2');
-          });
-        }
-
-        function returnToBank(region) {
-          var word = placements[region];
-          if (!word) return;
-          delete placements[region];
-          var placed = svg.querySelector('[data-hard-placed="' + region + '"]');
-          if (placed) placed.remove();
-          var zoneEl = document.getElementById('zone-' + region);
-          if (zoneEl) zoneEl.style.display = '';
-          var btn = getBankBtn(word);
-          if (btn) btn.style.visibility = 'visible';
-        }
-
-        function placeWord(region) {
-          if (!selectedWord) return;
-          if (placements[region]) returnToBank(region);
-
-          var word = selectedWord;
-          placements[region] = word;
-
-          var btn = getBankBtn(word);
-          if (btn) btn.style.visibility = 'hidden';
-
-          var pos = zonePos[region];
-          var pw = Math.max(word.length * 8 + 24, 60);
-          var ns = 'http://www.w3.org/2000/svg';
-
-          var g = document.createElementNS(ns, 'g');
-          g.setAttribute('data-hard-placed', region);
-          g.style.cursor = 'pointer';
-          g.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (selectedWord) { placeWord(region); } else { returnToBank(region); }
-          });
-
-          var rect = document.createElementNS(ns, 'rect');
-          rect.setAttribute('x', pos.cx - pw / 2);
-          rect.setAttribute('y', pos.ry);
-          rect.setAttribute('width', pw);
-          rect.setAttribute('height', 26);
-          rect.setAttribute('rx', 13);
-          rect.setAttribute('fill', '#ffffff');
-          rect.setAttribute('filter', 'url(#pill-shadow)');
-
-          var text = document.createElementNS(ns, 'text');
-          text.setAttribute('x', pos.cx);
-          text.setAttribute('y', pos.ty);
-          text.setAttribute('text-anchor', 'middle');
-          text.setAttribute('font-size', '13');
-          text.setAttribute('font-weight', '500');
-          text.setAttribute('font-family', 'system-ui,sans-serif');
-          text.setAttribute('fill', '#1a1a2e');
-          text.textContent = word;
-
-          g.appendChild(rect);
-          g.appendChild(text);
-          svg.appendChild(g);
-
-          var zoneEl = document.getElementById('zone-' + region);
-          if (zoneEl) zoneEl.style.display = 'none';
-
-          deselectAll();
-        }
-
-        document.querySelectorAll('.bank-word').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            selectWord(btn.dataset.word, btn);
-          });
-        });
-
-        svg.querySelectorAll('.hard-zone').forEach(function(zone) {
-          zone.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (selectedWord) placeWord(zone.dataset.region);
-          });
-        });
-
-        svg.addEventListener('click', function() {
-          if (selectedWord) deselectAll();
-        });
-      })();
-      <% end %>
-
-      function venndleShowGuessTip() {
-        var gamesPlayed = parseInt(localStorage.getItem('venndleTipGamesPlayed') || '0');
-        var suppressUntil = parseInt(localStorage.getItem('venndleTipSuppressUntil') || '0');
-        if (gamesPlayed < suppressUntil) return;
-
-        // Mark shown — suppress for the next 5 games
-        try { localStorage.setItem('venndleTipSuppressUntil', gamesPlayed + 5); } catch(e) {}
-
-        var existing = document.getElementById('venndle-guess-tip-popup');
-        if (existing) return;
-
-        var popup = document.createElement('div');
-        popup.id = 'venndle-guess-tip-popup';
-        popup.style.cssText = [
-          'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2000;',
-          'background:#fffbeb;border:1px solid #fde68a;border-radius:14px;',
-          'padding:14px 18px;display:flex;align-items:flex-start;gap:8px;',
-          'max-width:280px;width:calc(100% - 48px);box-sizing:border-box;',
-          'box-shadow:0 8px 24px rgba(0,0,0,0.14);',
-          "font-family:'Inter',system-ui,sans-serif;font-size:13px;color:#6d5a2c;line-height:1.55;",
-          'opacity:1;transition:opacity 0.4s ease;pointer-events:none;'
-        ].join('');
-        popup.innerHTML = '<span style="flex-shrink:0;font-size:16px;">💡</span>' +
-          "<span>Don't forget! Your answer needs to fit all the words in this circle 😊</span>";
-        document.body.appendChild(popup);
-
-        setTimeout(function() {
-          popup.style.opacity = '0';
-          setTimeout(function() { if (popup.parentNode) popup.remove(); }, 400);
-        }, 3000);
-      }
     </script>
 
   <% end %>
