@@ -11,7 +11,7 @@
         <h1 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0;line-height:1.15;min-width:0;">
           #<%= @daily_number %> &middot; <%= (@puzzle.scheduled_date || Date.today).strftime("%-d %b %Y") %><%= @puzzle.title.present? ? " — #{@puzzle.title}" : "" %>
         </h1>
-        <% if user_signed_in? && current_user.admin? %>
+        <% if admin_view? %>
           <form action="<%= puzzle_reset_session_path(@puzzle) %>" method="post" style="display:inline;margin:0;padding:0;flex-shrink:0;">
             <input type="hidden" name="_method" value="delete">
             <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
