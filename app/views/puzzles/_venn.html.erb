@@ -164,7 +164,7 @@
     <%# ── Diagram panel (fixed overlay, shown by "View completed puzzle") ── %>
     <div id="diagram-panel" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:100;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;">
       <div style="flex:1;min-height:0;overflow:hidden;">
-        <svg viewBox="35 0 490 435" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="45 -4 470 440" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -175,26 +175,26 @@
           <circle cx="185" cy="288" r="125" fill="#B8E4C8" fill-opacity="0.5" stroke="#2BAB65" stroke-width="2"/>
           <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
-          <% a_pw = [puzzle.label_a.to_s.upcase.length * 8 + 24, 60].max %>
+          <% a_pw = [puzzle.label_a.to_s.upcase.length * 9 + 24, 62].max %>
           <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
-          <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
+          <text x="280" y="27" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_a.to_s.upcase %></text>
 
-          <% b_pw = [puzzle.label_b.to_s.upcase.length * 8 + 24, 60].max %>
+          <% b_pw = [puzzle.label_b.to_s.upcase.length * 9 + 24, 62].max %>
           <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
-          <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
+          <text x="185" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_b.to_s.upcase %></text>
 
-          <% c_pw = [puzzle.label_c.to_s.upcase.length * 8 + 24, 60].max %>
+          <% c_pw = [puzzle.label_c.to_s.upcase.length * 9 + 24, 62].max %>
           <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
-          <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
+          <text x="375" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= puzzle.label_c.to_s.upcase %></text>
 
-          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-               words_ab: [208,202,219], words_ac: [352,202,219],
-               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+          <% { words_a: [280,59,78], words_b: [112,310,329], words_c: [448,310,329],
+               words_ab: [208,202,221], words_ac: [352,202,221],
+               words_bc: [280,323,342], words_abc: [280,235,254] }.each do |region, (cx,ry,ty)| %>
             <% word = puzzle.send(region)&.first %>
             <% if word %>
-              <% pw = [word.length * 8 + 24, 60].max %>
-              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow-d)"/>
-              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+              <% pw = [word.length * 9 + 24, 62].max %>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="28" rx="14" fill="#ffffff" filter="url(#pill-shadow-d)"/>
+              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="15" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
             <% end %>
           <% end %>
         </svg>
@@ -310,16 +310,16 @@
       a_display = a_solved ? puzzle.label_a.to_s.upcase : "A"
       b_display = b_solved ? puzzle.label_b.to_s.upcase : "B"
       c_display = c_solved ? puzzle.label_c.to_s.upcase : "C"
-      a_pw = [a_display.length * 8 + 24, 60].max
-      b_pw = [b_display.length * 8 + 24, 60].max
-      c_pw = [c_display.length * 8 + 24, 60].max
+      a_pw = [a_display.length * 9 + 24, 62].max
+      b_pw = [b_display.length * 9 + 24, 62].max
+      c_pw = [c_display.length * 9 + 24, 62].max
     %>
 
     <div style="height:100%;display:flex;flex-direction:column;">
 
       <%# SVG diagram — fills all space; position:relative hosts the popover %>
       <div id="svg-wrapper" style="flex:1;min-height:0;overflow:hidden;position:relative;">
-        <svg id="venn-svg" viewBox="35 0 490 435" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <svg id="venn-svg" viewBox="45 -4 470 440" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -336,7 +336,7 @@
               <rect class="pill-ring" x="<%= 280 - a_pw/2 - 4 %>" y="4" width="<%= a_pw + 8 %>" height="36" rx="18" fill="none" stroke="#5B53D6" stroke-width="2"/>
             <% end %>
             <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
-            <text x="280" y="27" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
+            <text x="280" y="27" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
           </g>
 
           <%# B label pill %>
@@ -345,7 +345,7 @@
               <rect class="pill-ring" x="<%= 185 - b_pw/2 - 4 %>" y="395" width="<%= b_pw + 8 %>" height="36" rx="18" fill="none" stroke="#2BAB65" stroke-width="2"/>
             <% end %>
             <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
-            <text x="185" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
+            <text x="185" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
           </g>
 
           <%# C label pill %>
@@ -354,18 +354,18 @@
               <rect class="pill-ring" x="<%= 375 - c_pw/2 - 4 %>" y="395" width="<%= c_pw + 8 %>" height="36" rx="18" fill="none" stroke="#E8631A" stroke-width="2"/>
             <% end %>
             <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
-            <text x="375" y="418" text-anchor="middle" font-size="12" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
+            <text x="375" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
           </g>
 
           <%# Word pills %>
-          <% { words_a: [280,59,76], words_b: [112,310,327], words_c: [448,310,327],
-               words_ab: [208,202,219], words_ac: [352,202,219],
-               words_bc: [280,323,340], words_abc: [280,235,252] }.each do |region, (cx,ry,ty)| %>
+          <% { words_a: [280,59,78], words_b: [112,310,329], words_c: [448,310,329],
+               words_ab: [208,202,221], words_ac: [352,202,221],
+               words_bc: [280,323,342], words_abc: [280,235,254] }.each do |region, (cx,ry,ty)| %>
             <% word = puzzle.send(region)&.first %>
             <% if word %>
-              <% pw = [word.length * 8 + 24, 60].max %>
-              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="26" rx="13" fill="#ffffff" filter="url(#pill-shadow)"/>
-              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="13" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
+              <% pw = [word.length * 9 + 24, 62].max %>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="28" rx="14" fill="#ffffff" filter="url(#pill-shadow)"/>
+              <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="15" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
             <% end %>
           <% end %>
         </svg>
