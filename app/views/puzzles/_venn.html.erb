@@ -164,7 +164,7 @@
     <%# ── Diagram panel (fixed overlay, shown by "View completed puzzle") ── %>
     <div id="diagram-panel" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);z-index:100;flex-direction:column;gap:8px;padding:20px;box-sizing:border-box;">
       <div style="flex:1;min-height:0;overflow:hidden;">
-        <svg viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <svg viewBox="35 0 490 435" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow-d" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -315,11 +315,11 @@
       c_pw = [c_display.length * 8 + 24, 60].max
     %>
 
-    <div style="height:100%;display:flex;flex-direction:column;gap:0;">
+    <div style="height:100%;display:flex;flex-direction:column;">
 
       <%# SVG diagram — fills all space; position:relative hosts the popover %>
       <div id="svg-wrapper" style="flex:1;min-height:0;overflow:hidden;position:relative;">
-        <svg id="venn-svg" viewBox="0 0 560 430" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+        <svg id="venn-svg" viewBox="35 0 490 435" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -397,11 +397,6 @@
           </div>
           <div id="popover-error" style="display:none;font-size:11px;font-weight:600;color:#e53e3e;margin-top:6px;"></div>
         </div>
-      </div>
-
-      <%# Instruction nudge %>
-      <div style="flex-shrink:0;padding:4px 16px 10px;text-align:center;">
-        <p style="font-size:11px;color:#bbb;margin:0;font-family:'Inter',system-ui,sans-serif;letter-spacing:0.02em;">Tap a circle label (A, B, C) to guess</p>
       </div>
 
     </div>
