@@ -338,7 +338,7 @@
           <circle cx="375" cy="288" r="125" fill="#F5C4A0" fill-opacity="0.5" stroke="#E8631A" stroke-width="2"/>
 
           <%# A label pill %>
-          <g id="pill-a" data-label-pill="a" data-cx="280" data-solved-color="#5B53D6"<% unless a_solved %> class="pill-unsolved" onclick="openPopover('a')" style="cursor:pointer;"<% end %>>
+          <g id="pill-a" data-label-pill="a" data-cx="280" data-solved-color="#5B53D6"<% unless a_solved %> class="pill-unsolved" style="cursor:pointer;"<% end %>>
             <% unless a_solved %>
               <rect class="pill-ring" x="<%= 280 - a_pw/2 - 4 %>" y="4" width="<%= a_pw + 8 %>" height="36" rx="18" fill="none" stroke="#5B53D6" stroke-width="2"/>
             <% end %>
@@ -347,7 +347,7 @@
           </g>
 
           <%# B label pill %>
-          <g id="pill-b" data-label-pill="b" data-cx="185" data-solved-color="#2BAB65"<% unless b_solved %> class="pill-unsolved" onclick="openPopover('b')" style="cursor:pointer;"<% end %>>
+          <g id="pill-b" data-label-pill="b" data-cx="185" data-solved-color="#2BAB65"<% unless b_solved %> class="pill-unsolved" style="cursor:pointer;"<% end %>>
             <% unless b_solved %>
               <rect class="pill-ring" x="<%= 185 - b_pw/2 - 4 %>" y="395" width="<%= b_pw + 8 %>" height="36" rx="18" fill="none" stroke="#2BAB65" stroke-width="2"/>
             <% end %>
@@ -356,7 +356,7 @@
           </g>
 
           <%# C label pill %>
-          <g id="pill-c" data-label-pill="c" data-cx="375" data-solved-color="#E8631A"<% unless c_solved %> class="pill-unsolved" onclick="openPopover('c')" style="cursor:pointer;"<% end %>>
+          <g id="pill-c" data-label-pill="c" data-cx="375" data-solved-color="#E8631A"<% unless c_solved %> class="pill-unsolved" style="cursor:pointer;"<% end %>>
             <% unless c_solved %>
               <rect class="pill-ring" x="<%= 375 - c_pw/2 - 4 %>" y="395" width="<%= c_pw + 8 %>" height="36" rx="18" fill="none" stroke="#E8631A" stroke-width="2"/>
             <% end %>
@@ -522,6 +522,12 @@
           if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
 
+        document.getElementById('venn-svg').addEventListener('click', function(e) {
+          const pill = e.target.closest('[data-label-pill]');
+          if (!pill || solvedLabels.has(pill.dataset.labelPill)) return;
+          openPopover(pill.dataset.labelPill);
+        });
+
         document.addEventListener('keydown', function(e) {
           if (e.key === 'Escape') closePopover();
         });
@@ -535,7 +541,6 @@
         function removePillInteractivity(label) {
           const pillEl = document.getElementById('pill-' + label);
           if (!pillEl) return;
-          pillEl.removeAttribute('onclick');
           pillEl.style.cursor = 'default';
           pillEl.classList.remove('pill-unsolved');
           const ring = pillEl.querySelector('.pill-ring');
