@@ -12,7 +12,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pill-ring-pulse { 0%,100%{ stroke-opacity:0.35; stroke-width:2; } 50%{ stroke-opacity:0.85; stroke-width:3.5; } }
   .pill-unsolved .pill-ring { animation: pill-ring-pulse 2.2s ease-in-out infinite; }
-  @media (max-width:600px) { #svg-wrapper { flex: none; height: calc((100vw - 32px) * 440 / 470); } }
+  @media (max-width:600px) { #svg-wrapper { flex: none !important; height: calc((100vw - 32px) * 440 / 470); } }
 </style>
 
 <div id="venn-puzzle" data-puzzle-id="<%= puzzle.id %>" style="height:100%;position:relative;">
