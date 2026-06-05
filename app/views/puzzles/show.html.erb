@@ -4,6 +4,7 @@
 <% content_for :title, _share_title %>
 <% content_for :og_title, _share_title %>
 <% content_for :no_og_image, "1" %>
+<% content_for :head do %><meta name="turbo-cache-control" content="no-store"><% end %>
 
 <% if flash[:just_created].to_i == @puzzle.id %>
   <%# ===== PUZZLE CREATED SCREEN ===== %>
