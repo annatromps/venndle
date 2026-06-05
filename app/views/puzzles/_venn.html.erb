@@ -528,6 +528,15 @@
           openPopover(pill.dataset.labelPill);
         });
 
+        // iOS Safari: synthetic click events stop working after SVG DOM mutations.
+        // touchstart uses a separate hit-testing path unaffected by this bug.
+        document.getElementById('venn-svg').addEventListener('touchstart', function(e) {
+          const pill = e.target.closest('[data-label-pill]');
+          if (!pill || solvedLabels.has(pill.dataset.labelPill)) return;
+          e.preventDefault();
+          openPopover(pill.dataset.labelPill);
+        }, { passive: false });
+
         document.addEventListener('keydown', function(e) {
           if (e.key === 'Escape') closePopover();
         });
@@ -560,6 +569,9 @@
           filledRect.setAttribute('width', pw);
           filledRect.setAttribute('x', cx - pw / 2);
           textEl.textContent = display;
+          // Force iOS Safari to revalidate SVG hit-test regions after DOM mutation
+          const svgEl = document.getElementById('venn-svg');
+          if (svgEl) svgEl.getBoundingClientRect();
         }
 
         async function submitGuess() {
