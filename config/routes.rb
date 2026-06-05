@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  devise_for :users, controllers: { registrations: 'users/registrations' }
+  devise_for :users, controllers: { registrations: "users/registrations", sessions: "users/sessions" }
 
   root "puzzles#daily"
   get "/daily", to: "puzzles#daily", as: :daily
@@ -23,6 +23,9 @@ Rails.application.routes.draw do
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
     resources :puzzles do
+      collection do
+        get :wrong_guesses
+      end
       member do
         patch :schedule
         patch :unschedule

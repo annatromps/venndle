@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_24_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_203439) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,20 +21,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_100000) do
     t.string "label"
     t.bigint "puzzle_id", null: false
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id"
     t.index ["puzzle_id"], name: "index_attempts_on_puzzle_id"
     t.index ["user_id"], name: "index_attempts_on_user_id"
-  end
-
-  create_table "puzzle_feedbacks", force: :cascade do |t|
-    t.bigint "puzzle_id", null: false
-    t.bigint "user_id", null: false
-    t.text "body", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["puzzle_id"], name: "index_puzzle_feedbacks_on_puzzle_id"
-    t.index ["user_id", "puzzle_id"], name: "index_puzzle_feedbacks_on_user_id_and_puzzle_id", unique: true
-    t.index ["user_id"], name: "index_puzzle_feedbacks_on_user_id"
   end
 
   create_table "favourites", force: :cascade do |t|
@@ -70,6 +59,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_100000) do
     t.bigint "user_id", null: false
     t.index ["puzzle_id"], name: "index_game_sessions_on_puzzle_id"
     t.index ["user_id"], name: "index_game_sessions_on_user_id"
+  end
+
+  create_table "puzzle_feedbacks", force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", precision: nil, null: false
+    t.text "missing_answers"
+    t.bigint "puzzle_id", null: false
+    t.datetime "updated_at", precision: nil, null: false
+    t.bigint "user_id", null: false
+    t.index ["puzzle_id"], name: "index_puzzle_feedbacks_on_puzzle_id"
+    t.index ["user_id", "puzzle_id"], name: "index_puzzle_feedbacks_on_user_id_and_puzzle_id", unique: true
+    t.index ["user_id"], name: "index_puzzle_feedbacks_on_user_id"
   end
 
   create_table "puzzles", force: :cascade do |t|
@@ -109,13 +110,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_100000) do
 
   create_table "users", force: :cascade do |t|
     t.boolean "admin", default: false
-    t.boolean "tester", default: false, null: false
     t.datetime "created_at", null: false
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
+    t.boolean "hard_mode_tester", default: false, null: false
     t.datetime "remember_created_at"
     t.datetime "reset_password_sent_at"
     t.string "reset_password_token"
+    t.boolean "tester", default: false, null: false
     t.datetime "updated_at", null: false
     t.string "username"
     t.index ["email"], name: "index_users_on_email", unique: true
@@ -128,9 +130,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_24_100000) do
   add_foreign_key "favourites", "users"
   add_foreign_key "game_sessions", "puzzles"
   add_foreign_key "game_sessions", "users"
+  add_foreign_key "puzzle_feedbacks", "puzzles", name: "puzzle_feedbacks_puzzle_id_fkey"
+  add_foreign_key "puzzle_feedbacks", "users", name: "puzzle_feedbacks_user_id_fkey"
   add_foreign_key "puzzles", "users"
-  add_foreign_key "puzzle_feedbacks", "puzzles"
-  add_foreign_key "puzzle_feedbacks", "users"
   add_foreign_key "ratings", "puzzles"
   add_foreign_key "ratings", "users"
 end

@@ -12,6 +12,25 @@ class Admin::PuzzlesController < ApplicationController
                            .order(created_at: :desc)
   end
 
+  def wrong_guesses
+    recent = Attempt.where(correct: false)
+                    .includes(:puzzle)
+                    .order(created_at: :desc)
+                    .limit(2000)
+    puzzle_ids_ordered = recent.map(&:puzzle_id).uniq
+    by_puzzle = recent.group_by(&:puzzle_id)
+    @wrong_by_puzzle = puzzle_ids_ordered.map do |pid|
+      attempts = by_puzzle[pid]
+      puzzle   = attempts.first.puzzle
+      {
+        puzzle: puzzle,
+        a: attempts.select { |a| a.label == "a" }.map(&:guess),
+        b: attempts.select { |a| a.label == "b" }.map(&:guess),
+        c: attempts.select { |a| a.label == "c" }.map(&:guess)
+      }
+    end
+  end
+
   def show
     @game_sessions = @puzzle.game_sessions.includes(:user).order(created_at: :desc)
     user_ids = @game_sessions.map(&:user_id)

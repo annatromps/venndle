@@ -109,7 +109,7 @@ class PuzzlesController < ApplicationController
     unless @puzzle.scheduled_date <= Date.today || admin_view? || tester_view?
       redirect_to archive_path, alert: "That puzzle isn't available yet." and return
     end
-    if @puzzle.scheduled_date < Date.today && !user_signed_in? && !admin_view? && !tester_view?
+    if @puzzle.scheduled_date < Date.yesterday && !user_signed_in? && !admin_view? && !tester_view?
       redirect_to new_user_session_path, alert: "Sign in to play past puzzles." and return
     end
     @daily_number = number
@@ -196,35 +196,30 @@ class PuzzlesController < ApplicationController
       save_guest_attempt(@puzzle, label, guess, correct)
     end
 
-    game_session.increment!("attempts_#{label}")
-    game_session.update!("solved_#{label}" => true) if correct
-    game_session.reload
-    game_session.update!(completed: true) if game_session.solved_a? && game_session.solved_b? && game_session.solved_c?
+    # Compute post-update solved state without a reload
+    a_sol = (label == "a" && correct) || game_session.solved_a?
+    b_sol = (label == "b" && correct) || game_session.solved_b?
+    c_sol = (label == "c" && correct) || game_session.solved_c?
+    will_complete = a_sol && b_sol && c_sol
 
-    circle_order = if user_signed_in?
-      seen = Attempt.where(user: current_user, puzzle: @puzzle).order(:created_at).pluck(:label).uniq
-      seen + (%w[a b c] - seen)
-    else
-      seen = (session["guest_attempts_#{@puzzle.id}"] || []).map { |a| a["label"] }.uniq
-      seen + (%w[a b c] - seen)
+    # Persist in at most two writes: increment attempts, then one update for solved+completed
+    game_session.increment!("attempts_#{label}")
+    if correct || will_complete
+      attrs = {}
+      attrs["solved_#{label}"] = true if correct
+      attrs[:completed] = true if will_complete
+      game_session.update!(attrs)
     end
 
-    share_string = build_share_string(game_session, @puzzle, circle_order: circle_order)
+    share_str = correct ? build_share_string(game_session, @puzzle) : nil
 
     render json: {
       correct: correct,
       board_word: board_word_guess || nil,
       official_label: correct_label,
-      solved: {
-        a: game_session.solved_a?,
-        b: game_session.solved_b?,
-        c: game_session.solved_c?
-      },
-      completed: game_session.completed?,
-      share_string: share_string,
-      label_a: game_session.solved_a? ? @puzzle.label_a : nil,
-      label_b: game_session.solved_b? ? @puzzle.label_b : nil,
-      label_c: game_session.solved_c? ? @puzzle.label_c : nil
+      solved: { a: a_sol, b: b_sol, c: c_sol },
+      completed: will_complete,
+      share_string: share_str
     }
   rescue => e
     Rails.logger.error "Guess action error: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}"
@@ -312,10 +307,11 @@ class PuzzlesController < ApplicationController
       #    e.g. "test" accepted when answer is "doing tests"
       next true if answer.split(/\s+/).any? { |w| guess_forms.include?(w) }
 
-      # 4. Direct substring check — both directions
-      #    Direction A: answer contained in guess  e.g. guess "being competitive", answer "competitive"
-      #    Direction B: guess contained in answer  e.g. guess "test", answer "doing tests"
-      next true if normalized_guess.include?(answer) || answer.include?(normalized_guess)
+      # 4. Prefix match (min 3 chars): one starts with the other
+      #    e.g. "test" accepted when answer is "testing"; blocks single-char matches like "t"
+      if normalized_guess.length >= 3 && answer.length >= 3
+        next true if answer.start_with?(normalized_guess) || normalized_guess.start_with?(answer)
+      end
 
       false
     end
@@ -366,6 +362,7 @@ class PuzzlesController < ApplicationController
     attempts = (session[key] || []).dup
     attempts << { "label" => label, "guess" => guess, "correct" => correct }
     session[key] = attempts
+    Attempt.create!(puzzle: puzzle, label: label, guess: guess, correct: correct)
   end
 
   def puzzle_params
@@ -394,9 +391,8 @@ class PuzzlesController < ApplicationController
       "#{label.upcase} #{("❌" * wrong)}#{hint_str}#{result}"
     end
     if puzzle.puzzle_type == "daily" && puzzle.scheduled_date.present?
-      day_num = Puzzle.published.daily.where("scheduled_date <= ?", puzzle.scheduled_date).count
-      url   = "https://venndle.app/daily#{day_num}"
-      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}"
+      url   = "https://venndle.app"
+      title = "Venndle Daily — #{puzzle.scheduled_date.strftime("%-d %b %Y")}#{puzzle.title.present? ? " - #{puzzle.title}" : ""}"
     else
       url   = "https://venndle.app/#{puzzle.id}"
       title = puzzle.title.presence || "Venndle ##{puzzle.id}"

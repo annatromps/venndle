@@ -1,0 +1,66 @@
+<style>
+.admin-page { overflow-y: auto; height: 100%; box-sizing: border-box; }
+.admin-sticky-hdr { position: sticky; top: 0; z-index: 10; background: linear-gradient(135deg, #ede8fb 0%, #fae3d5 100%); padding: 20px 24px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.admin-inner { max-width: 960px; margin: 0 auto; padding: 24px 24px 48px; }
+.admin-card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); overflow: clip; }
+.wg-row { padding: 12px 20px; border-bottom: 1px solid #f4f4f4; font-family: 'Inter', system-ui, sans-serif; }
+.wg-row:last-child { border-bottom: none; }
+.puzzle-link { color: #5B53D6; font-weight: 600; text-decoration: none; font-size: 13px; }
+.puzzle-link:hover { text-decoration: underline; }
+.circle-badge { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: white; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+.wrong-pill { display: inline-block; background: #fef2f2; color: #b91c1c; border-radius: 999px; padding: 2px 8px; font-size: 11px; font-weight: 600; margin: 2px 2px 2px 0; }
+@media (max-width: 640px) {
+  .admin-sticky-hdr { padding: 14px 16px 12px; }
+  .admin-inner { padding: 16px 16px 48px; }
+  .wg-row { padding: 12px 14px; }
+}
+</style>
+
+<div class="admin-page">
+
+  <div class="admin-sticky-hdr">
+    <div style="max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#aaa;margin:0 0 4px;font-family:'Inter',system-ui,sans-serif;">Admin</p>
+        <h1 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#1a1a2e;margin:0;">Wrong Guesses</h1>
+      </div>
+      <a href="/admin/puzzles" style="font-size:13px;color:#888;text-decoration:none;font-family:'Inter',system-ui,sans-serif;flex-shrink:0;">← Puzzles</a>
+    </div>
+  </div>
+
+  <div class="admin-inner">
+
+    <% if @wrong_by_puzzle.empty? %>
+      <div class="admin-card" style="padding:40px;text-align:center;color:#aaa;font-size:14px;font-family:'Inter',system-ui,sans-serif;">
+        No incorrect guesses recorded yet.
+      </div>
+    <% else %>
+      <div class="admin-card">
+        <% @wrong_by_puzzle.each do |entry| %>
+          <% puzzle = entry[:puzzle]
+             circle_colors = { "a" => "#5B53D6", "b" => "#2BAB65", "c" => "#E8631A" } %>
+          <div class="wg-row">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+              <a href="/admin/puzzles/<%= puzzle.id %>" class="puzzle-link"><%= puzzle.title.presence || "Puzzle ##{puzzle.id}" %></a>
+              <% if puzzle.scheduled_date.present? %>
+                <span style="font-size:11px;color:#bbb;font-family:'Inter',system-ui,sans-serif;"><%= puzzle.scheduled_date.strftime("%-d %b %Y") %></span>
+              <% end %>
+            </div>
+            <% %w[a b c].each do |lbl| %>
+              <% guesses = entry[lbl.to_sym]
+                 next if guesses.empty? %>
+              <div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+                <span class="circle-badge" style="background:<%= circle_colors[lbl] %>;margin-top:3px;"><%= lbl.upcase %></span>
+                <div style="flex:1;">
+                  <% guesses.each do |g| %>
+                    <span class="wrong-pill"><%= g %></span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

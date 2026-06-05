@@ -1,21 +1,23 @@
-name: Auto-merge PRs
+name: Promote staging to main
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 jobs:
-  merge:
+  promote:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     steps:
-      - name: Merge PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Merge staging into main
         run: |
-          gh pr merge ${{ github.event.pull_request.number }} \
-            --repo ${{ github.repository }} \
-            --squash \
-            --delete-branch
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git fetch origin
+          git checkout main
+          git merge origin/staging -X theirs --no-edit
+          git push origin main

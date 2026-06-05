@@ -73,6 +73,8 @@
           <p class="admin-eyebrow">Admin</p>
           <h1 class="admin-title">Puzzle Scheduler</h1>
         </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+        <a href="/admin/puzzles/wrong_guesses" style="font-size:13px;font-weight:600;color:#e53e3e;text-decoration:none;font-family:'Inter',system-ui,sans-serif;white-space:nowrap;">Wrong guesses</a>
         <div style="position:relative;display:inline-block;">
           <button type="button" onclick="toggleNewMenu(event)" class="btn-new" style="display:flex;align-items:center;gap:6px;">
             + New puzzle
@@ -86,6 +88,7 @@
               Import from text
             </button>
           </div>
+        </div>
         </div>
 
         <%# Import modal %>
@@ -429,8 +432,9 @@
               <span style="font-size:12px;color:#bbb;">
                 <%= fb.puzzle.scheduled_date&.strftime("%-d %b %Y") %>
               </span>
-              <span style="font-size:12px;color:#bbb;margin-left:auto;">
-                <%= fb.user.username %> &middot; updated <%= fb.updated_at.strftime("%-d %b") %>
+              <span style="font-size:12px;color:#bbb;margin-left:auto;display:flex;align-items:center;gap:10px;">
+                <span><%= fb.user.username %> &middot; updated <%= fb.updated_at.strftime("%-d %b") %></span>
+                <a href="<%= edit_admin_puzzle_path(fb.puzzle) %>" class="btn-edit" style="font-size:12px;white-space:nowrap;">Edit puzzle →</a>
               </span>
             </div>
 
@@ -458,6 +462,9 @@
 
             <%# Feedback text %>
             <p style="font-size:13px;color:#1a1a2e;line-height:1.55;margin:0;white-space:pre-wrap;word-break:break-word;"><%= fb.body %></p>
+            <% if fb.missing_answers.present? %>
+              <p style="font-size:12px;color:#d97706;font-weight:600;margin:6px 0 0;">Missing answers: <span style="font-weight:400;color:#92400e;"><%= fb.missing_answers %></span></p>
+            <% end %>
           </div>
         <% end %>
         <style>.admin-card > div:last-child { border-bottom: none; }</style>
