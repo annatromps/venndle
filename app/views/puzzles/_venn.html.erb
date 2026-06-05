@@ -379,7 +379,7 @@
 
         <%# Floating guess popover — repositioned by JS when a pill is clicked %>
         <div id="label-popover"
-             style="display:none;position:absolute;z-index:200;width:220px;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);padding:12px;box-sizing:border-box;border-top:3px solid #5B53D6;">
+             style="display:none;position:absolute;z-index:200;width:220px;background:white;border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,0.18);padding:12px;box-sizing:border-box;border:1.5px solid #5B53D6;">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
             <span id="popover-badge"
                   style="width:22px;height:22px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">A</span>
@@ -456,7 +456,7 @@
 
           document.getElementById('popover-badge').textContent = label.toUpperCase();
           document.getElementById('popover-badge').style.background = color;
-          document.getElementById('label-popover').style.borderTopColor = color;
+          document.getElementById('label-popover').style.borderColor = color;
           document.getElementById('popover-marks').innerHTML = renderMarks(label);
 
           const state = hintState[label];
@@ -605,9 +605,9 @@
 
             if (!data.correct) {
               const pop = document.getElementById('label-popover');
-              const orig = pop.style.borderTopColor;
-              pop.style.borderTopColor = '#ef4444';
-              setTimeout(function() { pop.style.borderTopColor = orig; }, 600);
+              const orig = pop.style.borderColor;
+              pop.style.borderColor = '#ef4444';
+              setTimeout(function() { pop.style.borderColor = orig; }, 600);
               submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
             }
 
