@@ -365,7 +365,7 @@
             <% word = puzzle.send(region)&.first %>
             <% if word %>
               <% pw = [word.length * 9 + 24, 62].max %>
-              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="28" rx="14" fill="#F5F0E8" filter="url(#pill-shadow)"/>
+              <rect x="<%= cx - pw/2 %>" y="<%= ry %>" width="<%= pw %>" height="28" rx="14" fill="#E8E8E8" filter="url(#pill-shadow)"/>
               <text x="<%= cx %>" y="<%= ty %>" text-anchor="middle" font-size="15" font-weight="500" font-family="system-ui,sans-serif" fill="#1a1a2e"><%= word %></text>
             <% end %>
           <% end %>
@@ -400,7 +400,7 @@
         </div>
       </div>
 
-      <p style="flex-shrink:0;text-align:center;font-size:11px;color:#aaa;font-family:'Inter',system-ui,sans-serif;margin:4px 0 0;line-height:1;">Select a letter to enter your answer</p>
+      <p style="flex-shrink:0;text-align:center;font-size:14px;color:#666666;font-family:'Inter',system-ui,sans-serif;margin:4px 0 0;line-height:1;">Select a letter to enter your answer</p>
 
     </div>
 
