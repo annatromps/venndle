@@ -1,6 +1,12 @@
 <%# Venn diagram + guess cards shared by daily and show views %>
 <% game_session ||= nil %>
 <% attempts ||= [] %>
+<% _hard_mode_access = admin_view? || (user_signed_in? && (current_user.hard_mode_tester? || current_user.tester?)) %>
+<% hard_mode = _hard_mode_access &&
+               request.query_parameters.key?('hard') &&
+               request.query_parameters['hard'] != '0' %>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
