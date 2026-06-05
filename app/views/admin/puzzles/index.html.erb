@@ -326,6 +326,7 @@
                 <th class="c-id">ID</th>
                 <th class="c-title">Title</th>
                 <th class="c-date">Created</th>
+                <th class="c-pub">Status</th>
                 <th class="c-actions">Actions</th>
               </tr>
             </thead>
@@ -337,6 +338,7 @@
                     <span class="c-title-inner" title="<%= puzzle.title %>"><%= puzzle.title.presence || "—" %></span>
                   </td>
                   <td class="c-date" style="color:#aaa;"><%= puzzle.created_at.strftime("%-d %b %Y") %></td>
+                  <td class="c-pub"><span class="bdg bdg-draft">Draft</span></td>
                   <td class="c-actions">
                     <div class="c-actions-inner">
                       <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
@@ -350,7 +352,7 @@
                   </td>
                 </tr>
                 <tr id="schedule-row-admin-<%= puzzle.id %>" class="schedule-row" style="display:none;">
-                  <td colspan="4">
+                  <td colspan="5">
                     <%= form_with url: schedule_admin_puzzle_path(puzzle), method: :patch, local: true, style: "display:contents;" do |f| %>
                       <div class="schedule-form">
                         <label style="font-size:13px;font-weight:600;color:#1a1a2e;font-family:'Inter',system-ui,sans-serif;">Set date as daily puzzle:</label>
@@ -374,6 +376,7 @@
               <div class="pcard-title"><%= puzzle.title.presence || "—" %></div>
               <div class="pcard-meta">
                 <span><%= puzzle.created_at.strftime("%-d %b %Y") %></span>
+                <span class="bdg bdg-draft">Draft</span>
               </div>
               <div class="pcard-actions">
                 <a href="/puzzles/<%= puzzle.id %>" target="_blank" class="btn-view">View</a>
