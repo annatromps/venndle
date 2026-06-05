@@ -393,7 +393,7 @@
                    autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
                    style="flex:1;min-width:0;border:none;background:transparent;font-size:13px;font-weight:500;color:#1a1a2e;outline:none;font-family:'Inter',system-ui,sans-serif;"/>
             <button id="popover-submit"
-                    style="flex-shrink:0;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:999px;width:26px;height:26px;padding:0;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;">&#8594;</button>
+                    style="flex-shrink:0;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:999px;width:32px;height:32px;padding:0;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;"><svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
             <button id="popover-hint-btn"
@@ -469,7 +469,7 @@
           const submitBtn = document.getElementById('popover-submit');
           submitBtn.style.background = color;
           submitBtn.disabled = false;
-          submitBtn.innerHTML = '&#8594;';
+          submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
           const hintBtn = document.getElementById('popover-hint-btn');
           if (state.done) {
@@ -585,23 +585,23 @@
             try { data = await resp.json(); }
             catch(e) {
               showPopoverError('Server error');
-              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
+              submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return;
             }
 
             if (!resp.ok || data.error) {
               showPopoverError(data.error || 'Something went wrong');
-              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
+              submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return;
             }
 
             if (data.duplicate) {
               showPopoverError('You already tried that');
-              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;';
+              submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
               input.value = ''; return;
             }
 
             if (data.board_word) {
               showPopoverError("Can't submit board words");
-              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
+              submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return;
             }
 
             attemptMarks[label].push({ correct: data.correct });
@@ -613,7 +613,7 @@
               const orig = pop.style.borderColor;
               pop.style.borderColor = '#ef4444';
               setTimeout(function() { pop.style.borderColor = orig; }, 600);
-              submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;'; return;
+              submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return;
             }
 
             updateSvgPill(label, data.official_label, COLORS[label]);
@@ -640,7 +640,7 @@
           } catch(err) {
             console.error('Guess fetch failed:', err);
             showPopoverError('Network error — please try again');
-            submitBtn.disabled = false; submitBtn.innerHTML = '&#8594;';
+            submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
           }
         }
 
