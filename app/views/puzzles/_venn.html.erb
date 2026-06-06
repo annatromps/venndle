@@ -538,25 +538,26 @@
         function positionPopover(label) {
           var wrapper = document.getElementById('svg-wrapper');
           var pill    = document.getElementById('pill-' + label);
-          var svg     = document.getElementById('venn-svg');
           var popover = document.getElementById('label-popover');
-          if (!wrapper || !pill || !svg) return;
+          if (!wrapper || !pill || !popover) return;
 
-          var wRect = wrapper.getBoundingClientRect();
-          var popW  = 220, popH = 130;
-          var bbox  = pill.getBBox();
-          var pivX  = bbox.x + bbox.width / 2;
-          var pivY  = label === 'a' ? bbox.y + bbox.height : bbox.y;
-          var sp    = vbToScreen(svg, pivX, pivY);
+          var wRect    = wrapper.getBoundingClientRect();
+          var popW     = 220, popH = 130;
+          var mainRect = pill.querySelector('rect:not(.pill-ring)');
+          if (!mainRect) return;
 
-          var left = sp.x - wRect.left - popW / 2;
+          var pRect  = mainRect.getBoundingClientRect();
+          var centerX = (pRect.left + pRect.right) / 2;
+          var pivY    = label === 'a' ? pRect.bottom : pRect.top;
+
+          var left = centerX - wRect.left - popW / 2;
           left = Math.max(8, Math.min(left, wRect.width - popW - 8));
 
           var top;
           if (label === 'a') {
-            top = sp.y - wRect.top + 8;
+            top = pivY - wRect.top + 8;
           } else {
-            top = sp.y - wRect.top - popH - 8;
+            top = pivY - wRect.top - popH - 8;
           }
           top = Math.max(8, Math.min(top, wRect.height - popH - 8));
 
