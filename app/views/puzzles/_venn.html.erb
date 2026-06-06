@@ -507,32 +507,56 @@
           setTimeout(function() { input.focus(); }, 50);
         };
 
+        // Shared helper: convert SVG viewBox coordinates to screen coordinates.
+        // Uses svg.getBoundingClientRect() (reliable on all browsers for HTML-level elements)
+        // plus the viewBox parameters + preserveAspectRatio="xMidYMin meet" math.
+        // Avoids getScreenCTM() which can return null on iOS and behaves inconsistently.
+        function vbToScreen(svg, vbX, vbY) {
+          var r  = svg.getBoundingClientRect();
+          var vb = svg.viewBox.baseVal;
+          var sc = Math.min(r.width / vb.width, r.height / vb.height);
+          var ox = (r.width  - vb.width  * sc) / 2; // xMid
+          var oy = 0;                                 // yMin
+          return {
+            x: r.left + ox + (vbX - vb.x) * sc,
+            y: r.top  + oy + (vbY - vb.y) * sc
+          };
+        }
+
+        function screenToVb(svg, clientX, clientY) {
+          var r  = svg.getBoundingClientRect();
+          var vb = svg.viewBox.baseVal;
+          var sc = Math.min(r.width / vb.width, r.height / vb.height);
+          var ox = (r.width  - vb.width  * sc) / 2;
+          var oy = 0;
+          return {
+            x: (clientX - r.left - ox) / sc + vb.x,
+            y: (clientY - r.top  - oy) / sc + vb.y
+          };
+        }
+
         function positionPopover(label) {
-          const wrapper = document.getElementById('svg-wrapper');
-          const pill    = document.getElementById('pill-' + label);
-          const svg     = document.getElementById('venn-svg');
-          const popover = document.getElementById('label-popover');
+          var wrapper = document.getElementById('svg-wrapper');
+          var pill    = document.getElementById('pill-' + label);
+          var svg     = document.getElementById('venn-svg');
+          var popover = document.getElementById('label-popover');
           if (!wrapper || !pill || !svg) return;
 
-          const wRect = wrapper.getBoundingClientRect();
-          const popW  = 220, popH = 130;
+          var wRect = wrapper.getBoundingClientRect();
+          var popW  = 220, popH = 130;
+          var bbox  = pill.getBBox();
+          var pivX  = bbox.x + bbox.width / 2;
+          var pivY  = label === 'a' ? bbox.y + bbox.height : bbox.y;
+          var sp    = vbToScreen(svg, pivX, pivY);
 
-          const bbox    = pill.getBBox();
-          const ctm     = pill.getScreenCTM();
-          if (!ctm) return;
-          const pt      = svg.createSVGPoint();
-          pt.x = bbox.x + bbox.width / 2;
-          pt.y = label === 'a' ? bbox.y + bbox.height : bbox.y;
-          const screenPt = pt.matrixTransform(ctm);
-
-          let left = screenPt.x - wRect.left - popW / 2;
+          var left = sp.x - wRect.left - popW / 2;
           left = Math.max(8, Math.min(left, wRect.width - popW - 8));
 
-          let top;
+          var top;
           if (label === 'a') {
-            top = screenPt.y - wRect.top + 8;
+            top = sp.y - wRect.top + 8;
           } else {
-            top = screenPt.y - wRect.top - popH - 8;
+            top = sp.y - wRect.top - popH - 8;
           }
           top = Math.max(8, Math.min(top, wRect.height - popH - 8));
 
@@ -551,28 +575,19 @@
           if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
 
-        // Convert screen coords to each pill's local (viewBox) space and test against its bbox.
-        // Must use pill.getScreenCTM() — not svg.getScreenCTM() — because the SVG root's CTM
-        // doesn't include the viewBox transform, so getBBox() coords (viewBox space) and the
-        // inverted root CTM (viewport space) would be in different coordinate systems.
         function detectPillFromCoords(clientX, clientY) {
           var svg = document.getElementById('venn-svg');
           if (!svg) return null;
+          var vbPt = screenToVb(svg, clientX, clientY);
           var lbls = ['a', 'b', 'c'];
           for (var i = 0; i < lbls.length; i++) {
             var lbl = lbls[i];
             if (solvedLabels.has(lbl)) continue;
             var pill = document.getElementById('pill-' + lbl);
             if (!pill) continue;
-            var ctm = pill.getScreenCTM();
-            if (!ctm) continue;
-            var pt = svg.createSVGPoint();
-            pt.x = clientX;
-            pt.y = clientY;
-            var local = pt.matrixTransform(ctm.inverse());
             var bbox = pill.getBBox();
-            if (local.x >= bbox.x && local.x <= bbox.x + bbox.width &&
-                local.y >= bbox.y && local.y <= bbox.y + bbox.height) {
+            if (vbPt.x >= bbox.x && vbPt.x <= bbox.x + bbox.width &&
+                vbPt.y >= bbox.y && vbPt.y <= bbox.y + bbox.height) {
               return lbl;
             }
           }
