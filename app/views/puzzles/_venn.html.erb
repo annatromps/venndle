@@ -11,8 +11,10 @@
 <style>
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pill-ring-pulse { 0%,100%{ stroke-opacity:0.35; stroke-width:2; } 50%{ stroke-opacity:0.85; stroke-width:3.5; } }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 15%{transform:translateX(-7px)} 30%{transform:translateX(6px)} 45%{transform:translateX(-5px)} 60%{transform:translateX(4px)} 75%{transform:translateX(-2px)} }
   .pill-unsolved .pill-ring { animation: pill-ring-pulse 2.2s ease-in-out infinite; }
-  @media (max-width:600px) { #svg-wrapper { flex: none !important; height: calc((100vw - 32px) * 440 / 470); } }
+  .popover-shake { animation: shake 0.35s ease; }
+  @media (max-width:600px) { #svg-wrapper { flex: none !important; height: calc((100vw - 32px) * 458 / 470); } }
 </style>
 
 <div id="venn-puzzle" data-puzzle-id="<%= puzzle.id %>" style="height:100%;position:relative;">
@@ -326,7 +328,7 @@
 
       <%# SVG diagram — fills all space; position:relative hosts the popover %>
       <div id="svg-wrapper" style="flex:1;min-height:0;overflow:hidden;position:relative;">
-        <svg id="venn-svg" viewBox="45 -4 470 440" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
+        <svg id="venn-svg" viewBox="45 -4 470 458" style="width:100%;height:100%;display:block;" preserveAspectRatio="xMidYMin meet" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <filter id="pill-shadow" x="-20%" y="-40%" width="140%" height="180%">
               <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.13"/>
@@ -344,6 +346,7 @@
             <% end %>
             <rect x="<%= 280 - a_pw/2 %>" y="8" width="<%= a_pw %>" height="28" rx="14" fill="#5B53D6"/>
             <text x="280" y="27" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= a_display %></text>
+            <text id="ctr-a" x="280" y="52" text-anchor="middle" font-size="11" font-weight="700" font-family="system-ui,sans-serif"><tspan id="ctr-a-x" fill="#e53e3e"></tspan><tspan id="ctr-a-h" fill="#d97706"></tspan><tspan id="ctr-a-ok" fill="#16a34a"></tspan></text>
           </g>
 
           <%# B label pill %>
@@ -353,6 +356,7 @@
             <% end %>
             <rect x="<%= 185 - b_pw/2 %>" y="399" width="<%= b_pw %>" height="28" rx="14" fill="#2BAB65"/>
             <text x="185" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= b_display %></text>
+            <text id="ctr-b" x="185" y="448" text-anchor="middle" font-size="11" font-weight="700" font-family="system-ui,sans-serif"><tspan id="ctr-b-x" fill="#e53e3e"></tspan><tspan id="ctr-b-h" fill="#d97706"></tspan><tspan id="ctr-b-ok" fill="#16a34a"></tspan></text>
           </g>
 
           <%# C label pill %>
@@ -362,6 +366,7 @@
             <% end %>
             <rect x="<%= 375 - c_pw/2 %>" y="399" width="<%= c_pw %>" height="28" rx="14" fill="#E8631A"/>
             <text x="375" y="418" text-anchor="middle" font-size="13" font-weight="700" font-family="system-ui,sans-serif" fill="white" letter-spacing="0.05em"><%= c_display %></text>
+            <text id="ctr-c" x="375" y="448" text-anchor="middle" font-size="11" font-weight="700" font-family="system-ui,sans-serif"><tspan id="ctr-c-x" fill="#e53e3e"></tspan><tspan id="ctr-c-h" fill="#d97706"></tspan><tspan id="ctr-c-ok" fill="#16a34a"></tspan></text>
           </g>
 
           <%# Word pills %>
@@ -436,6 +441,20 @@
         <% attempts.each do |att| %>
         attemptMarks[<%= att.label.to_json %>].push({ correct: <%= att.correct?.to_json %> });
         <% end %>
+
+        function updatePillCounter(lbl) {
+          var misses = attemptMarks[lbl].filter(function(m) { return !m.correct; }).length;
+          var hints  = hintState[lbl].revealed.length;
+          var solved = solvedLabels.has(lbl);
+          var xEl  = document.getElementById('ctr-' + lbl + '-x');
+          var hEl  = document.getElementById('ctr-' + lbl + '-h');
+          var okEl = document.getElementById('ctr-' + lbl + '-ok');
+          if (!xEl) return;
+          xEl.textContent  = '✗'.repeat(misses);
+          hEl.textContent  = hints  > 0 ? (misses > 0 ? ' ' : '') + '◆'.repeat(hints) : '';
+          okEl.textContent = solved ? ((misses + hints) > 0 ? ' ✓' : '✓') : '';
+        }
+        ['a','b','c'].forEach(updatePillCounter);
 
         function markHtml(label, correct) {
           const color = COLORS[label];
@@ -622,15 +641,18 @@
 
             if (!data.correct) {
               const pop = document.getElementById('label-popover');
-              const orig = pop.style.borderColor;
-              pop.style.borderColor = '#ef4444';
-              setTimeout(function() { pop.style.borderColor = orig; }, 600);
+              pop.classList.remove('popover-shake');
+              void pop.offsetWidth;
+              pop.classList.add('popover-shake');
+              showPopoverError('Not quite — try again!');
+              updatePillCounter(label);
               submitBtn.disabled = false; submitBtn.innerHTML = '<svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; return;
             }
 
             updateSvgPill(label, data.official_label, COLORS[label]);
             solvedLabels.add(label);
             removePillInteractivity(label);
+            updatePillCounter(label);
             try { gtag('event', 'correct_guess', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             closePopover();
 
@@ -695,6 +717,7 @@
             try { gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             state.revealed.push(data.letter.toUpperCase());
             document.getElementById('popover-hint-prefix').textContent = state.revealed.join('');
+            updatePillCounter(label);
 
             const input = document.getElementById('popover-input');
             if (input) {
