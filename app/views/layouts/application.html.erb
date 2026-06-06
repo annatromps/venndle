@@ -66,7 +66,7 @@
   </head>
 
   <%# CORE CONSTRAINT: zero scroll on all pages — do not add content that breaks viewport height %>
-  <body style="height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);font-family:'Inter',system-ui,sans-serif;margin:0;padding:0;">
+  <body data-app-version="<%= ENV["RAILWAY_DEPLOYMENT_ID"].presence || "dev" %>" style="height:100%;overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(135deg,#ede8fb 0%,#fae3d5 100%);font-family:'Inter',system-ui,sans-serif;margin:0;padding:0;">
 
     <%# Precompute nav active states %>
     <%
@@ -544,6 +544,28 @@
   });
 
 </script>
+  <%# Update banner — appears when a new deploy is detected while the page is open %>
+  <div id="app-update-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1a2e;color:white;text-align:center;padding:13px 16px;font-size:14px;font-weight:600;font-family:'Inter',system-ui,sans-serif;z-index:9999;cursor:pointer;letter-spacing:0.01em;" onclick="window.location.reload()">
+    Venndle was just updated &mdash; your progress is saved &nbsp;&#8635; tap to reload
+  </div>
+  <script>
+    (function() {
+      var current = document.body.dataset.appVersion;
+      if (!current || current === 'dev') return;
+      setInterval(function() {
+        fetch('/version', { cache: 'no-store' })
+          .then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.version && d.version !== current) {
+              var b = document.getElementById('app-update-banner');
+              if (b) b.style.display = 'block';
+            }
+          })
+          .catch(function() {});
+      }, 90000);
+    })();
+  </script>
+
   <%= yield :body_overlays %>
   </body>
 </html>

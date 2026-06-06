@@ -432,9 +432,9 @@
         ].compact.to_json.html_safe %>);
 
         const hintState = {
-          a: { revealed: [], done: false },
-          b: { revealed: [], done: false },
-          c: { revealed: [], done: false }
+          a: { revealed: [], done: false, count: <%= game_session&.hints_a.to_i %> },
+          b: { revealed: [], done: false, count: <%= game_session&.hints_b.to_i %> },
+          c: { revealed: [], done: false, count: <%= game_session&.hints_c.to_i %> }
         };
 
         const attemptMarks = { a: [], b: [], c: [] };
@@ -444,7 +444,7 @@
 
         function updatePillCounter(lbl) {
           var misses = attemptMarks[lbl].filter(function(m) { return !m.correct; }).length;
-          var hints  = hintState[lbl].revealed.length;
+          var hints  = hintState[lbl].count;
           var solved = solvedLabels.has(lbl);
           var xEl  = document.getElementById('ctr-' + lbl + '-x');
           var hEl  = document.getElementById('ctr-' + lbl + '-h');
@@ -455,6 +455,8 @@
           okEl.textContent = solved ? ((misses + hints) > 0 ? ' ✓' : '✓') : '';
         }
         ['a','b','c'].forEach(updatePillCounter);
+        // Force iOS Safari to revalidate SVG hit regions after the init counter writes
+        (function() { var s = document.getElementById('venn-svg'); if (s) s.getBoundingClientRect(); })();
 
         function markHtml(label, correct) {
           const color = COLORS[label];
@@ -673,7 +675,7 @@
             if (data.completed) {
               try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
               const isPerfect = ['a','b','c'].every(function(lbl) {
-                return attemptMarks[lbl].length === 1 && hintState[lbl].revealed.length === 0;
+                return attemptMarks[lbl].length === 1 && hintState[lbl].count === 0;
               });
               if (isPerfect && typeof confetti === 'function') {
                 const opts = { particleCount: 120, spread: 70, startVelocity: 60, decay: 0.92, ticks: 200,
@@ -716,6 +718,7 @@
 
             try { gtag('event', 'use_hint', { 'answer_level': label.toUpperCase(), 'game_id': gameId }); } catch(e) {}
             state.revealed.push(data.letter.toUpperCase());
+            state.count = (state.count || 0) + 1;
             document.getElementById('popover-hint-prefix').textContent = state.revealed.join('');
             updatePillCounter(label);
 
