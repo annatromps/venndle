@@ -439,7 +439,7 @@
 
         const attemptMarks = { a: [], b: [], c: [] };
         <% attempts.each do |att| %>
-        attemptMarks[<%= att.label.to_json %>].push({ correct: <%= att.correct?.to_json %> });
+        attemptMarks[<%= att.label.to_json.html_safe %>].push({ correct: <%= att.correct?.to_json.html_safe %> });
         <% end %>
 
         function updatePillCounter(lbl) {
