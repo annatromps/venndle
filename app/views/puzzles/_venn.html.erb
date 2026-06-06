@@ -451,7 +451,7 @@
           var okEl = document.getElementById('ctr-' + lbl + '-ok');
           if (!xEl) return;
           xEl.textContent  = '✗'.repeat(misses);
-          hEl.textContent  = hints  > 0 ? (misses > 0 ? ' ' : '') + '◆'.repeat(hints) : '';
+          hEl.textContent  = hints  > 0 ? (misses > 0 ? ' ' : '') + '💡'.repeat(hints) : '';
           okEl.textContent = solved ? ((misses + hints) > 0 ? ' ✓' : '✓') : '';
         }
         ['a','b','c'].forEach(updatePillCounter);
