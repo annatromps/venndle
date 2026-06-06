@@ -552,19 +552,48 @@
           if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
 
+        // Convert screen coords to SVG-local space and find which unsolved pill was hit.
+        // Necessary because iOS Safari's SVG hit-test cache is invalidated by any DOM
+        // mutation (e.g. updatePillCounter tspan writes), causing e.target.closest() to
+        // return the SVG root instead of the actual child element.
+        function detectPillFromCoords(clientX, clientY) {
+          var svg = document.getElementById('venn-svg');
+          if (!svg || !svg.getScreenCTM) return null;
+          var pt = svg.createSVGPoint();
+          pt.x = clientX;
+          pt.y = clientY;
+          var local = pt.matrixTransform(svg.getScreenCTM().inverse());
+          var lbls = ['a', 'b', 'c'];
+          for (var i = 0; i < lbls.length; i++) {
+            var lbl = lbls[i];
+            if (solvedLabels.has(lbl)) continue;
+            var pill = document.getElementById('pill-' + lbl);
+            if (!pill) continue;
+            var bbox = pill.getBBox();
+            if (local.x >= bbox.x && local.x <= bbox.x + bbox.width &&
+                local.y >= bbox.y && local.y <= bbox.y + bbox.height) {
+              return lbl;
+            }
+          }
+          return null;
+        }
+
         document.getElementById('venn-svg').addEventListener('click', function(e) {
-          const pill = e.target.closest('[data-label-pill]');
-          if (!pill || solvedLabels.has(pill.dataset.labelPill)) return;
-          openPopover(pill.dataset.labelPill);
+          var label = detectPillFromCoords(e.clientX, e.clientY);
+          if (!label) {
+            var pill = e.target.closest('[data-label-pill]');
+            if (pill && !solvedLabels.has(pill.dataset.labelPill)) label = pill.dataset.labelPill;
+          }
+          if (label) openPopover(label);
         });
 
-        // iOS Safari: synthetic click events stop working after SVG DOM mutations.
-        // touchstart uses a separate hit-testing path unaffected by this bug.
         document.getElementById('venn-svg').addEventListener('touchstart', function(e) {
-          const pill = e.target.closest('[data-label-pill]');
-          if (!pill || solvedLabels.has(pill.dataset.labelPill)) return;
+          var touch = e.touches[0];
+          if (!touch) return;
+          var label = detectPillFromCoords(touch.clientX, touch.clientY);
+          if (!label) return;
           e.preventDefault();
-          openPopover(pill.dataset.labelPill);
+          openPopover(label);
         }, { passive: false });
 
         document.addEventListener('keydown', function(e) {
