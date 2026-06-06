@@ -510,21 +510,30 @@
         function positionPopover(label) {
           const wrapper = document.getElementById('svg-wrapper');
           const pill    = document.getElementById('pill-' + label);
+          const svg     = document.getElementById('venn-svg');
           const popover = document.getElementById('label-popover');
-          if (!wrapper || !pill) return;
+          if (!wrapper || !pill || !svg) return;
 
           const wRect = wrapper.getBoundingClientRect();
-          const pRect = pill.getBoundingClientRect();
           const popW  = 220, popH = 130;
 
-          let left = pRect.left - wRect.left + pRect.width / 2 - popW / 2;
+          // getBoundingClientRect on SVG <g> elements returns zeros on desktop Chrome.
+          // Use getBBox() (SVG-local coords) + getScreenCTM() (viewport transform) instead.
+          const bbox = pill.getBBox();
+          const ctm  = svg.getScreenCTM();
+          const pt   = svg.createSVGPoint();
+          pt.x = bbox.x + bbox.width / 2;
+          pt.y = label === 'a' ? bbox.y + bbox.height : bbox.y;
+          const screen = pt.matrixTransform(ctm);
+
+          let left = screen.x - wRect.left - popW / 2;
           left = Math.max(8, Math.min(left, wRect.width - popW - 8));
 
           let top;
           if (label === 'a') {
-            top = pRect.bottom - wRect.top + 8;
+            top = screen.y - wRect.top + 8;
           } else {
-            top = pRect.top - wRect.top - popH - 8;
+            top = screen.y - wRect.top - popH - 8;
           }
           top = Math.max(8, Math.min(top, wRect.height - popH - 8));
 
