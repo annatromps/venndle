@@ -19,6 +19,8 @@ Rails.application.routes.draw do
 
   get "/my/stats", to: "stats#show", as: :my_stats
   post "/toggle_admin_view", to: "application#toggle_admin_view", as: :toggle_admin_view
+  get  "/version", to: proc { [200, { "Content-Type" => "application/json", "Cache-Control" => "no-store" },
+                                [{ version: ENV["RAILWAY_DEPLOYMENT_ID"].presence || "dev" }.to_json]] }
 
   get "/admin", to: redirect("/admin/puzzles")
   namespace :admin do
