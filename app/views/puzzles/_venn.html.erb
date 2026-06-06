@@ -517,23 +517,22 @@
           const wRect = wrapper.getBoundingClientRect();
           const popW  = 220, popH = 130;
 
-          // getBoundingClientRect on SVG <g> elements returns zeros on desktop Chrome.
-          // Use getBBox() (SVG-local coords) + getScreenCTM() (viewport transform) instead.
-          const bbox = pill.getBBox();
-          const ctm  = svg.getScreenCTM();
-          const pt   = svg.createSVGPoint();
+          const bbox    = pill.getBBox();
+          const ctm     = pill.getScreenCTM();
+          if (!ctm) return;
+          const pt      = svg.createSVGPoint();
           pt.x = bbox.x + bbox.width / 2;
           pt.y = label === 'a' ? bbox.y + bbox.height : bbox.y;
-          const screen = pt.matrixTransform(ctm);
+          const screenPt = pt.matrixTransform(ctm);
 
-          let left = screen.x - wRect.left - popW / 2;
+          let left = screenPt.x - wRect.left - popW / 2;
           left = Math.max(8, Math.min(left, wRect.width - popW - 8));
 
           let top;
           if (label === 'a') {
-            top = screen.y - wRect.top + 8;
+            top = screenPt.y - wRect.top + 8;
           } else {
-            top = screen.y - wRect.top - popH - 8;
+            top = screenPt.y - wRect.top - popH - 8;
           }
           top = Math.max(8, Math.min(top, wRect.height - popH - 8));
 
@@ -552,23 +551,25 @@
           if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
 
-        // Convert screen coords to SVG-local space and find which unsolved pill was hit.
-        // Necessary because iOS Safari's SVG hit-test cache is invalidated by any DOM
-        // mutation (e.g. updatePillCounter tspan writes), causing e.target.closest() to
-        // return the SVG root instead of the actual child element.
+        // Convert screen coords to each pill's local (viewBox) space and test against its bbox.
+        // Must use pill.getScreenCTM() — not svg.getScreenCTM() — because the SVG root's CTM
+        // doesn't include the viewBox transform, so getBBox() coords (viewBox space) and the
+        // inverted root CTM (viewport space) would be in different coordinate systems.
         function detectPillFromCoords(clientX, clientY) {
           var svg = document.getElementById('venn-svg');
-          if (!svg || !svg.getScreenCTM) return null;
-          var pt = svg.createSVGPoint();
-          pt.x = clientX;
-          pt.y = clientY;
-          var local = pt.matrixTransform(svg.getScreenCTM().inverse());
+          if (!svg) return null;
           var lbls = ['a', 'b', 'c'];
           for (var i = 0; i < lbls.length; i++) {
             var lbl = lbls[i];
             if (solvedLabels.has(lbl)) continue;
             var pill = document.getElementById('pill-' + lbl);
             if (!pill) continue;
+            var ctm = pill.getScreenCTM();
+            if (!ctm) continue;
+            var pt = svg.createSVGPoint();
+            pt.x = clientX;
+            pt.y = clientY;
+            var local = pt.matrixTransform(ctm.inverse());
             var bbox = pill.getBBox();
             if (local.x >= bbox.x && local.x <= bbox.x + bbox.width &&
                 local.y >= bbox.y && local.y <= bbox.y + bbox.height) {
