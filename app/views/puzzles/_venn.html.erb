@@ -257,8 +257,8 @@
 
       <% unless user_signed_in? %>
       (function() {
-        var isDaily = <%= (puzzle.puzzle_type == 'daily').to_json %>;
-        var puzzleDate = <%= puzzle.scheduled_date&.to_s.to_json %>;
+        var isDaily = <%= (puzzle.puzzle_type == 'daily').to_json.html_safe %>;
+        var puzzleDate = <%= puzzle.scheduled_date&.to_s.to_json.html_safe %>;
         var misses = <%= total_wrong %>;
         try {
           var saved = JSON.parse(localStorage.getItem('venndle_daily_stats') || '{}');
