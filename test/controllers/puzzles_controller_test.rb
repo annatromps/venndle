@@ -394,4 +394,40 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
 
     assert GameSession.exists?(alice_session.id)
   end
+
+  # ── script block JSON escaping ────────────────────────────────────────────────
+
+  # Guards against to_json without .html_safe in <script> blocks — ERB HTML-escapes
+  # double-quotes to &quot; which is a JS SyntaxError that silently kills the whole block.
+
+  test "completed daily puzzle page for guest has no html-escaped JSON in script blocks" do
+    puzzle = puzzles(:today_daily)
+    post puzzle_guess_path(puzzle), params: { label: "a", guess: "colors" }, as: :json
+    post puzzle_guess_path(puzzle), params: { label: "b", guess: "animals" }, as: :json
+    post puzzle_guess_path(puzzle), params: { label: "c", guess: "foods" }, as: :json
+
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+
+    response.body.scan(/<script[^>]*>(.*?)<\/script>/m).each do |match|
+      assert_no_match(/&quot;/, match[0],
+        "HTML-escaped quote (&quot;) found in <script> block — add .html_safe to .to_json calls in ERB script contexts")
+    end
+  end
+
+  test "active daily puzzle page for guest with prior attempts has no html-escaped JSON in script blocks" do
+    puzzle = puzzles(:today_daily)
+    # "red" is a board word — rejected without an AI call
+    post puzzle_guess_path(puzzle), params: { label: "b", guess: "red" }, as: :json
+
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+
+    response.body.scan(/<script[^>]*>(.*?)<\/script>/m).each do |match|
+      assert_no_match(/&quot;/, match[0],
+        "HTML-escaped quote (&quot;) found in <script> block — add .html_safe to .to_json calls in ERB script contexts")
+    end
+  end
 end

@@ -37,6 +37,10 @@ All three must pass with no new failures or warnings introduced.
 - Every migration must be reversible (`def change` with reversible operations, or explicit `up`/`down`).
 - Column additions to large tables should use `add_column` with a default, not a multi-step backfill, unless explicitly required.
 
+### ERB inside `<script>` blocks
+- **Always use `.html_safe` on any `.to_json` call inside a `<script>` block.** Rails HTML-escapes `<%= %>` output by default — `to_json` on a string produces `"value"` with double-quotes, which ERB turns into `&quot;value&quot;`. In a `<script>` block `&quot;` is a literal `&` character and causes a JS SyntaxError that silently kills the entire script block. This does NOT apply to HTML attributes (e.g. `onclick="..."`) where the browser decodes entities before running JS.
+- Example: `<%= puzzle.scheduled_date.to_json.html_safe %>` ✓ — `<%= puzzle.scheduled_date.to_json %>` ✗
+
 ### Security
 - Never expose admin-only data (play counts, user details) to non-admin users — check `current_user.admin?` server-side, not just in views.
 - Never interpolate user input directly into SQL — use ActiveRecord query methods or parameterised queries.

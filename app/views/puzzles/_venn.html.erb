@@ -257,8 +257,8 @@
 
       <% unless user_signed_in? %>
       (function() {
-        var isDaily = <%= (puzzle.puzzle_type == 'daily').to_json %>;
-        var puzzleDate = <%= puzzle.scheduled_date&.to_s.to_json %>;
+        var isDaily = <%= (puzzle.puzzle_type == 'daily').to_json.html_safe %>;
+        var puzzleDate = <%= puzzle.scheduled_date&.to_s.to_json.html_safe %>;
         var misses = <%= total_wrong %>;
         try {
           var saved = JSON.parse(localStorage.getItem('venndle_daily_stats') || '{}');
@@ -400,12 +400,17 @@
             <button id="popover-submit"
                     style="flex-shrink:0;background:#5B53D6;color:white;font-weight:700;font-size:15px;border:none;border-radius:999px;width:32px;height:32px;padding:0;cursor:pointer;font-family:'Inter',system-ui,sans-serif;line-height:1;display:flex;align-items:center;justify-content:center;-webkit-appearance:none;"><svg width="16" height="12" viewBox="0 0 16 12" fill="none" style="display:block;"><path d="M0 6h13M9 1l5 5-5 5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
-          <div style="display:flex;gap:10px;align-items:center;">
+          <div id="popover-give-up-row" style="display:flex;gap:10px;align-items:center;">
             <button id="popover-hint-btn"
                     style="font-size:11px;color:#999;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">Reveal letter</button>
             <span style="color:#ddd;font-size:10px;">|</span>
             <button id="popover-give-up-btn"
                     style="font-size:11px;color:#e53e3e;background:none;border:none;cursor:pointer;padding:0;font-family:'Inter',system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;">Give up</button>
+          </div>
+          <div id="popover-give-up-confirm" style="display:none;gap:8px;align-items:center;margin-top:2px;">
+            <span style="font-size:11px;color:#555;font-family:'Inter',system-ui,sans-serif;flex:1;">Give up on this circle?</span>
+            <button id="popover-give-up-yes" style="font-size:11px;font-weight:700;color:white;background:#e53e3e;border:none;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Yes</button>
+            <button id="popover-give-up-no"  style="font-size:11px;font-weight:600;color:#666;background:#f0f0f0;border:none;border-radius:6px;padding:3px 10px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Cancel</button>
           </div>
           <div id="popover-error" style="display:none;font-size:11px;font-weight:600;color:#e53e3e;margin-top:6px;"></div>
         </div>
@@ -501,6 +506,12 @@
 
           const errEl = document.getElementById('popover-error');
           errEl.style.display = 'none'; errEl.textContent = '';
+
+          // Reset give-up confirmation state
+          var guRow = document.getElementById('popover-give-up-row');
+          var guConfirm = document.getElementById('popover-give-up-confirm');
+          if (guRow) guRow.style.display = 'flex';
+          if (guConfirm) guConfirm.style.display = 'none';
 
           positionPopover(label);
           document.getElementById('label-popover').style.display = 'block';
@@ -798,7 +809,6 @@
         async function giveUp() {
           const label = activeLabel;
           if (!label) return;
-          if (!confirm('Give up on circle ' + label.toUpperCase() + '? This will reveal the answer.')) return;
           const btn = document.getElementById('popover-give-up-btn');
           if (btn) btn.disabled = true;
 
@@ -833,7 +843,15 @@
           if (e.key === 'Enter') submitGuess();
         });
         document.getElementById('popover-hint-btn').addEventListener('click', fetchHint);
-        document.getElementById('popover-give-up-btn').addEventListener('click', giveUp);
+        document.getElementById('popover-give-up-btn').addEventListener('click', function() {
+          document.getElementById('popover-give-up-row').style.display = 'none';
+          document.getElementById('popover-give-up-confirm').style.display = 'flex';
+        });
+        document.getElementById('popover-give-up-no').addEventListener('click', function() {
+          document.getElementById('popover-give-up-row').style.display = 'flex';
+          document.getElementById('popover-give-up-confirm').style.display = 'none';
+        });
+        document.getElementById('popover-give-up-yes').addEventListener('click', giveUp);
       })();
     </script>
 
