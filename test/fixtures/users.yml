@@ -25,3 +25,10 @@ tester_user:
   username: tester_user
   admin: false
   tester: true
+
+no_email_user:
+  email: charlie-aabbccdd@noemail.venndle
+  encrypted_password: $2a$12$tOUWFU4FodDTiIPqhsnWAeoxFPNPLRPDmcsPR16zLWTFJNjbeEltu
+  username: charlie
+  admin: false
+  tester: false

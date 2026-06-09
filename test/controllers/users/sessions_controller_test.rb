@@ -1,8 +1,23 @@
 require "test_helper"
 
 class Users::SessionsControllerTest < ActionDispatch::IntegrationTest
-  test "sign in succeeds" do
+  test "sign in succeeds with email" do
     post user_session_path, params: { user: { email: users(:alice).email, password: "password" } }
+    assert_redirected_to root_path
+  end
+
+  test "sign in succeeds with username" do
+    post user_session_path, params: { user: { email: "alice", password: "password" } }
+    assert_redirected_to root_path
+  end
+
+  test "sign in with unknown username fails" do
+    post user_session_path, params: { user: { email: "doesnotexist", password: "password" } }
+    assert_response :unprocessable_entity
+  end
+
+  test "sign in with username works for user with placeholder email" do
+    post user_session_path, params: { user: { email: "charlie", password: "password" } }
     assert_redirected_to root_path
   end
 

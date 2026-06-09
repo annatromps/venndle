@@ -13,9 +13,13 @@
         </div>
 
         <div>
-          <%= f.label :email, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
-          <%= f.email_field :email, autocomplete: "email",
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px;">
+            <%= f.label :email, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;font-family:'Inter',system-ui,sans-serif;" %>
+            <span style="font-size:11px;color:#aaa;font-family:'Inter',system-ui,sans-serif;">optional</span>
+          </div>
+          <%= f.email_field :email, autocomplete: "email", placeholder: "For password recovery only",
                 style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+          <p style="font-size:11px;color:#bbb;margin:4px 0 0;font-family:'Inter',system-ui,sans-serif;">Leave blank to sign up with username and password only</p>
         </div>
 
         <div>

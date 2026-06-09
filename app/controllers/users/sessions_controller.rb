@@ -2,6 +2,12 @@ class Users::SessionsController < Devise::SessionsController
   def create
     request.params[:user] ||= {}
     request.params[:user][:remember_me] = "1"
+    # Allow login by username: if the "email" field has no @, treat it as a username
+    login = request.params[:user][:email].to_s.strip
+    if login.present? && !login.include?("@")
+      user = User.find_by(username: login)
+      request.params[:user][:email] = user.email if user
+    end
     # Capture before Devise touches the session
     guest_sessions = (session["guest_game_sessions"] || {}).dup
     super

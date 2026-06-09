@@ -1,42 +1,49 @@
-<h2>Edit <%= resource_name.to_s.humanize %></h2>
+<div style="height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;">
+  <div style="background:white;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:32px 28px;width:100%;max-width:360px;">
+    <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1a1a2e;margin:0 0 20px;">Account settings</h2>
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-  <%= render "devise/shared/error_messages", resource: resource %>
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+      <%= render "devise/shared/error_messages", resource: resource %>
 
-  <div class="field">
-    <p><%= f.label :email %></p>
-    <p><%= f.email_field :email, autofocus: true, autocomplete: "email" %></p>
-  </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:5px;">
+            <%= f.label :email, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;font-family:'Inter',system-ui,sans-serif;" %>
+            <span style="font-size:11px;color:#aaa;font-family:'Inter',system-ui,sans-serif;">optional — for password recovery</span>
+          </div>
+          <%= f.email_field :email,
+                value: (resource.email_is_placeholder? ? "" : resource.email),
+                autocomplete: "email",
+                placeholder: "Add an email for password recovery",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
 
-  <% if devise_mapping.confirmable? && resource.pending_reconfirmation? %>
-    <div>Currently waiting confirmation for: <%= resource.unconfirmed_email %></div>
-  <% end %>
+        <div>
+          <%= f.label :password, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <p style="font-size:11px;color:#aaa;margin:0 0 5px;font-family:'Inter',system-ui,sans-serif;">Leave blank to keep current password</p>
+          <%= f.password_field :password, autocomplete: "new-password",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+          <% if @minimum_password_length %>
+            <p style="font-size:11px;color:#aaa;margin:4px 0 0;font-family:'Inter',system-ui,sans-serif;"><%= @minimum_password_length %> characters minimum</p>
+          <% end %>
+        </div>
 
-  <div class="field">
-    <p><%= f.label :password %> <i>(leave blank if you don't want to change it)</i></p>
-    <p><%= f.password_field :password, autocomplete: "new-password" %></p>
-    <% if @minimum_password_length %>
-      <p><em><%= @minimum_password_length %> characters minimum</em></p>
+        <div>
+          <%= f.label :password_confirmation, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <%= f.password_field :password_confirmation, autocomplete: "new-password",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <div>
+          <%= f.label :current_password, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
+          <p style="font-size:11px;color:#aaa;margin:0 0 5px;font-family:'Inter',system-ui,sans-serif;">Required to save any changes</p>
+          <%= f.password_field :current_password, autocomplete: "current-password",
+                style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
+        </div>
+
+        <%= f.submit "Save changes",
+              style: "width:100%;background:#1a1a2e;color:white;font-weight:700;font-size:14px;border:none;border-radius:12px;padding:12px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;margin-top:4px;" %>
+      </div>
     <% end %>
   </div>
-
-  <div class="field">
-    <p><%= f.label :password_confirmation %></p>
-    <p><%= f.password_field :password_confirmation, autocomplete: "new-password" %></p>
-  </div>
-
-  <div class="field">
-    <p><%= f.label :current_password %> <i>(we need your current password to confirm your changes)</i></p>
-    <p><%= f.password_field :current_password, autocomplete: "current-password" %></p>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Update" %>
-  </div>
-<% end %>
-
-<h3>Cancel my account</h3>
-
-<div>Unhappy? <%= button_to "Cancel my account", registration_path(resource_name), data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" }, method: :delete %></div>
-
-<%= link_to "Back", :back %>
+</div>

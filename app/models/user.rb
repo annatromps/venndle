@@ -13,4 +13,10 @@ class User < ApplicationRecord
   has_many :puzzle_feedbacks, dependent: :destroy
 
   validates :username, presence: true, uniqueness: true
+
+  PLACEHOLDER_EMAIL_DOMAIN = "@noemail.venndle".freeze
+
+  def email_is_placeholder?
+    email.to_s.end_with?(PLACEHOLDER_EMAIL_DOMAIN)
+  end
 end

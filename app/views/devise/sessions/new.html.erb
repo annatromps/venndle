@@ -5,8 +5,8 @@
     <%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div>
-          <%= f.label :email, style: "display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;" %>
-          <%= f.email_field :email, autofocus: true, autocomplete: "email",
+          <label style="display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#888;margin-bottom:5px;font-family:'Inter',system-ui,sans-serif;">Email or username</label>
+          <%= f.text_field :email, autofocus: true, autocomplete: "username",
                 style: "width:100%;box-sizing:border-box;border:1.5px solid #e5e5e5;border-radius:10px;padding:9px 12px;font-size:14px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;" %>
         </div>
 

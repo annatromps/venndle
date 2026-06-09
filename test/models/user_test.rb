@@ -52,4 +52,12 @@ class UserTest < ActiveSupport::TestCase
   test "tester? returns false for regular user" do
     assert_not users(:alice).tester?
   end
+
+  test "email_is_placeholder? returns true for placeholder email" do
+    assert users(:no_email_user).email_is_placeholder?
+  end
+
+  test "email_is_placeholder? returns false for real email" do
+    assert_not users(:alice).email_is_placeholder?
+  end
 end
