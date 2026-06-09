@@ -44,4 +44,12 @@ class UserTest < ActiveSupport::TestCase
   test "has many favourite puzzles through favourites" do
     assert_respond_to users(:alice), :favourite_puzzles
   end
+
+  test "tester? returns true for tester user" do
+    assert users(:tester_user).tester?
+  end
+
+  test "tester? returns false for regular user" do
+    assert_not users(:alice).tester?
+  end
 end

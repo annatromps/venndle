@@ -18,3 +18,10 @@ admin_user:
   username: admin_user
   admin: true
   tester: false
+
+tester_user:
+  email: tester@example.com
+  encrypted_password: $2a$12$tOUWFU4FodDTiIPqhsnWAeoxFPNPLRPDmcsPR16zLWTFJNjbeEltu
+  username: tester_user
+  admin: false
+  tester: true
