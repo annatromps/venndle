@@ -395,6 +395,36 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
     assert GameSession.exists?(alice_session.id)
   end
 
+  # ── tester feedback box ───────────────────────────────────────────────────────
+
+  test "tester sees accepted answers on daily puzzle page" do
+    sign_in users(:tester_user)
+    puzzle = puzzles(:today_daily)
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+    assert_match puzzle.label_a, response.body
+    assert_match puzzle.accepted_answers_a.last, response.body
+  end
+
+  test "tester sees missing answers textarea on daily puzzle page" do
+    sign_in users(:tester_user)
+    puzzle = puzzles(:today_daily)
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+    assert_match(/name="missing_answers"/, response.body)
+  end
+
+  test "non-tester does not see tester feedback box on daily puzzle page" do
+    sign_in users(:alice)
+    puzzle = puzzles(:today_daily)
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+    assert_no_match(/Tester feedback/i, response.body)
+  end
+
   # ── script block JSON escaping ────────────────────────────────────────────────
 
   # Guards against to_json without .html_safe in <script> blocks — ERB HTML-escapes
