@@ -1,6 +1,95 @@
 require "test_helper"
 
 class PuzzlesControllerTest < ActionDispatch::IntegrationTest
+  # ── daily ────────────────────────────────────────────────────────────────────
+
+  test "daily redirects to latest daily number" do
+    get daily_path
+    assert_response :redirect
+    assert_match %r{/daily\d+}, response.location
+  end
+
+  # ── index ─────────────────────────────────────────────────────────────────────
+
+  test "index is accessible to guests" do
+    get puzzles_path
+    assert_response :success
+  end
+
+  test "index default filter shows published user-created puzzles" do
+    get puzzles_path
+    assert_response :success
+    assert_includes response.body, puzzles(:community_puzzle).title
+  end
+
+  test "index my filter returns only signed-in user puzzles" do
+    sign_in users(:bob)
+    get puzzles_path(filter: "my")
+    assert_includes response.body, puzzles(:community_puzzle).title
+    assert_not_includes response.body, puzzles(:past_daily).title
+  end
+
+  test "index my filter returns nothing for guest" do
+    get puzzles_path(filter: "my")
+    assert_response :success
+  end
+
+  test "index sort by popular is accepted" do
+    get puzzles_path(sort: "popular")
+    assert_response :success
+  end
+
+  test "index sort by top_rated is accepted" do
+    get puzzles_path(sort: "top_rated")
+    assert_response :success
+  end
+
+  test "index rejects unknown sort falls back to newest" do
+    get puzzles_path(sort: "bogus")
+    assert_response :success
+  end
+
+  # ── practice ─────────────────────────────────────────────────────────────────
+
+  test "practice redirects to root when no practice puzzle exists" do
+    get practice_path
+    assert_redirected_to root_path
+  end
+
+  # ── create ───────────────────────────────────────────────────────────────────
+
+  test "create saves a new user puzzle" do
+    sign_in users(:alice)
+    assert_difference "Puzzle.count", 1 do
+      post puzzles_path, params: { puzzle: {
+        label_a: "fruit", label_b: "vehicles", label_c: "colors",
+        words_a: "apple\ngrape\npeach",
+        words_b: "car\ntruck\nbike",
+        words_c: "red\nblue\ngreen",
+        words_ab: "mango", words_ac: "cherry", words_bc: "lime", words_abc: "watermelon"
+      } }
+    end
+    puzzle = Puzzle.order(:created_at).last
+    assert_equal "user", puzzle.puzzle_type
+    assert_equal users(:alice), puzzle.user
+  end
+
+  test "create auto-generates title when blank" do
+    sign_in users(:alice)
+    post puzzles_path, params: { puzzle: {
+      label_a: "fruit", label_b: "vehicles", label_c: "colors",
+      words_a: "apple", words_b: "car", words_c: "red",
+      words_ab: "mango", words_ac: "cherry", words_bc: "lime", words_abc: "watermelon"
+    } }
+    puzzle = Puzzle.order(:created_at).last
+    assert puzzle.title.present?
+  end
+
+  test "create requires sign in" do
+    post puzzles_path, params: { puzzle: { label_a: "x", label_b: "y", label_c: "z" } }
+    assert_redirected_to new_user_session_path
+  end
+
   # ── archive ─────────────────────────────────────────────────────────────────
 
   test "archive accessible without sign in" do
