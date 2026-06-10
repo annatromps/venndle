@@ -40,20 +40,22 @@
       <div style="flex-shrink:0;margin-top:6px;padding:8px 12px;background:#fafafa;border:1.5px solid #ede9fe;border-radius:12px;font-family:'Inter',system-ui,sans-serif;">
         <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#9B94E8;margin:0 0 6px;">Tester feedback</p>
 
-        <%# Accepted answers per circle %>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-          <% [["a", "#5B53D6"], ["b", "#2BAB65"], ["c", "#E8631A"]].each do |lbl, color| %>
-            <% answers = @puzzle.send("accepted_answers_#{lbl}") %>
-            <% label   = @puzzle.send("label_#{lbl}") %>
-            <% if answers.present? %>
-              <span style="font-size:11px;color:#555;">
-                <span style="width:14px;height:14px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:8px;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;vertical-align:middle;"><%= lbl.upcase %></span>
-                <strong style="color:#1a1a2e;"><%= label %></strong>
-                <span style="color:#aaa;">+ <%= answers.reject { |a| a.downcase == label.to_s.downcase }.join(", ") %></span>
-              </span>
+        <%# Accepted answers per circle — only after puzzle is completed %>
+        <% if @game_session&.completed? %>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <% [["a", "#5B53D6"], ["b", "#2BAB65"], ["c", "#E8631A"]].each do |lbl, color| %>
+              <% answers = @puzzle.send("accepted_answers_#{lbl}") %>
+              <% label   = @puzzle.send("label_#{lbl}") %>
+              <% if answers.present? %>
+                <span style="font-size:11px;color:#555;">
+                  <span style="width:14px;height:14px;border-radius:50%;background:<%= color %>;color:white;font-weight:700;font-size:8px;display:inline-flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;vertical-align:middle;"><%= lbl.upcase %></span>
+                  <strong style="color:#1a1a2e;"><%= label %></strong>
+                  <span style="color:#aaa;">+ <%= answers.reject { |a| a.downcase == label.to_s.downcase }.join(", ") %></span>
+                </span>
+              <% end %>
             <% end %>
-          <% end %>
-        </div>
+          </div>
+        <% end %>
 
         <% if feedback_submitted %>
           <p style="font-size:12px;color:#2BAB65;margin:0 0 4px;font-weight:600;">Saved!</p>
