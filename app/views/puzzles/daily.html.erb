@@ -63,8 +63,10 @@
         <%= form_with url: puzzle_feedback_path(@puzzle), method: :post, local: true do %>
           <textarea name="body" rows="2" placeholder="Feedback, issues with words or labels…"
             style="width:100%;box-sizing:border-box;border:1.5px solid rgba(0,0,0,0.1);border-radius:8px;padding:6px 8px;font-size:12px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;resize:vertical;line-height:1.4;margin-bottom:4px;"><%= existing_feedback&.body %></textarea>
-          <textarea name="missing_answers" rows="1" placeholder="Missing accepted answers (comma-separated)"
-            style="width:100%;box-sizing:border-box;border:1.5px solid #ede9fe;border-radius:8px;padding:6px 8px;font-size:12px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;resize:vertical;line-height:1.4;margin-bottom:4px;"><%= existing_feedback&.missing_answers %></textarea>
+          <% if @game_session&.completed? %>
+            <textarea name="missing_answers" rows="1" placeholder="Missing accepted answers (comma-separated)"
+              style="width:100%;box-sizing:border-box;border:1.5px solid #ede9fe;border-radius:8px;padding:6px 8px;font-size:12px;font-family:'Inter',system-ui,sans-serif;outline:none;color:#1a1a2e;resize:vertical;line-height:1.4;margin-bottom:4px;"><%= existing_feedback&.missing_answers %></textarea>
+          <% end %>
           <button type="submit"
             style="background:#5B53D6;color:white;font-weight:700;font-size:12px;border:none;border-radius:8px;padding:5px 14px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
             <%= existing_feedback ? "Update" : "Submit" %>
