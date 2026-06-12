@@ -38,6 +38,26 @@ bob_past_in_progress:
   hints_b: 0
   hints_c: 0
 
+tester_today_completed:
+  user: tester_user
+  puzzle: today_daily
+  completed: true
+  attempts_a: 1
+  attempts_b: 1
+  attempts_c: 1
+  solved_a: true
+  solved_b: true
+  solved_c: true
+  gave_up_a: false
+  gave_up_b: false
+  gave_up_c: false
+  hint_used_a: false
+  hint_used_b: false
+  hint_used_c: false
+  hints_a: 0
+  hints_b: 0
+  hints_c: 0
+
 alice_community_gave_up:
   user: alice
   puzzle: community_puzzle
