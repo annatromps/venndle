@@ -386,7 +386,7 @@
 
       <%# Guess box — anchored at bottom, shown when a label pill is tapped %>
       <div id="label-popover"
-           style="display:none;flex-shrink:0;background:white;border-top:2px solid #5B53D6;padding:12px 16px;box-sizing:border-box;">
+           style="display:none;flex-shrink:0;background:white;border-top:2px solid #5B53D6;padding:12px 16px;box-sizing:border-box;max-width:280px;width:100%;margin-left:auto;margin-right:auto;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
           <span id="popover-badge"
                 style="width:22px;height:22px;border-radius:50%;background:#5B53D6;color:white;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Inter',system-ui,sans-serif;">A</span>
@@ -430,6 +430,7 @@
         const COLORS = { a: '#5B53D6', b: '#2BAB65', c: '#E8631A' };
 
         let activeLabel = null;
+        let _openingFromPill = false;
 
         const solvedLabels = new Set(<%= [
           (a_solved ? 'a' : nil),
@@ -479,6 +480,8 @@
         window.openPopover = function(label) {
           if (solvedLabels.has(label)) return;
           activeLabel = label;
+          _openingFromPill = true;
+          setTimeout(function() { _openingFromPill = false; }, 0);
           const color = COLORS[label];
 
           document.getElementById('popover-badge').textContent = label.toUpperCase();
@@ -560,6 +563,13 @@
           if (!popover || popover.style.display === 'none') return;
           if (!popover.contains(e.target) && !e.target.closest('[id^="pill-"]')) closePopover();
         });
+
+        document.addEventListener('touchstart', function(e) {
+          if (_openingFromPill) return;
+          var popover = document.getElementById('label-popover');
+          if (!popover || popover.style.display === 'none') return;
+          if (!popover.contains(e.target)) closePopover();
+        }, { passive: true });
 
         function detectPillFromCoords(clientX, clientY) {
           var svg = document.getElementById('venn-svg');
