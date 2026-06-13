@@ -486,7 +486,7 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
 
   # ── tester feedback box ───────────────────────────────────────────────────────
 
-  test "tester sees accepted answers on daily puzzle page" do
+  test "tester sees accepted answers on daily puzzle page after completing it" do
     sign_in users(:tester_user)
     puzzle = puzzles(:today_daily)
     day_num = puzzle.day_number
@@ -496,13 +496,33 @@ class PuzzlesControllerTest < ActionDispatch::IntegrationTest
     assert_match puzzle.accepted_answers_a.last, response.body
   end
 
-  test "tester sees missing answers textarea on daily puzzle page" do
+  test "tester does not see accepted answers before completing the puzzle" do
+    sign_in users(:tester_user)
+    puzzle = puzzles(:today_daily)
+    game_sessions(:tester_today_completed).update!(completed: false)
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+    assert_no_match(/accepted_answers/, response.body)
+  end
+
+  test "tester sees missing answers textarea after completing the puzzle" do
     sign_in users(:tester_user)
     puzzle = puzzles(:today_daily)
     day_num = puzzle.day_number
     get "/daily#{day_num}"
     assert_response :success
     assert_match(/name="missing_answers"/, response.body)
+  end
+
+  test "tester does not see missing answers textarea before completing the puzzle" do
+    sign_in users(:tester_user)
+    puzzle = puzzles(:today_daily)
+    game_sessions(:tester_today_completed).update!(completed: false)
+    day_num = puzzle.day_number
+    get "/daily#{day_num}"
+    assert_response :success
+    assert_no_match(/name="missing_answers"/, response.body)
   end
 
   test "non-tester does not see tester feedback box on daily puzzle page" do
