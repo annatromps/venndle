@@ -514,8 +514,10 @@
           // Reset give-up confirmation state
           var guRow = document.getElementById('popover-give-up-row');
           var guConfirm = document.getElementById('popover-give-up-confirm');
-          if (guRow) guRow.style.display = 'flex';
+          if (guRow) { guRow.style.display = 'flex'; guRow.querySelector('button').disabled = false; }
           if (guConfirm) guConfirm.style.display = 'none';
+          var guYes = document.getElementById('popover-give-up-yes');
+          if (guYes) guYes.disabled = false;
 
           document.getElementById('label-popover').style.display = 'block';
           var tapHint = document.getElementById('tap-hint');
