@@ -726,6 +726,7 @@
 
             if (data.completed) {
               try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
+              try { sessionStorage.setItem('venndle_done_' + puzzleId, '1'); } catch(e) {}
               const isPerfect = ['a','b','c'].every(function(lbl) {
                 return attemptMarks[lbl].length === 1 && hintState[lbl].count === 0;
               });
@@ -816,6 +817,7 @@
 
             if (data.completed) {
               try { gtag('event', 'game_complete', { 'game_id': gameId }); } catch(e) {}
+              try { sessionStorage.setItem('venndle_done_' + puzzleId, '1'); } catch(e) {}
               window.location.reload();
             }
           } catch(err) {
@@ -840,9 +842,13 @@
         document.getElementById('popover-give-up-yes').addEventListener('click', giveUp);
         // iOS bfcache: if Safari restores this page from its back/forward cache after
         // the game completed and reloaded to the score panel, the stale active-game
-        // snapshot would show circles as unsolved. Force a reload in that case.
+        // snapshot would show circles as unsolved. Only reload when the completion flag
+        // exists in sessionStorage (set when data.completed fires). This avoids
+        // reloading when iOS merely restores a backgrounded tab mid-game.
         window.addEventListener('pageshow', function(event) {
-          if (event.persisted) { window.location.reload(); }
+          if (event.persisted) {
+            try { if (sessionStorage.getItem('venndle_done_' + puzzleId)) { window.location.reload(); } } catch(e) {}
+          }
         });
       })();
     </script>
