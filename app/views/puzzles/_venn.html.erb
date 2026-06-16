@@ -838,6 +838,12 @@
           document.getElementById('popover-give-up-confirm').style.display = 'none';
         });
         document.getElementById('popover-give-up-yes').addEventListener('click', giveUp);
+        // iOS bfcache: if Safari restores this page from its back/forward cache after
+        // the game completed and reloaded to the score panel, the stale active-game
+        // snapshot would show circles as unsolved. Force a reload in that case.
+        window.addEventListener('pageshow', function(event) {
+          if (event.persisted) { window.location.reload(); }
+        });
       })();
     </script>
 
